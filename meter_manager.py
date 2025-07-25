@@ -64,10 +64,37 @@ class MeterManager:
         """ 
         self.meters = meters
         self.parameters = parameters
-        self.csv_files = [open(name, "a", newline='') for name in csv_filenames]
-        self.csv_writers = [csv.writer(f) for f in self.csv_files]
-        for writer in self.csv_writers:
-            writer.writerow(parameters)
+        
+        # Open CSV files with error handling
+        self.csv_files = []
+        for name in csv_filenames:
+            try:
+                f = open(name, "a", newline='')
+                self.csv_files.append(f)
+            except Exception as e:
+                print(f"Error opening CSV file {name}: {e}")
+                raise
+        
+        # Create CSV writers with error handling
+        self.csv_writers = []
+        for f in self.csv_files:
+            if f is not None:
+                writer = csv.writer(f)
+                self.csv_writers.append(writer)
+            else:
+                self.csv_writers.append(None)
+        
+        # Write headers only if file is new/empty
+        for i, writer in enumerate(self.csv_writers):
+            if writer is not None:
+                try:
+                    # Check if file is empty (new file)
+                    self.csv_files[i].seek(0, 2)  # Seek to end
+                    if self.csv_files[i].tell() == 0:  # File is empty
+                        writer.writerow(parameters)
+                    self.csv_files[i].seek(0, 2)  # Back to end for appending
+                except Exception as e:
+                    print(f"Error writing header to CSV: {e}")
         self.ui_callback = ui_callback
         self.allRegValues = [[0] * len(parameters) for _ in meters]
         self.published_msg = 0
@@ -114,7 +141,16 @@ class MeterManager:
         self.TotalReadings += 1
         for i, meter in enumerate(self.meters):
             regValue = meter.read_data()
-            self.csv_writers[i].writerow(regValue)
+            
+            # Write to CSV with error handling
+            if i < len(self.csv_writers) and self.csv_writers[i] is not None:
+                try:
+                    self.csv_writers[i].writerow(regValue)
+                    # Flush to ensure data is written immediately
+                    self.csv_files[i].flush()
+                except Exception as e:
+                    print(f"Error writing to CSV file {i}: {e}")
+            
             if self.publish_mqtt and self.mqtt_client:
                 self.published_msg = self.mqtt_client.publish_message(self.parameters, regValue, meter.name)
             self.allRegValues[i] = regValue.copy()
@@ -122,6 +158,10 @@ class MeterManager:
             self.ui_callback(self.TotalReadings, stdscr, self.allRegValues)
 
     def close(self):
-        """Closes all CSV files."""
+        """Closes all CSV files safely."""
         for f in self.csv_files:
-            f.close()
+            if f is not None and not f.closed:
+                try:
+                    f.close()
+                except Exception as e:
+                    print(f"Error closing CSV file: {e}")
