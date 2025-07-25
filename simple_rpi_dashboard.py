@@ -35,6 +35,10 @@ from venv_utils import setup_complete_venv_environment
 
 def check_sudo_available():
     """Check if sudo is available and user has sudo access."""
+    # If we're already running as root, we don't need sudo
+    if os.geteuid() == 0:
+        return True
+    
     try:
         result = subprocess.run(["sudo", "-n", "true"], capture_output=True, text=True)
         return result.returncode == 0
@@ -258,7 +262,7 @@ class SimpleDashboard:
             return False
         
         # Check if running with appropriate permissions
-        if not check_sudo_available():
+        if os.geteuid() != 0 and not check_sudo_available():
             print("❌ This operation requires sudo access.")
             print("💡 Run with sudo or ensure user has sudo privileges:")
             print(f"   sudo python3 {os.path.basename(__file__)} --create-service")
@@ -319,21 +323,33 @@ WantedBy=multi-user.target
         service_file = f"/etc/systemd/system/{self.service_name}.service"
         
         try:
-            # Write service file (requires sudo)
-            with open("/tmp/dashboard.service", "w") as f:
-                f.write(service_content)
-            
-            success, stdout, stderr = self.run_command([
-                "sudo", "cp", "/tmp/dashboard.service", service_file
-            ])
+            # Write service file directly if running as root, otherwise use sudo
+            if os.geteuid() == 0:
+                # Running as root - write directly
+                with open(service_file, "w") as f:
+                    f.write(service_content)
+                success = True
+                stderr = ""
+            else:
+                # Not root - use sudo
+                with open("/tmp/dashboard.service", "w") as f:
+                    f.write(service_content)
+                
+                success, stdout, stderr = self.run_command([
+                    "sudo", "cp", "/tmp/dashboard.service", service_file
+                ])
             
             if not success:
                 print(f"❌ Failed to create service file: {stderr}")
                 return False
             
-            # Enable and start service
-            self.run_command(["sudo", "systemctl", "daemon-reload"])
-            self.run_command(["sudo", "systemctl", "enable", self.service_name])
+            # Enable and start service (use sudo if not root)
+            if os.geteuid() == 0:
+                self.run_command(["systemctl", "daemon-reload"])
+                self.run_command(["systemctl", "enable", self.service_name])
+            else:
+                self.run_command(["sudo", "systemctl", "daemon-reload"])
+                self.run_command(["sudo", "systemctl", "enable", self.service_name])
             
             print(f"✅ Systemd service '{self.service_name}' created and enabled")
             print("   The dashboard will start automatically on boot")
