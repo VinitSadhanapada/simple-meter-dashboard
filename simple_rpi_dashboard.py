@@ -33,6 +33,27 @@ from datetime import datetime
 # Import shared venv utilities
 from venv_utils import setup_complete_venv_environment
 
+def auto_use_venv_if_needed():
+    """
+    Automatically restart with venv Python if:
+    1. We're not already running in venv
+    2. venv exists
+    3. We're trying to run the dashboard (--run)
+    """
+    script_dir = Path(__file__).parent.absolute()
+    venv_python = script_dir / "venv" / "bin" / "python"
+    
+    # Check if we're already in venv by checking sys.executable
+    if venv_python.exists() and str(venv_python) != sys.executable:
+        # Check if this is a run command
+        if len(sys.argv) > 1 and any(arg in ['--run', '--run-service'] for arg in sys.argv):
+            print("🔄 Auto-switching to virtual environment...")
+            print(f"   Using: {venv_python}")
+            # Re-execute with venv python
+            os.execv(str(venv_python), [str(venv_python)] + sys.argv)
+    
+    return False  # Not using venv or venv doesn't exist
+
 def check_sudo_available():
     """Check if sudo is available and user has sudo access."""
     # If we're already running as root, we don't need sudo
@@ -501,7 +522,9 @@ WantedBy=multi-user.target
                 time.sleep(CONFIG["READING_INTERVAL"])
                 
         except Exception as e:
+            import traceback
             self.logger.error(f"Dashboard error: {e}")
+            self.logger.error(f"Full traceback: {traceback.format_exc()}")
             return False
     
     def check_status(self):
@@ -515,6 +538,17 @@ WantedBy=multi-user.target
             print("✅ Service: Running")
         else:
             print("❌ Service: Not running")
+        
+        # Check for manually running processes
+        success, stdout, stderr = self.run_command(["pgrep", "-f", "simple_rpi_dashboard.py --run"], check=False)
+        if success and stdout.strip():
+            pids = stdout.strip().split('\n')
+            print(f"🔄 Manual processes: {len(pids)} running")
+            for pid in pids:
+                if pid.strip():
+                    print(f"   PID: {pid.strip()}")
+        else:
+            print("⭕ Manual processes: None running")
         
         # Check venv
         if self.venv_dir.exists():
@@ -538,17 +572,47 @@ WantedBy=multi-user.target
         print("=" * 40)
     
     def stop_dashboard(self):
-        """Stop the dashboard service."""
+        """Stop the dashboard service and any running processes."""
         print("🛑 Stopping dashboard...")
         
+        # First, try to stop the systemd service
         success, stdout, stderr = self.run_command(["sudo", "systemctl", "stop", self.service_name], check=False)
         if success:
-            print("✅ Dashboard stopped")
+            print("✅ Dashboard service stopped")
         else:
-            print(f"❌ Failed to stop dashboard: {stderr}")
+            print(f"⚠️ Service stop result: {stderr}")
+        
+        # Also kill any manually running dashboard processes
+        print("🔍 Checking for running dashboard processes...")
+        success, stdout, stderr = self.run_command(["pgrep", "-f", "simple_rpi_dashboard.py --run"], check=False)
+        
+        if success and stdout.strip():
+            print("🔄 Found running dashboard processes, stopping them...")
+            pids = stdout.strip().split('\n')
+            for pid in pids:
+                if pid.strip():
+                    print(f"   Stopping process {pid.strip()}")
+                    self.run_command(["kill", "-TERM", pid.strip()], check=False)
+            
+            # Wait a moment, then force kill if still running
+            time.sleep(2)
+            success2, stdout2, stderr2 = self.run_command(["pgrep", "-f", "simple_rpi_dashboard.py --run"], check=False)
+            if success2 and stdout2.strip():
+                print("🔨 Force stopping remaining processes...")
+                pids2 = stdout2.strip().split('\n')
+                for pid in pids2:
+                    if pid.strip():
+                        self.run_command(["kill", "-KILL", pid.strip()], check=False)
+            
+            print("✅ All dashboard processes stopped")
+        else:
+            print("ℹ️ No running dashboard processes found")
 
 def main():
     """Main entry point."""
+    # Auto-switch to venv if needed for --run commands
+    auto_use_venv_if_needed()
+    
     parser = argparse.ArgumentParser(description="Simple RPi Dashboard Manager")
     parser.add_argument("--check-prereq", action="store_true", help="Check prerequisites and permissions")
     parser.add_argument("--setup", action="store_true", help="Setup environment (venv + packages + directories)")
@@ -579,6 +643,19 @@ def main():
             dashboard.create_service_only()
     elif args.run or args.run_service:
         # Both --run and --run-service do the same thing
+        script_dir = Path(__file__).parent.absolute()
+        venv_dir = script_dir / "venv"
+        
+        if not venv_dir.exists():
+            print("❌ Virtual environment not found!")
+            print("🔧 Please run setup first:")
+            print("   python3 simple_rpi_dashboard.py --setup")
+            print("   python3 simple_rpi_dashboard.py --create-service")
+            print("")
+            print("💡 Or use the quick install:")
+            print("   python3 simple_rpi_dashboard.py --install")
+            sys.exit(1)
+        
         dashboard.run_dashboard()
     elif args.status:
         dashboard.check_status()
@@ -601,8 +678,10 @@ def main():
         print("  python3 simple_rpi_dashboard.py --create-service # Create service file (requires sudo)")
         print("  python3 simple_rpi_dashboard.py --install        # Full setup + service (requires sudo)")
         print("\n▶️  Running:")
-        print("  python3 simple_rpi_dashboard.py --run            # Run dashboard manually")
+        print("  python3 simple_rpi_dashboard.py --run            # Run dashboard manually (auto-uses venv)")
         print("  python3 simple_rpi_dashboard.py --status         # Check service status")
+        print("")
+        print("💡 Note: --run automatically uses virtual environment if available")
         print("\n🔧 Service Management:")
         print("  python3 simple_rpi_dashboard.py --start          # Start service")
         print("  python3 simple_rpi_dashboard.py --stop           # Stop service")

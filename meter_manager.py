@@ -1,5 +1,50 @@
 import csv
 import time
+from datetime import datetime
+
+def format_csv_value(value, param_name):
+    """
+    Format a value for CSV output with simple, consistent formatting.
+    
+    Args:
+        value: The raw value from meter reading
+        param_name: The parameter name to determine formatting
+    
+    Returns:
+        str: Formatted value string
+    """
+    if value in [0, "0", "0.0", 0.0]:
+        return "0"
+    
+    try:
+        # Convert to float for formatting
+        float_val = float(value)
+        
+        # Round to 2 decimal places for most values
+        if float_val == int(float_val):
+            return str(int(float_val))  # No decimals for whole numbers
+        else:
+            return f"{float_val:.2f}"  # 2 decimal places for others
+            
+    except (ValueError, TypeError):
+        # If conversion fails, return as string
+        return str(value)
+
+def create_formatted_csv_header(parameters):
+    """
+    Create a simple, readable CSV header by cleaning up parameter names.
+    
+    Returns:
+        list: Formatted header row
+    """
+    formatted_headers = []
+    
+    for param in parameters:
+        # Simple cleanup: replace spaces with underscores, remove extra characters
+        clean_name = param.replace(" ", "_").replace(".", "").replace("(", "").replace(")", "")
+        formatted_headers.append(clean_name)
+    
+    return formatted_headers
 
 """
 MeterManager Module for Multi-Device Coordination.
@@ -91,7 +136,9 @@ class MeterManager:
                     # Check if file is empty (new file)
                     self.csv_files[i].seek(0, 2)  # Seek to end
                     if self.csv_files[i].tell() == 0:  # File is empty
-                        writer.writerow(parameters)
+                        # Use formatted headers instead of raw parameters
+                        formatted_headers = create_formatted_csv_header(parameters)
+                        writer.writerow(formatted_headers)
                     self.csv_files[i].seek(0, 2)  # Back to end for appending
                 except Exception as e:
                     print(f"Error writing header to CSV: {e}")
@@ -142,10 +189,21 @@ class MeterManager:
         for i, meter in enumerate(self.meters):
             regValue = meter.read_data()
             
-            # Write to CSV with error handling
+            # Write to CSV with error handling and formatting
             if i < len(self.csv_writers) and self.csv_writers[i] is not None:
                 try:
-                    self.csv_writers[i].writerow(regValue)
+                    # Format the values for better CSV output
+                    formatted_row = []
+                    for j, value in enumerate(regValue):
+                        if j == 0:  # Timestamp - keep as-is
+                            formatted_row.append(value)
+                        else:
+                            # Get parameter name for formatting
+                            param_name = self.parameters[j] if j < len(self.parameters) else "Unknown"
+                            formatted_value = format_csv_value(value, param_name)
+                            formatted_row.append(formatted_value)
+                    
+                    self.csv_writers[i].writerow(formatted_row)
                     # Flush to ensure data is written immediately
                     self.csv_files[i].flush()
                 except Exception as e:

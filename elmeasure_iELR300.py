@@ -120,14 +120,18 @@ def ReadMeterData(client, deviceID, Parameters, errorFile):
     except:
         #print("Received ModbusException from library while reading address " + str(Address) + " For device: " + str(deviceID))
         now = datetime.datetime.now()
-        errorFile.write("["+now.strftime("%Y-%m-%d %H:%M:%S")+"]" + " Received ModbusException from library while reading address " + str(Address) + " For device: " + str(deviceID)+"\n")
+        if errorFile:
+
+            errorFile.write("["+now.strftime("%Y-%m-%d %H:%M:%S")+"]" + " Received ModbusException from library while reading address " + str(Address) + " For device: " + str(deviceID)+"\n")
         returnVal = [-1] * len(Parameters)
         return returnVal
     
     if response1.isError():
         # print(f"Received exception from device ({response1})")
         now = datetime.datetime.now()
-        errorFile.write("["+now.strftime("%Y-%m-%d %H:%M:%S")+"]" + " Received exception from device ({response1})"+"\n")
+        if errorFile:
+
+            errorFile.write("["+now.strftime("%Y-%m-%d %H:%M:%S")+"]" + " Received exception from device ({response1})"+"\n")
         # THIS IS NOT A PYTHON EXCEPTION, but a valid modbus message
         # Try reading the same value one more time.
         try:
@@ -135,14 +139,18 @@ def ReadMeterData(client, deviceID, Parameters, errorFile):
         except:
             # print("Received ModbusException from library while reading address " + str(Address) + " For device: " + str(deviceID))
             now = datetime.datetime.now()
-            errorFile.write("["+now.strftime("%Y-%m-%d %H:%M:%S")+"]" + " Received ModbusException from library while reading address " + str(Address) + " For device: " + str(deviceID)+"\n")
+            if errorFile:
+
+                errorFile.write("["+now.strftime("%Y-%m-%d %H:%M:%S")+"]" + " Received ModbusException from library while reading address " + str(Address) + " For device: " + str(deviceID)+"\n")
             returnVal = [-1] * len(Parameters)
             return returnVal
 
         if response1.isError():
             # print(f"Received exception from device 2nd time ({response1})")
             now = datetime.datetime.now()
-            errorFile.write("["+now.strftime("%Y-%m-%d %H:%M:%S")+"]" + " Received exception from device 2nd time ({response1})"+"\n")
+            if errorFile:
+
+                errorFile.write("["+now.strftime("%Y-%m-%d %H:%M:%S")+"]" + " Received exception from device 2nd time ({response1})"+"\n")
             # THIS IS NOT A PYTHON EXCEPTION, but a valid modbus message
             returnVal = [NO_RESPONSE_FROM_DEVICE] * len(Parameters)
             return returnVal

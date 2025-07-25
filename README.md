@@ -1,3 +1,9 @@
+# Current bugs
+
+Multiple instances running
+Check with: ps aux | grep -E "(simple_rpi_dashboard|print_dashboard)" | grep -v grep
+
+
 # Meter Reading Dashboard System
 
 A comprehensive electrical meter reading system with multiple deployment options for different use cases.

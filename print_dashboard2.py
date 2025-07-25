@@ -106,9 +106,7 @@ REFRESH_INTERVAL = 5    # Dashboard refresh interval
 
 # Device Configuration - Customize your meters here
 DEVICE_CONFIG = [
-    {"name": "Main Panel", "address": 1, "model": "LG6400"},
-    {"name": "Generator Set", "address": 2, "model": "LG6400"},
-    {"name": "UPS System", "address": 3, "model": "LG6400"},
+    {"name": "Main Panel", "address": 1, "model": "LG6400"}
     # Add more devices as needed:
     # {"name": "Your Device Name", "address": 4, "model": "LG6400"},
     # {"name": "Another Device", "address": 5, "model": "EN8410"},
