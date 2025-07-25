@@ -501,7 +501,9 @@ WantedBy=multi-user.target
                 time.sleep(CONFIG["READING_INTERVAL"])
                 
         except Exception as e:
+            import traceback
             self.logger.error(f"Dashboard error: {e}")
+            self.logger.error(f"Full traceback: {traceback.format_exc()}")
             return False
     
     def check_status(self):
