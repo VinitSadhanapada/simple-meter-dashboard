@@ -425,7 +425,7 @@ WantedBy=multi-user.target
             
             from meter_manager import MeterManager
             from meter_device import MeterDevice
-            from macros import DEVICE_NAMES, PARAMETERS
+            from macros import PARAMETERS  # Only import PARAMETERS, not DEVICE_NAMES
             import mqtt_client as mqtt
             from pymodbus.client.sync import ModbusSerialClient as ModbusClient
             
@@ -462,18 +462,24 @@ WantedBy=multi-user.target
             csv_files = []
             meters = []
             
-            for i, device_name in enumerate(DEVICE_NAMES):
+            # Use DEVICE_CONFIG instead of DEVICE_NAMES
+            for i, device_config in enumerate(DEVICE_CONFIG):
+                device_name = device_config["name"]
+                device_address = device_config["address"]
+                device_model = device_config["model"]
+                
                 clean_name = "".join(c for c in device_name if c.isalnum() or c in ('-', '_'))
                 csv_file = self.csv_dir / f"{clean_name}_{timestamp}.csv"
                 csv_files.append(str(csv_file))
                 
                 meter = MeterDevice(
                     name=device_name,
-                    model="LG6400",
+                    model=device_model,
                     parameters=PARAMETERS,
                     client=client,
                     error_file=None,
-                    simulation_mode=CONFIG["SIMULATION_MODE"]
+                    simulation_mode=CONFIG["SIMULATION_MODE"],
+                    device_address=device_address  # Pass the configurable address
                 )
                 meters.append(meter)
             
