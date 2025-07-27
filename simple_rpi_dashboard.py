@@ -116,7 +116,8 @@ def check_user_permissions():
 # Configuration
 CONFIG = {
     "SIMULATION_MODE": False,
-    "READING_INTERVAL": 5,
+    "READING_INTERVAL": 10,  # Match legacy script (10 seconds between reading cycles)
+    "INTER_DEVICE_DELAY": 0.1,  # Delay between device reads (seconds) - matches legacy intervalBwMeter
     "PORT": "/dev/ttyUSB0",
     "ENABLE_MQTT": False,
     "LOG_LEVEL": "INFO"
@@ -125,7 +126,8 @@ CONFIG = {
 # Device Configuration - Customize your meters here
 DEVICE_CONFIG = [
     {"name": "SP3 UPS", "address": 1, "model": "LG6400"},
-    {"name": "Suryakund UPS", "address": 2, "model": "LG+5220"}
+    {"name": "Suryakund UPS", "address": 2, "model": "LG+5220"},
+    # {"name": "BP", "address": 3, "model": "EN8410"},
     # Add more devices as needed:
     # {"name": "Your Device Name", "address": 4, "model": "LG6400"},
     # {"name": "Another Device", "address": 5, "model": "EN8410"},
@@ -515,7 +517,7 @@ WantedBy=multi-user.target
             
             # Main loop
             while True:
-                manager.read_all()
+                manager.read_all(inter_device_delay=CONFIG["INTER_DEVICE_DELAY"])
                 
                 if manager.TotalReadings % 10 == 0:
                     self.logger.info(f"Completed {manager.TotalReadings} reading cycles")
