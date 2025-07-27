@@ -1,3 +1,9 @@
+# To work on having automatic repo cloning and running initial.py
+# This script checks for the presence of Python, pip, and required packages,
+# installs them if missing, and sets up a virtual environment.
+# keep the track of user variable in get_desktop_path function, adjust it if needed to pi or isha.
+
+
 import subprocess
 import sys
 import os
@@ -81,7 +87,7 @@ def write_status_file(installed_packages):
 
 
 def main():
-    required = ["python3-venv", "python3-pip", "python3-tk"]
+    required = ["python3-venv", "python3-pip", "python3-tk", "git"]
     missing = [pkg for pkg in required if not is_package_installed(pkg)]
 
   # Create venv if not exists
