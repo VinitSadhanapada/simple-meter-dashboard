@@ -73,6 +73,36 @@ def get_desktop_path():
     return os.path.join(home_dir, "Desktop", "pkg.status_succ")
 
 
+def clone_repo_to_desktop(repo_url, folder_name=None):
+    """
+    Clone the given git repo onto the user's Desktop. If folder_name is not provided, use the repo name.
+    """
+    user = os.environ.get("SUDO_USER") or os.environ.get("USER") or "isha"
+    if user == "root":
+        user = "isha"
+    home_dir = os.path.expanduser(f"~{user}")
+    desktop_dir = os.path.join(home_dir, "Desktop")
+    if not os.path.isdir(desktop_dir):
+        print(f"❌ Desktop directory not found: {desktop_dir}")
+        return
+    if not repo_url:
+        print("❌ No repo URL provided to clone.")
+        return
+    if folder_name is None:
+        folder_name = os.path.splitext(os.path.basename(
+            repo_url.rstrip('/').replace('.git', '')))[0]
+    dest_path = os.path.join(desktop_dir, folder_name)
+    if os.path.exists(dest_path):
+        print(f"✓ Repo folder already exists at {dest_path}")
+        return
+    print(f"🔧 Cloning repo {repo_url} to {dest_path} ...")
+    try:
+        subprocess.check_call(["git", "clone", repo_url, dest_path])
+        print(f"✓ Repo cloned to {dest_path}")
+    except Exception as e:
+        print(f"❌ Failed to clone repo: {e}")
+
+
 def write_status_file(installed_packages):
     desktop_path = get_desktop_path()
     try:
@@ -124,6 +154,7 @@ def main():
     print("🔧 Ensuring all required pip packages (with correct versions) are installed...")
     ret = os.system(f"{venv_python} -m pip install --upgrade " +
                     " ".join(required_pip))
+
     if ret == 0:
         print("✓ All pip packages installed successfully.")
         # Get installed pip packages for the status file
@@ -136,6 +167,10 @@ def main():
             installed = required_pip
         show_success_popup()
         write_status_file(installed)
+
+        # Clone a dummy git repo to Desktop
+        dummy_repo_url = "https://github.com/VinitSadhanapada/simple-meter-dashboard.git"
+        clone_repo_to_desktop(dummy_repo_url)
     else:
         print("❌ Failed to install some pip packages. Please install them manually.")
         sys.exit(1)
