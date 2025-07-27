@@ -125,6 +125,7 @@ CONFIG = {
 # Device Configuration - Customize your meters here
 DEVICE_CONFIG = [
     {"name": "SP3 UPS", "address": 1, "model": "LG6400"},
+    {"name": "Suryakund UPS", "address": 2, "model": "LG+5220"}
     # Add more devices as needed:
     # {"name": "Your Device Name", "address": 4, "model": "LG6400"},
     # {"name": "Another Device", "address": 5, "model": "EN8410"},
