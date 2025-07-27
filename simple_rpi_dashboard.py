@@ -116,7 +116,8 @@ def check_user_permissions():
 # Configuration
 CONFIG = {
     "SIMULATION_MODE": False,
-    "READING_INTERVAL": 5,
+    "READING_INTERVAL": 10,  # Match legacy script (10 seconds between reading cycles)
+    "INTER_DEVICE_DELAY": 0.1,  # Delay between device reads (seconds) - matches legacy intervalBwMeter
     "PORT": "/dev/ttyUSB0",
     "ENABLE_MQTT": False,
     "LOG_LEVEL": "INFO"
@@ -126,8 +127,8 @@ CONFIG = {
 DEVICE_CONFIG = [
     {"name": "SP3 UPS", "address": 1, "model": "LG6400"},
     # Add more devices as needed:
-    # {"name": "Your Device Name", "address": 4, "model": "LG6400"},
-    # {"name": "Another Device", "address": 5, "model": "EN8410"},
+    {"name": "Suryakund UPS", "address": 2, "model": "LG+5220"},
+    # {"name": "BP", "address": 3, "model": "EN8410"},
 ]
 
 REQUIRED_PACKAGES = [
@@ -450,6 +451,21 @@ WantedBy=multi-user.target
             import mqtt_client as mqtt
             from pymodbus.client.sync import ModbusSerialClient as ModbusClient
             
+            # Initialize RTC system for reliable time keeping
+            rtc_manager = None
+            try:
+                from rtc_manager import RTCManager
+                self.logger.info("Initializing RTC system for offline time keeping...")
+                rtc_manager = RTCManager(self.logger)
+                if rtc_manager.initialize_rtc_system():
+                    self.logger.info("✅ RTC system ready - accurate timestamps for long-term offline operation")
+                else:
+                    self.logger.warning("⚠️ RTC initialization failed - using system time only")
+                    rtc_manager = None
+            except Exception as e:
+                self.logger.warning(f"RTC not available: {e} - using system time only")
+                rtc_manager = None
+            
             self.logger.info("Modules imported successfully")
             
             # Initialize hardware
@@ -500,7 +516,8 @@ WantedBy=multi-user.target
                     client=client,
                     error_file=None,
                     simulation_mode=CONFIG["SIMULATION_MODE"],
-                    device_address=device_address  # Pass the configurable address
+                    device_address=device_address,  # Pass the configurable address
+                    rtc_manager=rtc_manager  # Pass RTC manager for reliable timestamps
                 )
                 meters.append(meter)
             
@@ -512,12 +529,33 @@ WantedBy=multi-user.target
             
             self.logger.info(f"Dashboard started with {len(meters)} devices")
             
+            # Setup periodic time synchronization for long-term operation
+            sync_check_interval = 0
+            last_sync_attempt = time.time()
+            
             # Main loop
             while True:
-                manager.read_all()
+                manager.read_all(inter_device_delay=CONFIG["INTER_DEVICE_DELAY"])
                 
                 if manager.TotalReadings % 10 == 0:
                     self.logger.info(f"Completed {manager.TotalReadings} reading cycles")
+                
+                # Periodic RTC sync check (every 6 hours for long-term operation)
+                if rtc_manager and time.time() - last_sync_attempt > 21600:  # 6 hours
+                    try:
+                        self.logger.info("Performing periodic time synchronization check...")
+                        if rtc_manager.check_internet_connectivity():
+                            if rtc_manager.sync_with_ntp():
+                                rtc_manager.sync_rtc_with_system_time()
+                                self.logger.info("✅ Periodic time sync completed")
+                            else:
+                                self.logger.info("⚠️ NTP sync failed - continuing with RTC time")
+                        else:
+                            self.logger.info("ℹ️ No internet - RTC time synchronization skipped")
+                        last_sync_attempt = time.time()
+                    except Exception as e:
+                        self.logger.warning(f"Periodic sync error: {e}")
+                        last_sync_attempt = time.time()  # Don't retry too quickly
                 
                 time.sleep(CONFIG["READING_INTERVAL"])
                 

@@ -149,7 +149,7 @@ class MeterManager:
         self.mqtt_client = mqtt_client
         self.publish_mqtt = publish_mqtt
 
-    def read_all(self, stdscr=None):
+    def read_all(self, stdscr=None, inter_device_delay=0.1):
         """
         Read data from all meters and perform associated operations.
         
@@ -166,6 +166,8 @@ class MeterManager:
             stdscr (curses.window, optional): Curses screen object for UI updates.
                                             If provided and ui_callback is set,
                                             passes to callback for display updates.
+            inter_device_delay (float): Delay in seconds between reading each device.
+                                      Default: 0.1 seconds (100ms)
         
         Returns:
             None
@@ -179,6 +181,7 @@ class MeterManager:
             
         Example:
             >>> manager.read_all()  # Simple reading cycle
+            >>> manager.read_all(inter_device_delay=0.2)  # With 200ms delay between devices
             
         Note:
             The stdscr parameter exists for backwards compatibility with legacy
@@ -212,6 +215,12 @@ class MeterManager:
             if self.publish_mqtt and self.mqtt_client:
                 self.published_msg = self.mqtt_client.publish_message(self.parameters, regValue, meter.name)
             self.allRegValues[i] = regValue.copy()
+            
+            # Add delay between device reads to avoid Modbus conflicts
+            # Skip delay after the last device
+            if i < len(self.meters) - 1 and inter_device_delay > 0:
+                time.sleep(inter_device_delay)
+        
         if self.ui_callback and stdscr is not None:
             self.ui_callback(self.TotalReadings, stdscr, self.allRegValues)
 
