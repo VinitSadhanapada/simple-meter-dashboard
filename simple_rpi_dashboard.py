@@ -120,6 +120,7 @@ CONFIG = {
     "INTER_DEVICE_DELAY": 0.1,  # Delay between device reads (seconds) - matches legacy intervalBwMeter
     "PORT": "/dev/ttyUSB0",
     "ENABLE_MQTT": False,
+    "ENABLE_RTC": True,  # Enable RTC for offline time keeping
     "LOG_LEVEL": "INFO"
 }
 
@@ -455,6 +456,22 @@ WantedBy=multi-user.target
             
             self.logger.info("Modules imported successfully")
             
+            # Initialize RTC for offline time keeping
+            if CONFIG["ENABLE_RTC"]:
+                self.logger.info("Initializing RTC system for offline time keeping...")
+                try:
+                    from rtc_manager import RTCManager
+                    rtc_manager = RTCManager(logger=self.logger)
+                    
+                    if rtc_manager.initialize_for_offline_operation():
+                        self.logger.info("✅ RTC system ready for offline operation")
+                    else:
+                        self.logger.warning("⚠️ RTC initialization failed - using system time only")
+                except Exception as e:
+                    self.logger.warning(f"⚠️ RTC initialization error: {e} - using system time only")
+            else:
+                self.logger.info("RTC disabled - using system time only")
+            
             # Initialize hardware
             client = None
             if not CONFIG["SIMULATION_MODE"]:
@@ -610,6 +627,75 @@ WantedBy=multi-user.target
             print("✅ All dashboard processes stopped")
         else:
             print("ℹ️ No running dashboard processes found")
+    
+    def view_logs(self):
+        """View recent dashboard logs."""
+        print("📋 Recent Dashboard Logs")
+        print("=" * 40)
+        
+        if not self.log_dir.exists():
+            print("❌ No log directory found")
+            return
+        
+        log_files = list(self.log_dir.glob("*.log"))
+        if not log_files:
+            print("❌ No log files found")
+            return
+        
+        # Get the most recent log file
+        latest_log = max(log_files, key=lambda x: x.stat().st_mtime)
+        print(f"📁 Showing last 50 lines from: {latest_log.name}")
+        print("-" * 40)
+        
+        try:
+            with open(latest_log, 'r') as f:
+                lines = f.readlines()
+                for line in lines[-50:]:  # Show last 50 lines
+                    print(line.rstrip())
+        except Exception as e:
+            print(f"❌ Error reading log file: {e}")
+    
+    def start_service(self):
+        """Start the dashboard service."""
+        print("🚀 Starting dashboard service...")
+        
+        success, stdout, stderr = self.run_command(["sudo", "systemctl", "start", self.service_name], check=False)
+        if success:
+            print("✅ Dashboard service started")
+            time.sleep(2)  # Wait a moment
+            self.check_status()
+        else:
+            print(f"❌ Failed to start service: {stderr}")
+    
+    def restart_service(self):
+        """Restart the dashboard service."""
+        print("🔄 Restarting dashboard service...")
+        
+        success, stdout, stderr = self.run_command(["sudo", "systemctl", "restart", self.service_name], check=False)
+        if success:
+            print("✅ Dashboard service restarted")
+            time.sleep(2)  # Wait a moment
+            self.check_status()
+        else:
+            print(f"❌ Failed to restart service: {stderr}")
+    
+    def uninstall_service(self):
+        """Uninstall the dashboard service."""
+        print("🗑️ Uninstalling dashboard service...")
+        
+        # Stop and disable service
+        self.run_command(["sudo", "systemctl", "stop", self.service_name], check=False)
+        self.run_command(["sudo", "systemctl", "disable", self.service_name], check=False)
+        
+        # Remove service file
+        service_file = f"/etc/systemd/system/{self.service_name}.service"
+        success, stdout, stderr = self.run_command(["sudo", "rm", "-f", service_file], check=False)
+        
+        if success:
+            self.run_command(["sudo", "systemctl", "daemon-reload"], check=False)
+            print("✅ Dashboard service uninstalled")
+        else:
+            print(f"❌ Failed to remove service file: {stderr}")
 
 def main():
     """Main entry point."""
