@@ -10,7 +10,7 @@ import os
 import datetime
 
 
-VENV_DIR = "venv1"
+VENV_DIR = "venv"  # Directory for the virtual environment
 
 
 def create_venv():
@@ -97,7 +97,8 @@ def clone_repo_to_desktop(repo_url, folder_name=None):
         return
     print(f"🔧 Cloning repo {repo_url} to {dest_path} ...")
     try:
-        subprocess.check_call(["git", "clone", repo_url, dest_path])
+        subprocess.check_call(
+            ["git", "clone", "--branch", "feature/device-config-and-rpi-setup", "--single-branch", repo_url, dest_path])
         print(f"✓ Repo cloned to {dest_path}")
     except Exception as e:
         print(f"❌ Failed to clone repo: {e}")
@@ -170,6 +171,7 @@ def main():
 
         # Clone a dummy git repo to Desktop
         dummy_repo_url = "https://github.com/VinitSadhanapada/simple-meter-dashboard.git"
+
         clone_repo_to_desktop(dummy_repo_url)
     else:
         print("❌ Failed to install some pip packages. Please install them manually.")
