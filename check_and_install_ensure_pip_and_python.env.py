@@ -150,11 +150,9 @@ def clone_repo_to_desktop(repo_url, folder_name=None):
     dest_path = os.path.join(desktop_dir, folder_name)
     if os.path.exists(dest_path):
         print(f"⚠️ Repo folder already exists at {dest_path}. Updating repository...")
-        # Check if it's already a git repository
         git_dir = os.path.join(dest_path, ".git")
         if os.path.exists(git_dir):
             try:
-                # It's already a git repo, just pull the latest changes
                 print("   Pulling latest changes from existing git repository...")
                 subprocess.check_call(["git", "-C", dest_path, "fetch", "origin"])
                 subprocess.check_call(["git", "-C", dest_path, "checkout", "feature/device-config-and-rpi-setup"])
@@ -163,9 +161,13 @@ def clone_repo_to_desktop(repo_url, folder_name=None):
                 return
             except Exception as e:
                 print(f"❌ Failed to update existing git repo: {e}")
-                print("   Falling back to fresh clone...")
-        
-        # If not a git repo or update failed, initialize as new git repo
+                print("   Removing .git and re-initializing repository...")
+                import shutil
+                try:
+                    shutil.rmtree(git_dir)
+                except Exception as e2:
+                    print(f"❌ Could not remove .git directory: {e2}")
+        # Now .git is gone, re-init and add remote
         try:
             subprocess.check_call(["git", "-C", dest_path, "init"])
             subprocess.check_call(["git", "-C", dest_path, "remote", "add", "origin", repo_url])
