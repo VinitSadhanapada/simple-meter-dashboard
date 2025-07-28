@@ -13,34 +13,45 @@ import datetime
 
 
 # Robust user detection for all environments (root, sudo, pi, isha, etc)
+
 def detect_user():
     import pwd
-    # 1. If running with sudo, use SUDO_USER
+    # 1. If /home/pi exists, always use 'pi' (for Raspberry Pi)
+    if os.path.isdir("/home/pi"):
+        print("[USER DETECT] Using 'pi' because /home/pi exists.")
+        return "pi"
+    # 2. If running with sudo, use SUDO_USER
     sudo_user = os.environ.get("SUDO_USER")
     if sudo_user and sudo_user != "root":
+        print(f"[USER DETECT] Using SUDO_USER={sudo_user}")
         return sudo_user
-    # 2. If LOGNAME or USER is set and not root, use it
+    # 3. If LOGNAME or USER is set and not root, use it
     for var in ("LOGNAME", "USER"):
         val = os.environ.get(var)
         if val and val != "root":
+            print(f"[USER DETECT] Using {var}={val}")
             return val
-    # 3. If running as root, check for /home/pi, /home/isha, or any /home/*
-    for candidate in ("pi", "isha"):
-        if os.path.isdir(f"/home/{candidate}"):
-            return candidate
-    # 4. Fallback: first user in /home
+    # 4. If /home/isha exists, use 'isha'
+    if os.path.isdir("/home/isha"):
+        print("[USER DETECT] Using 'isha' because /home/isha exists.")
+        return "isha"
+    # 5. Fallback: first user in /home
     try:
         home_users = [d for d in os.listdir("/home") if os.path.isdir(os.path.join("/home", d))]
         if home_users:
+            print(f"[USER DETECT] Using first user in /home: {home_users[0]}")
             return home_users[0]
     except Exception:
         pass
-    # 5. Fallback: current user id
+    # 6. Fallback: current user id
     try:
-        return pwd.getpwuid(os.getuid()).pw_name
+        user = pwd.getpwuid(os.getuid()).pw_name
+        print(f"[USER DETECT] Using current user id: {user}")
+        return user
     except Exception:
         pass
-    # 6. Last resort
+    # 7. Last resort
+    print("[USER DETECT] Defaulting to 'pi'")
     return "pi"
 
 # Set the global USER variable for all user-specific operations
