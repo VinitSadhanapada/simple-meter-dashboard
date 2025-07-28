@@ -11,10 +11,40 @@ import os
 import datetime
 
 
+
+# Robust user detection for all environments (root, sudo, pi, isha, etc)
+def detect_user():
+    import pwd
+    # 1. If running with sudo, use SUDO_USER
+    sudo_user = os.environ.get("SUDO_USER")
+    if sudo_user and sudo_user != "root":
+        return sudo_user
+    # 2. If LOGNAME or USER is set and not root, use it
+    for var in ("LOGNAME", "USER"):
+        val = os.environ.get(var)
+        if val and val != "root":
+            return val
+    # 3. If running as root, check for /home/pi, /home/isha, or any /home/*
+    for candidate in ("pi", "isha"):
+        if os.path.isdir(f"/home/{candidate}"):
+            return candidate
+    # 4. Fallback: first user in /home
+    try:
+        home_users = [d for d in os.listdir("/home") if os.path.isdir(os.path.join("/home", d))]
+        if home_users:
+            return home_users[0]
+    except Exception:
+        pass
+    # 5. Fallback: current user id
+    try:
+        return pwd.getpwuid(os.getuid()).pw_name
+    except Exception:
+        pass
+    # 6. Last resort
+    return "pi"
+
 # Set the global USER variable for all user-specific operations
-USER = os.environ.get("SUDO_USER") or os.environ.get("LOGNAME") or os.environ.get("USER") or "isha"
-if USER == "root":
-    USER = "isha"  # fallback to your actual username, change to 'pi' if needed
+USER = detect_user()
 
 # Always use the Desktop project directory for venv and all files
 PROJECT_DIR = os.path.join(os.path.expanduser(f"~{USER}"), "Desktop", "simple-meter-dashboard")
