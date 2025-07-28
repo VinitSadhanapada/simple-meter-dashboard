@@ -4,6 +4,8 @@
 #b.Add this line at the end (replace pi with your actual username if needed) remove # before pi:
 #pi ALL=(ALL) NOPASSWD: /usr/bin/apt-get
 
+#source the setup_boot.sh file to run the commands below.
+
 #2. mkdir -p /home/pi/deepak/enhanced_dashboard_system/
 #3. cp <python_file check_and_install_ensure_pip_and_python.env.py> to /home/pi/deepak/enhanced_dashboard_system/
 
@@ -15,5 +17,13 @@
 
 if [ "$2" = "up" ]; then
     echo "internet restarted at $(date '+%Y-%m-%d %H:%M:%S')" > /home/pi/Desktop/11.ok
-    /usr/bin/python3 /home/pi/deepak/enhanced_dashboard_system/check_and_install_ensure_pip_and_python.env.py > /home/pi/Desktop/dispatcher.log 2>&1
+    echo "Running check_and_install_ensure_pip_and_python.env.py script at $(date '+%Y-%m-%d %H:%M:%S')" > /home/pi/Desktop/dispatcher.log
+    /usr/bin/python3 /home/pi/deepak/enhanced_dashboard_system/check_and_install_ensure_pip_and_python.env.py >> /home/pi/Desktop/dispatcher.log 2>&1
+    echo "Permissions updated for pi user at $(date '+%Y-%m-%d %H:%M:%S')" >> /home/pi/Desktop/dispatcher.log
+    chown -R pi:pi /home/pi/Desktop/11.ok /home/pi/Desktop/dispatcher.log /home/pi/Desktop/pkg_success_status /home/pi/Desktop/simple-rpi-dashboard >> /home/pi/Desktop/dispatcher.log 2>&1
+    echo "Ownership changed to pi user at $(date '+%Y-%m-%d %H:%M:%S')" >> /home/pi/Desktop/dispatcher.log
+    echo "Script executed successfully at $(date '+%Y-%m-%d %H:%M:%S')" >> /home/pi/Desktop/dispatcher.log
+else
+    
+
 fi
