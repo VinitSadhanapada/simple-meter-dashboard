@@ -101,8 +101,34 @@ def clone_repo_to_desktop(repo_url, folder_name=None):
             repo_url.rstrip('/').replace('.git', '')))[0]
     dest_path = os.path.join(desktop_dir, folder_name)
     if os.path.exists(dest_path):
-        print(f"✓ Repo folder already exists at {dest_path}")
-        return
+        print(f"⚠️ Repo folder already exists at {dest_path}. Updating repository...")
+        # Check if it's already a git repository
+        git_dir = os.path.join(dest_path, ".git")
+        if os.path.exists(git_dir):
+            try:
+                # It's already a git repo, just pull the latest changes
+                print("   Pulling latest changes from existing git repository...")
+                subprocess.check_call(["git", "-C", dest_path, "fetch", "origin"])
+                subprocess.check_call(["git", "-C", dest_path, "checkout", "feature/device-config-and-rpi-setup"])
+                subprocess.check_call(["git", "-C", dest_path, "pull", "origin", "feature/device-config-and-rpi-setup"])
+                print(f"✓ Repository updated at {dest_path}")
+                return
+            except Exception as e:
+                print(f"❌ Failed to update existing git repo: {e}")
+                print("   Falling back to fresh clone...")
+        
+        # If not a git repo or update failed, initialize as new git repo
+        try:
+            subprocess.check_call(["git", "-C", dest_path, "init"])
+            subprocess.check_call(["git", "-C", dest_path, "remote", "add", "origin", repo_url])
+            subprocess.check_call(["git", "-C", dest_path, "fetch", "origin"])
+            subprocess.check_call(["git", "-C", dest_path, "checkout", "-b", "feature/device-config-and-rpi-setup", "origin/feature/device-config-and-rpi-setup"])
+            print(f"✓ Repository initialized and updated at {dest_path}")
+            return
+        except Exception as e:
+            print(f"❌ Failed to initialize git repo in existing directory: {e}")
+            return
+    
     print(f"🔧 Cloning repo {repo_url} to {dest_path} ...")
     try:
         subprocess.check_call(
