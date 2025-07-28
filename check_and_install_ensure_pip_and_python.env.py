@@ -4,18 +4,31 @@
 # keep the track of user variable in get_desktop_path function, adjust it if needed to pi or isha.
 
 
+
 import subprocess
 import sys
 import os
 import datetime
 
 
-VENV_DIR = "venv"  # Directory for the virtual environment
+# Set the global USER variable for all user-specific operations
+USER = os.environ.get("SUDO_USER") or os.environ.get("LOGNAME") or os.environ.get("USER") or "isha"
+if USER == "root":
+    USER = "isha"  # fallback to your actual username, change to 'pi' if needed
+
+# Always use the Desktop project directory for venv and all files
+PROJECT_DIR = os.path.join(os.path.expanduser(f"~{USER}"), "Desktop", "simple-meter-dashboard")
+VENV_DIR = os.path.join(PROJECT_DIR, "venv")
 
 
 def create_venv():
+    if not os.path.isdir(PROJECT_DIR):
+        print(f"🔧 Creating project directory at {PROJECT_DIR} ...")
+        print(f"   Creating as user: {os.getenv('USER', 'unknown')} (detected user: {USER})")
+        os.makedirs(PROJECT_DIR, exist_ok=True)
     if not os.path.isdir(VENV_DIR):
-        print("🔧 Creating virtual environment...")
+        print(f"🔧 Creating virtual environment at {VENV_DIR} ...")
+        print(f"   Creating as user: {os.getenv('USER', 'unknown')} (detected user: {USER})")
         subprocess.check_call([sys.executable, "-m", "venv", VENV_DIR])
         print("✓ Virtual environment created.")
     else:
@@ -65,33 +78,26 @@ def show_success_popup():
 
 
 def get_desktop_path():
-    # Use SUDO_USER if running as root via sudo, else use current user, else fallback to 'isha'
-    user = os.environ.get("SUDO_USER") or os.environ.get("USER") or "isha"
-    if user == "root":
-        user = "isha"  # fallback to your actual username
-    home_dir = os.path.expanduser(f"~{user}")
-    return os.path.join(home_dir, "Desktop", "pkg.status_succ")
+    # Use global USER variable
+    return os.path.join(PROJECT_DIR, "pkg.status_succ")
 
 
 def clone_repo_to_desktop(repo_url, folder_name=None):
     """
     Clone the given git repo onto the user's Desktop. If folder_name is not provided, use the repo name.
     """
-    user = os.environ.get("SUDO_USER") or os.environ.get("USER") or "isha"
-    if user == "root":
-        user = "isha"
-    home_dir = os.path.expanduser(f"~{user}")
-    desktop_dir = os.path.join(home_dir, "Desktop")
-    if not os.path.isdir(desktop_dir):
-        print(f"❌ Desktop directory not found: {desktop_dir}")
-        return
+    # Use global USER variable and always clone to PROJECT_DIR
+    if not os.path.isdir(PROJECT_DIR):
+        print(f"🔧 Creating project directory at {PROJECT_DIR} ...")
+        print(f"   Creating as user: {os.getenv('USER', 'unknown')} (detected user: {USER})")
+        os.makedirs(PROJECT_DIR, exist_ok=True)
     if not repo_url:
         print("❌ No repo URL provided to clone.")
         return
     if folder_name is None:
         folder_name = os.path.splitext(os.path.basename(
             repo_url.rstrip('/').replace('.git', '')))[0]
-    dest_path = os.path.join(desktop_dir, folder_name)
+    dest_path = os.path.join(PROJECT_DIR, folder_name)
     if os.path.exists(dest_path):
         print(f"✓ Repo folder already exists at {dest_path}")
         return
@@ -121,7 +127,7 @@ def main():
     required = ["python3-venv", "python3-pip", "python3-tk", "git"]
     missing = [pkg for pkg in required if not is_package_installed(pkg)]
 
-  # Create venv if not exists
+    # Create venv if not exists
     create_venv()
     venv_python = get_venv_python()
 
@@ -171,8 +177,22 @@ def main():
 
         # Clone a dummy git repo to Desktop
         dummy_repo_url = "https://github.com/VinitSadhanapada/simple-meter-dashboard.git"
-
         clone_repo_to_desktop(dummy_repo_url)
+
+        # Change ownership of the project directory and all its contents to the user
+        try:
+            import pwd
+            uid = pwd.getpwnam(USER).pw_uid
+            gid = pwd.getpwnam(USER).pw_gid
+            for root, dirs, files in os.walk(PROJECT_DIR):
+                os.chown(root, uid, gid)
+                for d in dirs:
+                    os.chown(os.path.join(root, d), uid, gid)
+                for f in files:
+                    os.chown(os.path.join(root, f), uid, gid)
+            print(f"✓ Changed ownership of {PROJECT_DIR} and its contents to {USER}")
+        except Exception as e:
+            print(f"❌ Could not change ownership: {e}")
     else:
         print("❌ Failed to install some pip packages. Please install them manually.")
         sys.exit(1)
