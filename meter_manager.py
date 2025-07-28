@@ -149,37 +149,40 @@ class MeterManager:
         self.mqtt_client = mqtt_client
         self.publish_mqtt = publish_mqtt
 
-    def read_all(self, stdscr=None):
+    def read_all(self, stdscr=None, inter_device_delay=0.1):
         """
         Read data from all meters and perform associated operations.
-        
+
         Coordinates a complete reading cycle across all managed meters, including:
         - Data collection from each MeterDevice
         - CSV logging of readings
         - MQTT publishing (if enabled)
         - UI callback execution (if provided)
-        
+
         This method is thread-safe and handles errors gracefully, ensuring that
         failure in one meter doesn't prevent reading from others.
-        
+
         Args:
             stdscr (curses.window, optional): Curses screen object for UI updates.
                                             If provided and ui_callback is set,
                                             passes to callback for display updates.
-        
+            inter_device_delay (float): Delay in seconds between reading each device.
+                                      Default: 0.1 seconds (100ms)
+
         Returns:
             None
-            
+
         Side Effects:
             - Increments self.TotalReadings counter
             - Updates self.allRegValues with latest readings
             - Writes new rows to CSV files
             - Publishes MQTT messages (if enabled)
             - Calls UI callback (if configured)
-            
+
         Example:
             >>> manager.read_all()  # Simple reading cycle
-            
+            >>> manager.read_all(inter_device_delay=0.2)  # With 200ms delay between devices
+
         Note:
             The stdscr parameter exists for backwards compatibility with legacy
             curses-based implementations but is not used in the modern console
@@ -212,6 +215,11 @@ class MeterManager:
             if self.publish_mqtt and self.mqtt_client:
                 self.published_msg = self.mqtt_client.publish_message(self.parameters, regValue, meter.name)
             self.allRegValues[i] = regValue.copy()
+            
+            # Add delay between device reads to avoid Modbus conflicts
+            # Skip delay after the last device
+            if i < len(self.meters) - 1 and inter_device_delay > 0:
+                time.sleep(inter_device_delay)
         if self.ui_callback and stdscr is not None:
             self.ui_callback(self.TotalReadings, stdscr, self.allRegValues)
 
