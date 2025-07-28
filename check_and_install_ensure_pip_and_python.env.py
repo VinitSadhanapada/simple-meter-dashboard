@@ -78,26 +78,28 @@ def show_success_popup():
 
 
 def get_desktop_path():
-    # Use global USER variable
-    return os.path.join(PROJECT_DIR, "pkg.status_succ")
+    # Use global USER variable - place status file directly on Desktop, not in project folder
+    home_dir = os.path.expanduser(f"~{USER}")
+    return os.path.join(home_dir, "Desktop", "pkg.status_succ")
 
 
 def clone_repo_to_desktop(repo_url, folder_name=None):
     """
-    Clone the given git repo onto the user's Desktop. If folder_name is not provided, use the repo name.
+    Clone the given git repo directly onto the user's Desktop. If folder_name is not provided, use the repo name.
     """
-    # Use global USER variable and always clone to PROJECT_DIR
-    if not os.path.isdir(PROJECT_DIR):
-        print(f"🔧 Creating project directory at {PROJECT_DIR} ...")
-        print(f"   Creating as user: {os.getenv('USER', 'unknown')} (detected user: {USER})")
-        os.makedirs(PROJECT_DIR, exist_ok=True)
+    # Use global USER variable and clone directly to Desktop
+    home_dir = os.path.expanduser(f"~{USER}")
+    desktop_dir = os.path.join(home_dir, "Desktop")
+    if not os.path.isdir(desktop_dir):
+        print(f"❌ Desktop directory not found: {desktop_dir}")
+        return
     if not repo_url:
         print("❌ No repo URL provided to clone.")
         return
     if folder_name is None:
         folder_name = os.path.splitext(os.path.basename(
             repo_url.rstrip('/').replace('.git', '')))[0]
-    dest_path = os.path.join(PROJECT_DIR, folder_name)
+    dest_path = os.path.join(desktop_dir, folder_name)
     if os.path.exists(dest_path):
         print(f"✓ Repo folder already exists at {dest_path}")
         return
