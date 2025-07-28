@@ -54,11 +54,18 @@ def detect_user():
     print("[USER DETECT] Defaulting to 'pi'")
     return "pi"
 
+
 # Set the global USER variable for all user-specific operations
 USER = detect_user()
+# Print detected user and home path for debug
+home_path = os.path.expanduser(f"~{USER}")
+if home_path == f"~{USER}" or not os.path.isdir(home_path):
+    # expanduser failed, fallback to /home/{USER}
+    home_path = f"/home/{USER}"
+print(f"[USER DETECT] USER={USER}, home_path={home_path}")
 
 # Always use the Desktop project directory for venv and all files
-PROJECT_DIR = os.path.join(os.path.expanduser(f"~{USER}"), "Desktop", "simple-meter-dashboard")
+PROJECT_DIR = os.path.join(home_path, "Desktop", "simple-meter-dashboard")
 VENV_DIR = os.path.join(PROJECT_DIR, "venv")
 
 
