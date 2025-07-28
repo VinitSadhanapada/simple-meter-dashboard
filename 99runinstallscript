@@ -20,7 +20,7 @@ if [ "$2" = "up" ]; then
     echo "Running check_and_install_ensure_pip_and_python.env.py script at $(date '+%Y-%m-%d %H:%M:%S')" > /home/pi/Desktop/dispatcher.log 2>&1
     /usr/bin/python3 /home/pi/deepak/enhanced_dashboard_system/check_and_install_ensure_pip_and_python.env.py >> /home/pi/Desktop/dispatcher.log 2>&1
     echo "Permissions updated for pi user at $(date '+%Y-%m-%d %H:%M:%S')" >> /home/pi/Desktop/dispatcher.log 2>&1
-    chown -R pi:pi /home/pi/Desktop/11.ok /home/pi/Desktop/dispatcher.log /home/pi/Desktop/pkg_status_succ /home/pi/Desktop/simple-meter-dashboard >> /home/pi/Desktop/dispatcher.log 2>&1
+    chown -R pi:pi /home/pi/Desktop/11.ok /home/pi/Desktop/dispatcher.log /home/pi/Desktop/pkg.status_succ /home/pi/Desktop/simple-meter-dashboard >> /home/pi/Desktop/dispatcher.log 2>&1
     echo "Ownership changed to pi user at $(date '+%Y-%m-%d %H:%M:%S')" >> /home/pi/Desktop/dispatcher.log 2>&1
     echo "Script executed successfully at $(date '+%Y-%m-%d %H:%M:%S')" >> /home/pi/Desktop/dispatcher.log 2>&1
 
