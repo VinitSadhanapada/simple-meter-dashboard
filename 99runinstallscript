@@ -6,24 +6,19 @@
 
 #source the setup_boot.sh file to run the commands below.
 
-#2. mkdir -p /home/pi/deepak/enhanced_dashboard_system/
-#3. cp <python_file check_and_install_ensure_pip_and_python.env.py> to /home/pi/deepak/enhanced_dashboard_system/
 
-#4. sudo cp 99runinstallscript /etc/NetworkManager/dispatcher.d/99runinstallscript
-#5. then sudo chmod +x /etc/NetworkManager/dispatcher.d/99runinstallscript
-#6. sudo chmod +x /home/pi/deepak/enhanced_dashboard_system/check_and_install_ensure_pip_and_python.env.py
-#7. Change the user variable to pi in get_desktop_path() function at line 62 63 and 65 in file check_and_install_ensure_pip_and_python.env.py
-#make sure to add correct reference paths for 11.ok,  dispatcher.log, pkg_succes_status
 
+USER=pi
+HOME_DIR="/home/$USER"
+PROJECT_DIR="$HOME_DIR/deepak/enhanced_dashboard_system"
 if [ "$2" = "up" ]; then
-    echo "internet restarted at $(date '+%Y-%m-%d %H:%M:%S')" > /home/pi/Desktop/11.ok
-    echo "Running check_and_install_ensure_pip_and_python.env.py script at $(date '+%Y-%m-%d %H:%M:%S')" > /home/pi/Desktop/dispatcher.log 2>&1
-    /usr/bin/python3 /home/pi/deepak/enhanced_dashboard_system/check_and_install_ensure_pip_and_python.env.py >> /home/pi/Desktop/dispatcher.log 2>&1
-    echo "Permissions updated for pi user at $(date '+%Y-%m-%d %H:%M:%S')" >> /home/pi/Desktop/dispatcher.log 2>&1
-    chown -R pi:pi /home/pi/Desktop/11.ok /home/pi/Desktop/dispatcher.log /home/pi/Desktop/pkg.status_succ /home/pi/Desktop/simple-meter-dashboard >> /home/pi/Desktop/dispatcher.log 2>&1
-    echo "Ownership changed to pi user at $(date '+%Y-%m-%d %H:%M:%S')" >> /home/pi/Desktop/dispatcher.log 2>&1
-    echo "Script executed successfully at $(date '+%Y-%m-%d %H:%M:%S')" >> /home/pi/Desktop/dispatcher.log 2>&1
-
-    
-
+    echo "internet restarted at $(date '+%Y-%m-%d %H:%M:%S')" > "$HOME_DIR/Desktop/11.ok"
+    echo "Running check_and_install_ensure_pip_and_python.env.py script at $(date '+%Y-%m-%d %H:%M:%S')" > "$HOME_DIR/Desktop/dispatcher.log" 2>&1
+    /usr/bin/python3 "$PROJECT_DIR/check_and_install_ensure_pip_and_python.env.py" >> "$HOME_DIR/Desktop/dispatcher.log" 2>&1
+    echo "RTC set successfully at $(date '+%Y-%m-%d %H:%M:%S')" >> "$HOME_DIR/Desktop/dispatcher.log" 2>&1
+    /usr/bin/python3 "$PROJECT_DIR/rtc_new.py" --set-rtc >> "$HOME_DIR/Desktop/dispatcher.log" 2>&1
+    echo "Permissions updated for $USER user at $(date '+%Y-%m-%d %H:%M:%S')" >> "$HOME_DIR/Desktop/dispatcher.log" 2>&1
+    chown -R $USER:$USER "$HOME_DIR/Desktop/11.ok" "$HOME_DIR/Desktop/dispatcher.log" "$HOME_DIR/Desktop/pkg.status_succ" "$HOME_DIR/Desktop/simple-meter-dashboard" >> "$HOME_DIR/Desktop/dispatcher.log" 2>&1
+    echo "Ownership changed to $USER user at $(date '+%Y-%m-%d %H:%M:%S')" >> "$HOME_DIR/Desktop/dispatcher.log" 2>&1
+    echo "Script executed successfully at $(date '+%Y-%m-%d %H:%M:%S')" >> "$HOME_DIR/Desktop/dispatcher.log" 2>&1
 fi
