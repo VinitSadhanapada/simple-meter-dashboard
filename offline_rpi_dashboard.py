@@ -1,0 +1,509 @@
+#!/usr/bin/env python3
+
+# Set RTC time at startup if running as 'pi' user
+import os
+import subprocess
+import sys
+from pathlib import Path
+
+try:
+    user = os.getenv('USER', 'unknown')
+    if user == 'pi':
+        rtc_script = Path(__file__).parent / 'rtc_new.py'
+        if rtc_script.exists():
+            # Check for internet connectivity
+            import socket
+
+            def has_internet(host="8.8.8.8", port=53, timeout=2):
+                try:
+                    socket.setdefaulttimeout(timeout)
+                    socket.socket(socket.AF_INET, socket.SOCK_STREAM).connect(
+                        (host, port))
+                    return True
+                except Exception:
+                    return False
+            if has_internet():
+                print(
+                    "⏰ Internet detected. RTC time updated from internet (rtc_new.py --set-rtc)...")
+                result = subprocess.run([sys.executable, str(
+                    rtc_script), '--set-rtc'], capture_output=True, text=True)
+            else:
+                print(
+                    "⏰ No internet detected. Correcting system time from RTC IC (rtc_new.py)...")
+                result = subprocess.run([sys.executable, str(
+                    rtc_script)], capture_output=True, text=True)
+            if result.returncode == 0:
+                print("✅ RTC time set successfully.")
+            else:
+                print(f"⚠️ RTC set failed: {result.stderr.strip()}")
+        else:
+            print("⚠️ rtc_new.py not found, skipping RTC set.")
+except Exception as e:
+    print(f"⚠️ RTC set error: {e}")
+"""
+Offline RPi Auto-Startup Dashboard - All-in-One Solution (No Internet Required)
+
+This script is a copy of simple_rpi_dashboard.py, but it only installs Python packages from the local 'packages_folder' directory. It will not attempt to download packages from the internet.
+
+Usage:
+    python3 offline_rpi_dashboard.py --setup      # Initial setup (offline)
+    python3 offline_rpi_dashboard.py --install    # Install auto-startup
+    python3 offline_rpi_dashboard.py --run        # Run dashboard
+    python3 offline_rpi_dashboard.py --status     # Check status
+    python3 offline_rpi_dashboard.py --stop       # Stop dashboard
+
+Author: Simplified approach (offline version)
+Date: 24/07/30
+"""
+
+import os
+import sys
+import subprocess
+import argparse
+import json
+import time
+import signal
+import logging
+from pathlib import Path
+from datetime import datetime
+
+# Import shared venv utilities
+from venv_utils import setup_complete_venv_environment
+
+
+# --- BEGIN: Copied from simple_rpi_dashboard.py ---
+# Configuration
+CONFIG = {
+    "SIMULATION_MODE": False,
+    # Match legacy script (10 seconds between reading cycles)
+    "READING_INTERVAL": 10,
+    # Delay between device reads (seconds) - matches legacy intervalBwMeter
+    "INTER_DEVICE_DELAY": 0.1,
+    "PORT": "/dev/ttyUSB0",
+    "ENABLE_MQTT": False,
+    "ENABLE_RTC": True,  # Enable RTC for offline time keeping
+    "LOG_LEVEL": "INFO"
+}
+
+# Device Configuration - Customize your meters here
+DEVICE_CONFIG = [
+    {"name": "SP3 UPS", "address": 1, "model": "LG6400"},
+    {"name": "Suryakund UPS", "address": 2, "model": "LG+5220"},
+    # {"name": "BP", "address": 3, "model": "EN8410"},
+    # Add more devices as needed:
+    # {"name": "Your Device Name", "address": 4, "model": "LG6400"},
+    # {"name": "Another Device", "address": 5, "model": "EN8410"},
+]
+
+REQUIRED_PACKAGES = [
+    "pymodbus==2.5.3",
+    "pyserial==3.5",
+    "paho-mqtt==2.1.0",
+    "termcolor==3.1.0",
+    "smbus2==0.4.2",
+    "numpy==1.24.3",
+    "pandas==2.0.3",
+
+]
+
+
+def auto_use_venv_if_needed():
+    """
+    Automatically restart with venv Python if:
+    1. We're not already running in venv
+    2. venv exists
+    3. We're trying to run the dashboard (--run)
+    """
+    script_dir = Path(__file__).parent.absolute()
+    venv_python = script_dir / "venv" / "bin" / "python"
+    # Check if we're already in venv by checking sys.executable
+    if venv_python.exists() and str(venv_python) != sys.executable:
+        # Check if this is a run or print-readings command
+        if len(sys.argv) > 1 and any(arg in ['--run', '--run-service', '--print-readings'] for arg in sys.argv):
+            print("🔄 Auto-switching to virtual environment...")
+            print(f"   Using: {venv_python}")
+            # Re-execute with venv python
+            os.execv(str(venv_python), [str(venv_python)] + sys.argv)
+    return False  # Not using venv or venv doesn't exist
+# --- END: Copied from simple_rpi_dashboard.py ---
+
+
+class OfflineDashboard:
+    def run_dashboard(self):
+        """
+        Main dashboard loop: sets up logging, meters, and manager, then reads meters in a loop and logs data.
+        """
+        if not self.venv_dir.exists():
+            print("❌ Virtual environment not found. Run --setup first.")
+            return False
+        self.setup_logging()
+        self.logger.info("Starting dashboard in headless mode...")
+        # Setup signal handlers
+
+        def signal_handler(signum, frame):
+            self.logger.info(f"Received signal {signum}. Shutting down...")
+            sys.exit(0)
+        signal.signal(signal.SIGINT, signal_handler)
+        signal.signal(signal.SIGTERM, signal_handler)
+        try:
+            sys.path.insert(0, str(self.script_dir))
+            from meter_manager import MeterManager
+            from meter_device import MeterDevice
+            from macros import PARAMETERS
+            import mqtt_client as mqtt
+            from pymodbus.client.sync import ModbusSerialClient as ModbusClient
+            self.logger.info("Modules imported successfully")
+            # RTC (optional)
+            if CONFIG["ENABLE_RTC"]:
+                self.logger.info(
+                    "Initializing RTC system for offline time keeping...")
+                try:
+                    from rtc_manager import RTCManager
+                    rtc_manager = RTCManager(logger=self.logger)
+                    if rtc_manager.initialize_for_offline_operation():
+                        self.logger.info(
+                            "✅ RTC system ready for offline operation")
+                    else:
+                        self.logger.warning(
+                            "⚠️ RTC initialization failed - using system time only")
+                except Exception as e:
+                    self.logger.warning(
+                        f"⚠️ RTC initialization error: {e} - using system time only")
+            else:
+                self.logger.info("RTC disabled - using system time only")
+            # Hardware
+            client = None
+            if not CONFIG["SIMULATION_MODE"]:
+                if os.path.exists(CONFIG["PORT"]):
+                    try:
+                        client = ModbusClient(
+                            method="rtu", port=CONFIG["PORT"],
+                            stopbits=1, bytesize=8, parity='E',
+                            baudrate=9600, timeout=0.5
+                        )
+                        if client.connect():
+                            self.logger.info(f"Connected to {CONFIG['PORT']}")
+                        else:
+                            self.logger.warning(
+                                "Failed to connect, using simulation mode")
+                            CONFIG["SIMULATION_MODE"] = True
+                    except Exception as e:
+                        self.logger.error(
+                            f"Hardware error: {e}, using simulation mode")
+                        CONFIG["SIMULATION_MODE"] = True
+                else:
+                    self.logger.warning(
+                        f"Port {CONFIG['PORT']} not found, using simulation mode")
+                    CONFIG["SIMULATION_MODE"] = True
+            # MQTT
+            if CONFIG["ENABLE_MQTT"]:
+                mqtt.mqtt_main()
+            # Devices and manager
+            timestamp = datetime.now().strftime("%Y%m%d")
+            csv_files = []
+            meters = []
+            for i, device_config in enumerate(DEVICE_CONFIG):
+                device_name = device_config["name"]
+                device_address = device_config["address"]
+                device_model = device_config["model"]
+                clean_name = "".join(
+                    c for c in device_name if c.isalnum() or c in ('-', '_'))
+                csv_file = self.csv_dir / f"{clean_name}_{timestamp}.csv"
+                csv_files.append(str(csv_file))
+                meter = MeterDevice(
+                    name=device_name,
+                    model=device_model,
+                    parameters=PARAMETERS,
+                    client=client,
+                    error_file=None,
+                    simulation_mode=CONFIG["SIMULATION_MODE"],
+                    device_address=device_address
+                )
+                meters.append(meter)
+            manager = MeterManager(
+                meters, PARAMETERS, csv_files,
+                mqtt_client=mqtt if CONFIG["ENABLE_MQTT"] else None,
+                publish_mqtt=CONFIG["ENABLE_MQTT"]
+            )
+            self.logger.info(f"Dashboard started with {len(meters)} devices")
+            # Main loop
+            while True:
+                manager.read_all(
+                    inter_device_delay=CONFIG["INTER_DEVICE_DELAY"])
+                if manager.TotalReadings % 10 == 0:
+                    self.logger.info(
+                        f"Completed {manager.TotalReadings} reading cycles")
+                time.sleep(CONFIG["READING_INTERVAL"])
+        except Exception as e:
+            import traceback
+            self.logger.error(f"Dashboard error: {e}")
+            self.logger.error(f"Full traceback: {traceback.format_exc()}")
+            return False
+
+    def ensure_venv_and_packages(self):
+        """
+        Check if venv exists and all required packages are installed. If not, install missing packages from packages_folder.
+        """
+        venv_python = self.venv_dir / "bin" / "python"
+        pip_exe = self.venv_dir / "bin" / "pip"
+        packages_dir = self.script_dir / "packages_folder"
+        # 1. Check if venv exists
+        if not venv_python.exists():
+            print(
+                "🔧 Virtual environment not found. Creating and installing all packages from local folder...")
+            self.setup_environment()
+            return
+        # 2. Check installed packages in venv
+        try:
+            result = subprocess.run(
+                [str(pip_exe), 'freeze'], capture_output=True, text=True, check=True)
+            installed = set()
+            for line in result.stdout.splitlines():
+                pkg = line.split('==')[0].lower()
+                installed.add(pkg)
+        except Exception as e:
+            print(f"⚠️ Could not check installed packages: {e}")
+            print("🔧 Reinstalling all packages from local folder...")
+            self.setup_environment()
+            return
+        # 3. Find missing packages
+        missing = []
+        for req in REQUIRED_PACKAGES:
+            pkg = req.split('==')[0].lower()
+            if pkg not in installed:
+                missing.append(req)
+        if not missing:
+            print("✅ All required packages are already installed in venv.")
+            return
+        # 4. Install missing packages from packages_folder
+        print(f"🔧 Installing missing packages: {missing}")
+        if not packages_dir.exists() or not list(packages_dir.glob("*.whl")):
+            print(
+                "❌ No offline packages found in 'packages_folder'. Cannot install missing packages.")
+            return
+        for req in missing:
+            pkg_name = req.split('==')[0].replace('_', '-').lower()
+            found = False
+            for whl in packages_dir.glob(f"{pkg_name}-*.whl"):
+                print(f"📦 Installing {whl.name} ...")
+                result = subprocess.run([str(pip_exe), 'install', '--no-index', '--find-links', str(
+                    packages_dir), str(whl)], capture_output=True, text=True)
+                if result.returncode == 0:
+                    print(f"✅ Installed {whl.name}")
+                    found = True
+                    break
+                else:
+                    print(f"❌ Failed to install {whl.name}: {result.stderr}")
+            if not found:
+                print(f"❌ Could not find wheel for {req} in packages_folder.")
+        print("🔄 Package check complete.")
+
+    def print_all_meter_readings(self, manager):
+        """
+        Print all meter readings, device IDs, and parameter values to the shell.
+        """
+        readings = manager.get_all_meter_readings()
+        print("\n===== Current Meter Readings =====")
+        for meter in readings:
+            print(f"Device ID: {meter['device_id']}")
+            print(f"Device Name: {meter['device_name']}")
+            print(f"Model: {meter['model']}")
+            print("Readings:")
+            for param, value in zip(manager.parameters, meter['readings']):
+                print(f"  {param}: {value}")
+            print("-----------------------------")
+        print("=================================\n")
+    """All-in-one dashboard manager (offline package install)."""
+
+    def __init__(self):
+        self.script_dir = Path(__file__).parent.absolute()
+        self.venv_dir = self.script_dir / "venv"
+        self.log_dir = self.script_dir / "logs"
+        self.csv_dir = self.script_dir / "csv_data"
+        self.service_name = "meter-dashboard-offline"
+
+    def setup_logging(self):
+        # ...same as SimpleDashboard...
+        self.log_dir.mkdir(exist_ok=True)
+        log_file = self.log_dir / \
+            f"dashboard_{datetime.now().strftime('%Y%m%d')}.log"
+        logging.basicConfig(
+            level=getattr(logging, CONFIG["LOG_LEVEL"]),
+            format='%(asctime)s - %(levelname)s - %(message)s',
+            handlers=[
+                logging.FileHandler(log_file),
+                logging.StreamHandler()
+            ]
+        )
+        self.logger = logging.getLogger(__name__)
+
+    def run_command(self, cmd, check=True, shell=False):
+        # ...same as SimpleDashboard...
+        try:
+            if isinstance(cmd, str) and not shell:
+                cmd = cmd.split()
+            result = subprocess.run(
+                cmd, capture_output=True, text=True, check=check, shell=shell)
+            return result.returncode == 0, result.stdout, result.stderr
+        except subprocess.CalledProcessError as e:
+            return False, e.stdout, e.stderr
+
+    def setup_environment(self):
+        """Setup virtual environment and install dependencies from local packages_folder only."""
+        print("🔧 Setting up environment (offline mode)...")
+        packages_dir = self.script_dir / "packages_folder"
+        if not packages_dir.exists() or not list(packages_dir.glob("*.whl")):
+            print("❌ No offline packages found in 'packages_folder'. Aborting setup.")
+            return False
+        # Use shared venv utility for complete setup, but force offline_dir
+        success, python_exe = setup_complete_venv_environment(
+            venv_dir=self.venv_dir,
+            packages=REQUIRED_PACKAGES,
+            force_recreate=False,
+            offline_dir=str(packages_dir)
+        )
+        if not success:
+            print("❌ Environment setup failed (offline mode)")
+            return False
+        self.log_dir.mkdir(exist_ok=True)
+        self.csv_dir.mkdir(exist_ok=True)
+        print("✅ Offline environment setup complete")
+        return True
+
+    # ...all other methods are identical to SimpleDashboard, except use self.service_name = 'meter-dashboard-offline'...
+    # You can copy the rest of the methods from SimpleDashboard here, or import them if you refactor.
+
+# ...main() function, identical to simple_rpi_dashboard.py but using OfflineDashboard...
+
+
+def main():
+    auto_use_venv_if_needed()
+    parser = argparse.ArgumentParser(
+        description="Offline RPi Dashboard Manager")
+    parser.add_argument("--check-prereq", action="store_true",
+                        help="Check prerequisites and permissions")
+    parser.add_argument("--setup", action="store_true",
+                        help="Setup environment (venv + packages + directories, offline)")
+    parser.add_argument("--create-service", action="store_true",
+                        help="Create systemd service file (requires sudo)")
+    parser.add_argument("--install", action="store_true",
+                        help="Full install: setup + create service (requires sudo)")
+    parser.add_argument("--run", action="store_true", help="Run dashboard")
+    parser.add_argument("--run-service", action="store_true",
+                        help="Run dashboard as service (used by systemd)")
+    parser.add_argument("--status", action="store_true", help="Check status")
+    parser.add_argument("--stop", action="store_true", help="Stop dashboard")
+    parser.add_argument("--logs", action="store_true", help="View logs")
+    parser.add_argument("--start", action="store_true", help="Start service")
+    parser.add_argument("--restart", action="store_true",
+                        help="Restart service")
+    parser.add_argument("--uninstall", action="store_true",
+                        help="Uninstall service")
+    parser.add_argument("--print-readings", action="store_true",
+                        help="Print all meter readings and device IDs to shell (debug)")
+    args = parser.parse_args()
+    dashboard = OfflineDashboard()
+    if args.check_prereq:
+        dashboard.check_prerequisites()
+    elif args.setup:
+        dashboard.ensure_venv_and_packages()
+    elif args.create_service:
+        dashboard.create_service_only()
+    elif args.install:
+        print("🚀 Full installation starting (offline)...")
+        if dashboard.setup_environment():
+            dashboard.create_service_only()
+    elif args.run or args.run_service:
+        script_dir = Path(__file__).parent.absolute()
+        venv_dir = script_dir / "venv"
+        if not venv_dir.exists():
+            print("❌ Virtual environment not found!")
+            print("🔧 Please run setup first:")
+            print("   python3 offline_rpi_dashboard.py --setup")
+            print("   python3 offline_rpi_dashboard.py --create-service")
+            print("")
+            print("💡 Or use the quick install:")
+            print("   python3 offline_rpi_dashboard.py --install")
+            sys.exit(1)
+        dashboard.run_dashboard()
+    elif args.print_readings:
+        # Print the latest data being written to CSVs by --run, in a loop
+        from macros import PARAMETERS
+        import time
+        import csv
+        script_dir = Path(__file__).parent.absolute()
+        csv_dir = script_dir / "csv_data"
+        timestamp = datetime.now().strftime("%Y%m%d")
+        csv_files = []
+        device_names = []
+        for device_config in DEVICE_CONFIG:
+            device_name = device_config["name"]
+            clean_name = "".join(
+                c for c in device_name if c.isalnum() or c in ('-', '_'))
+            csv_file = csv_dir / f"{clean_name}_{timestamp}.csv"
+            csv_files.append(str(csv_file))
+            device_names.append(device_name)
+        print("\nLive meter readings from CSV (Ctrl+C to stop):\n")
+        try:
+            while True:
+                print("===== Current Meter Readings (from CSV) =====")
+                for idx, csv_path in enumerate(csv_files):
+                    print(f"Device Name: {device_names[idx]}")
+                    print(f"CSV File: {csv_path}")
+                    try:
+                        with open(csv_path, "r") as f:
+                            reader = list(csv.reader(f))
+                            if len(reader) < 2:
+                                print("  No data yet.")
+                            else:
+                                header = reader[0]
+                                last_row = reader[-1]
+                                print("Readings:")
+                                for param, value in zip(header, last_row):
+                                    print(f"  {param}: {value}")
+                    except FileNotFoundError:
+                        print("  CSV file not found.")
+                    except Exception as e:
+                        print(f"  Error reading CSV: {e}")
+                    print("-----------------------------")
+                print("=================================\n")
+                time.sleep(CONFIG["READING_INTERVAL"])
+        except KeyboardInterrupt:
+            print("\nStopped live meter readings from CSV.\n")
+    elif args.status:
+        dashboard.check_status()
+    elif args.stop:
+        dashboard.stop_dashboard()
+    elif args.logs:
+        dashboard.view_logs()
+    elif args.start:
+        dashboard.start_service()
+    elif args.restart:
+        dashboard.restart_service()
+    elif args.uninstall:
+        dashboard.uninstall_service()
+    else:
+        print("🔌 Offline RPi Dashboard Manager")
+        print("\n📋 Prerequisites Check:")
+        print("  python3 offline_rpi_dashboard.py --check-prereq   # Check system prerequisites")
+        print("\n🔧 Setup Commands:")
+        print("  python3 offline_rpi_dashboard.py --setup          # Setup environment only (offline)")
+        print("  python3 offline_rpi_dashboard.py --create-service # Create service file (requires sudo)")
+        print("  python3 offline_rpi_dashboard.py --install        # Full setup + service (requires sudo)")
+        print("\n▶️  Running:")
+        print("  python3 offline_rpi_dashboard.py --run            # Run dashboard manually (auto-uses venv)")
+        print("  python3 offline_rpi_dashboard.py --print-readings # Print all meter readings and device IDs")
+        print("  python3 offline_rpi_dashboard.py --status         # Check service status")
+        print("")
+        print("💡 Note: --run automatically uses virtual environment if available")
+        print("\n🔧 Service Management:")
+        print("  python3 offline_rpi_dashboard.py --start          # Start service")
+        print("  python3 offline_rpi_dashboard.py --stop           # Stop service")
+        print("  python3 offline_rpi_dashboard.py --restart        # Restart service")
+        print("  python3 offline_rpi_dashboard.py --logs           # View logs")
+        print("  python3 offline_rpi_dashboard.py --uninstall      # Remove service")
+        print("\n📖 For manual setup without sudo prompts, see: docs/MANUAL_SETUP.md")
+
+
+if __name__ == "__main__":
+    main()
