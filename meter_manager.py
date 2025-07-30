@@ -39,14 +39,12 @@ def create_formatted_csv_header(parameters):
     Returns:
         list: Formatted header row
     """
-    formatted_headers = []
-
+    formatted_headers = ["Device_ID"]
     for param in parameters:
         # Simple cleanup: replace spaces with underscores, remove extra characters
         clean_name = param.replace(" ", "_").replace(
             ".", "").replace("(", "").replace(")", "")
         formatted_headers.append(clean_name)
-
     return formatted_headers
 
 
@@ -217,7 +215,7 @@ class MeterManager:
             if i < len(self.csv_writers) and self.csv_writers[i] is not None:
                 try:
                     # Format the values for better CSV output
-                    formatted_row = []
+                    formatted_row = [getattr(meter, 'device_address', i+1)]
                     for j, value in enumerate(regValue):
                         if j == 0:  # Timestamp - keep as-is
                             formatted_row.append(value)
