@@ -1,0 +1,20 @@
+// Device configuration for the offline RPi dashboard
+// Each object represents a meter device
+// address is the Device ID for Modbus communication of meter.
+[
+    {
+        "name": "SP3 UPS",
+        "address": 1,
+        "model": "LG6400",
+        "location": "SP3Panel"
+    },
+    {
+        "name": "SP3 EB",
+        "address": 2,
+        "model": "LG+5220",
+        "location": "SP3Panel"
+    }
+    // Add more devices as needed:
+    // {"name": "Your Device Name", "address": 4, "model": "LG6400", "location": "PanelA"},
+    // {"name": "Another Device", "address": 5, "model": "EN8410", "location": "PanelB"}
+]

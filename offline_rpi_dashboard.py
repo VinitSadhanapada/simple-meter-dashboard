@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 # Set RTC time at startup if running as 'pi' user
+import re
 import os
 import subprocess
 import sys
@@ -71,40 +72,37 @@ from datetime import datetime
 from venv_utils import setup_complete_venv_environment
 
 
-# --- BEGIN: Copied from simple_rpi_dashboard.py ---
-# Configuration
-CONFIG = {
-    "SIMULATION_MODE": False,
-    # Match legacy script (10 seconds between reading cycles)
-    "READING_INTERVAL": 10,
-    # Delay between device reads (seconds) - matches legacy intervalBwMeter
-    "INTER_DEVICE_DELAY": 0.1,
-    "PORT": "/dev/ttyUSB0",
-    "ENABLE_MQTT": False,
-    "ENABLE_RTC": True,  # Enable RTC for offline time keeping
-    "LOG_LEVEL": "INFO"
-}
+def strip_jsonc_comments(text):
+    # Remove // and /* */ comments for JSONC
+    text = re.sub(r"//.*", "", text)
+    text = re.sub(r"/\*.*?\*/", "", text, flags=re.DOTALL)
+    return text
 
-# Device Configuration - Customize your meters here
-DEVICE_CONFIG = [
-    {"name": "SP3 UPS", "address": 1, "model": "LG6400"},
-    {"name": "Suryakund UPS", "address": 2, "model": "LG+5220"},
-    # {"name": "BP", "address": 3, "model": "EN8410"},
-    # Add more devices as needed:
-    # {"name": "Your Device Name", "address": 4, "model": "LG6400"},
-    # {"name": "Another Device", "address": 5, "model": "EN8410"},
-]
 
-REQUIRED_PACKAGES = [
-    "pymodbus==2.5.3",
-    "pyserial==3.5",
-    "paho-mqtt==2.1.0",
-    "termcolor==3.1.0",
-    "smbus2==0.4.2",
-    "numpy==1.24.3",
-    "pandas==2.0.3",
+def load_jsonc_config(path):
+    with open(path, 'r') as f:
+        content = f.read()
+        return json.loads(strip_jsonc_comments(content))
 
-]
+
+def load_device_config(config_path):
+    return load_jsonc_config(config_path)
+
+
+def load_main_config(config_path):
+    return load_jsonc_config(config_path)
+
+
+def load_required_packages(req_path):
+    with open(req_path, 'r') as f:
+        return [line.strip() for line in f if line.strip() and not line.strip().startswith('#')]
+
+
+script_dir = Path(__file__).parent.absolute()
+CONFIG = load_main_config(script_dir / "config.jsonc")
+DEVICE_CONFIG = load_device_config(script_dir / "device_config.jsonc")
+REQUIRED_PACKAGES = load_required_packages(
+    script_dir / "requirements_offline.txt")
 
 
 def auto_use_venv_if_needed():
@@ -199,40 +197,45 @@ class OfflineDashboard:
             if CONFIG["ENABLE_MQTT"]:
                 mqtt.mqtt_main()
             # Devices and manager
-            timestamp = datetime.now().strftime("%Y%m%d")
-            csv_files = []
-            meters = []
-            for i, device_config in enumerate(DEVICE_CONFIG):
-                device_name = device_config["name"]
-                device_address = device_config["address"]
-                device_model = device_config["model"]
-                clean_name = "".join(
-                    c for c in device_name if c.isalnum() or c in ('-', '_'))
-                csv_file = self.csv_dir / f"{clean_name}_{timestamp}.csv"
-                csv_files.append(str(csv_file))
+            # Group meters by location
+            from collections import defaultdict
+            location_meters = defaultdict(list)
+            for device_config in DEVICE_CONFIG:
+                location = device_config.get("location", "Unknown")
                 meter = MeterDevice(
-                    name=device_name,
-                    model=device_model,
+                    name=device_config["name"],
+                    model=device_config["model"],
                     parameters=PARAMETERS,
                     client=client,
                     error_file=None,
                     simulation_mode=CONFIG["SIMULATION_MODE"],
-                    device_address=device_address
+                    device_address=device_config["address"]
                 )
-                meters.append(meter)
-            manager = MeterManager(
-                meters, PARAMETERS, csv_files,
-                mqtt_client=mqtt if CONFIG["ENABLE_MQTT"] else None,
-                publish_mqtt=CONFIG["ENABLE_MQTT"]
-            )
-            self.logger.info(f"Dashboard started with {len(meters)} devices")
+                location_meters[location].append(meter)
+
+            # For each location, create a single CSV file and MeterManager
+            managers = []
+            for location, meters in location_meters.items():
+                clean_location = "".join(
+                    c for c in location if c.isalnum() or c in ('-', '_'))
+                csv_file = self.csv_dir / f"{clean_location}.csv"
+                manager = MeterManager(
+                    meters, PARAMETERS, [str(csv_file)],
+                    mqtt_client=mqtt if CONFIG["ENABLE_MQTT"] else None,
+                    publish_mqtt=CONFIG["ENABLE_MQTT"]
+                )
+                managers.append(manager)
+                self.logger.info(
+                    f"Dashboard started for location '{location}' with {len(meters)} devices, writing to {csv_file}")
+
             # Main loop
             while True:
-                manager.read_all(
-                    inter_device_delay=CONFIG["INTER_DEVICE_DELAY"])
-                if manager.TotalReadings % 10 == 0:
-                    self.logger.info(
-                        f"Completed {manager.TotalReadings} reading cycles")
+                for manager in managers:
+                    manager.read_all(
+                        inter_device_delay=CONFIG["INTER_DEVICE_DELAY"])
+                    if manager.TotalReadings % 10 == 0:
+                        self.logger.info(
+                            f"Completed {manager.TotalReadings} reading cycles for location {manager.csv_file.name}")
                 time.sleep(CONFIG["READING_INTERVAL"])
         except Exception as e:
             import traceback

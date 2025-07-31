@@ -39,12 +39,17 @@ def create_formatted_csv_header(parameters):
     Returns:
         list: Formatted header row
     """
-    formatted_headers = ["Device_ID"]
-    for param in parameters:
-        # Simple cleanup: replace spaces with underscores, remove extra characters
+    formatted_headers = ["Device_ID", "Meter_Name"]
+    # Insert 'Time' and 'Model' in the correct order
+    for i, param in enumerate(parameters):
         clean_name = param.replace(" ", "_").replace(
             ".", "").replace("(", "").replace(")", "")
-        formatted_headers.append(clean_name)
+        if i == 0:
+            # After 'Time', insert 'Model'
+            formatted_headers.append(clean_name)
+            formatted_headers.append("Model")
+        else:
+            formatted_headers.append(clean_name)
     return formatted_headers
 
 
@@ -58,6 +63,34 @@ Designed to handle complex meter reading scenarios with centralized management.
 
 
 class MeterManager:
+    def _ensure_csv_file(self):
+        """
+        Ensure the CSV file exists and is open for appending. If deleted, recreate and write header.
+        """
+        import os
+        file_path = self.csv_file.name if hasattr(self, 'csv_file') else None
+        need_header = False
+        if file_path is not None:
+            if self.csv_file.closed or not os.path.exists(file_path):
+                try:
+                    self.csv_file = open(file_path, "a", newline='')
+                    self.csv_writer = csv.writer(self.csv_file)
+                    # If file is empty, write header
+                    self.csv_file.seek(0, 2)
+                    if self.csv_file.tell() == 0:
+                        need_header = True
+                except Exception as e:
+                    print(f"Error reopening CSV file {file_path}: {e}")
+                    return
+        if need_header:
+            try:
+                formatted_headers = create_formatted_csv_header(
+                    self.parameters)
+                self.csv_writer.writerow(formatted_headers)
+                self.csv_file.flush()
+            except Exception as e:
+                print(f"Error writing header to CSV: {e}")
+
     def get_all_meter_readings(self):
         """
         Returns a list of dicts with device info and latest readings for all meters.
@@ -120,7 +153,7 @@ class MeterManager:
         Args:
             meters (List[MeterDevice]): Meter devices to manage
             parameters (List[str]): Parameter names for all devices
-            csv_filenames (List[str]): CSV log file paths (one per meter)
+            csv_filenames (List[str]): CSV log file paths (should be a single file per location)
             ui_callback (callable, optional): UI update function
             mqtt_client (object, optional): MQTT client for publishing
             publish_mqtt (bool): Enable MQTT message publishing
@@ -128,39 +161,25 @@ class MeterManager:
         self.meters = meters
         self.parameters = parameters
 
-        # Open CSV files with error handling
-        self.csv_files = []
-        for name in csv_filenames:
-            try:
-                f = open(name, "a", newline='')
-                self.csv_files.append(f)
-            except Exception as e:
-                print(f"Error opening CSV file {name}: {e}")
-                raise
-
-        # Create CSV writers with error handling
-        self.csv_writers = []
-        for f in self.csv_files:
-            if f is not None:
-                writer = csv.writer(f)
-                self.csv_writers.append(writer)
-            else:
-                self.csv_writers.append(None)
-
-        # Write headers only if file is new/empty
-        for i, writer in enumerate(self.csv_writers):
-            if writer is not None:
-                try:
-                    # Check if file is empty (new file)
-                    self.csv_files[i].seek(0, 2)  # Seek to end
-                    if self.csv_files[i].tell() == 0:  # File is empty
-                        # Use formatted headers instead of raw parameters
-                        formatted_headers = create_formatted_csv_header(
-                            parameters)
-                        writer.writerow(formatted_headers)
-                    self.csv_files[i].seek(0, 2)  # Back to end for appending
-                except Exception as e:
-                    print(f"Error writing header to CSV: {e}")
+        # Only one CSV file per location is supported
+        if len(csv_filenames) != 1:
+            raise ValueError(
+                "MeterManager expects a single CSV file per location (all meters in one file).")
+        try:
+            self.csv_file = open(csv_filenames[0], "a", newline='')
+        except Exception as e:
+            print(f"Error opening CSV file {csv_filenames[0]}: {e}")
+            raise
+        self.csv_writer = csv.writer(self.csv_file)
+        # Write header if file is empty
+        try:
+            self.csv_file.seek(0, 2)  # Seek to end
+            if self.csv_file.tell() == 0:
+                formatted_headers = create_formatted_csv_header(parameters)
+                self.csv_writer.writerow(formatted_headers)
+            self.csv_file.seek(0, 2)
+        except Exception as e:
+            print(f"Error writing header to CSV: {e}")
         self.ui_callback = ui_callback
         self.allRegValues = [[0] * len(parameters) for _ in meters]
         self.published_msg = 0
@@ -210,28 +229,28 @@ class MeterManager:
         self.TotalReadings += 1
         for i, meter in enumerate(self.meters):
             regValue = meter.read_data()
-
-            # Write to CSV with error handling and formatting
-            if i < len(self.csv_writers) and self.csv_writers[i] is not None:
-                try:
-                    # Format the values for better CSV output
-                    formatted_row = [getattr(meter, 'device_address', i+1)]
-                    for j, value in enumerate(regValue):
-                        if j == 0:  # Timestamp - keep as-is
-                            formatted_row.append(value)
-                        else:
-                            # Get parameter name for formatting
-                            param_name = self.parameters[j] if j < len(
-                                self.parameters) else "Unknown"
-                            formatted_value = format_csv_value(
-                                value, param_name)
-                            formatted_row.append(formatted_value)
-
-                    self.csv_writers[i].writerow(formatted_row)
-                    # Flush to ensure data is written immediately
-                    self.csv_files[i].flush()
-                except Exception as e:
-                    print(f"Error writing to CSV file {i}: {e}")
+            # Ensure CSV file exists and is open before writing
+            self._ensure_csv_file()
+            try:
+                formatted_row = [
+                    getattr(meter, 'device_address', i +
+                            1), getattr(meter, 'name', f"Meter_{i+1}")
+                ]
+                for j, value in enumerate(regValue):
+                    if j == 0:  # Timestamp - keep as-is
+                        formatted_row.append(value)
+                        # Insert model after time
+                        formatted_row.append(
+                            getattr(meter, 'model', 'Unknown'))
+                    else:
+                        param_name = self.parameters[j] if j < len(
+                            self.parameters) else "Unknown"
+                        formatted_value = format_csv_value(value, param_name)
+                        formatted_row.append(formatted_value)
+                self.csv_writer.writerow(formatted_row)
+                self.csv_file.flush()
+            except Exception as e:
+                print(f"Error writing to CSV file: {e}")
 
             if self.publish_mqtt and self.mqtt_client:
                 self.published_msg = self.mqtt_client.publish_message(
@@ -239,17 +258,15 @@ class MeterManager:
             self.allRegValues[i] = regValue.copy()
 
             # Add delay between device reads to avoid Modbus conflicts
-            # Skip delay after the last device
             if i < len(self.meters) - 1 and inter_device_delay > 0:
                 time.sleep(inter_device_delay)
         if self.ui_callback and stdscr is not None:
             self.ui_callback(self.TotalReadings, stdscr, self.allRegValues)
 
     def close(self):
-        """Closes all CSV files safely."""
-        for f in self.csv_files:
-            if f is not None and not f.closed:
-                try:
-                    f.close()
-                except Exception as e:
-                    print(f"Error closing CSV file: {e}")
+        """Closes the CSV file safely."""
+        if hasattr(self, 'csv_file') and self.csv_file is not None and not self.csv_file.closed:
+            try:
+                self.csv_file.close()
+            except Exception as e:
+                print(f"Error closing CSV file: {e}")

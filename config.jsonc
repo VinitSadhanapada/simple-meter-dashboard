@@ -1,0 +1,11 @@
+// Main dashboard configuration for offline RPi dashboard
+// Edit values as needed for your deployment
+{
+    "SIMULATION_MODE": false, // Set true to simulate readings
+    "READING_INTERVAL": 10, // Seconds between reading cycles
+    "INTER_DEVICE_DELAY": 0.1, // Delay (seconds) between device reads
+    "PORT": "/dev/ttyUSB0", // Serial port for Modbus
+    "ENABLE_MQTT": false, // Enable MQTT publishing
+    "ENABLE_RTC": true, // Enable RTC for offline time keeping
+    "LOG_LEVEL": "INFO" // Logging level
+}
