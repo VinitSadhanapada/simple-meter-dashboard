@@ -6,6 +6,7 @@ After copying, it creates an empty 'done' file on the USB to indicate success.
 Usage: Run this script in the background on the RPi.
 """
 
+from datetime import datetime
 import os
 import time
 import shutil
@@ -81,7 +82,16 @@ def copy_csv_to_usb(usb_path):
 
 
 def touch_done_file(usb_path):
-    done_path = usb_path / DONE_FILENAME
+    # Delete any existing done_* files first
+    for f in usb_path.glob(f"{DONE_FILENAME}_*"):
+        try:
+            f.unlink()
+            print(f"Deleted old done file: {f}")
+        except Exception as e:
+            print(f"Failed to delete old done file {f}: {e}")
+    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+    done_filename = f"{DONE_FILENAME}_{timestamp}"
+    done_path = usb_path / done_filename
     try:
         done_path.touch()
         print(f"Created done file: {done_path}")

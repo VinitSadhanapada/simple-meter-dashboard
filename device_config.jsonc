@@ -1,6 +1,8 @@
 // Device configuration for the offline RPi dashboard
 // Each object represents a meter device
 // address is the Device ID for Modbus communication of meter.
+// Available models: LG6400, LG+5220, LG+5310, EN8100, EN8400, EN8410, and ELR300  
+// Please ensure the address is unique for each device and model number is correct.
 [
     {
         "name": "SP3 UPS",

@@ -1,15 +1,26 @@
+
 #!/usr/bin/env python3
 
-# Set RTC time at startup if running as 'pi' user
-import re
-import os
-import subprocess
-import sys
+# Add delay at startup to allow system and hardware to initialize (important for cron @reboot)
+from venv_utils import setup_complete_venv_environment
+from datetime import datetime
+import logging
+import signal
+import time
+import json
+import argparse
 from pathlib import Path
+import sys
+import subprocess
+import os
+import re
+import time as _time
+
+# Set RTC time at startup if running as 'pi' user
 
 try:
     user = os.getenv('USER', 'unknown')
-    if user == 'pi':
+    if user in ('pi', 'root'):
         rtc_script = Path(__file__).parent / 'rtc_new.py'
         if rtc_script.exists():
             # Check for internet connectivity
@@ -57,19 +68,8 @@ Author: Simplified approach (offline version)
 Date: 24/07/30
 """
 
-import os
-import sys
-import subprocess
-import argparse
-import json
-import time
-import signal
-import logging
-from pathlib import Path
-from datetime import datetime
 
 # Import shared venv utilities
-from venv_utils import setup_complete_venv_environment
 
 
 def strip_jsonc_comments(text):
