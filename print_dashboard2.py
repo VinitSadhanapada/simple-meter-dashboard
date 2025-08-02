@@ -41,14 +41,16 @@ Project Modules:
     macros: Device names, parameters, and configuration constants
     mqtt_client: MQTT publishing functionality
 """
-from meter_manager import MeterManager
 from meter_device import MeterDevice
+from meter_manager import MeterManager
 from macros import DEVICE_NAMES, PARAMETERS
 import mqtt_client as mqtt
 import time
 import os
 import platform
 from datetime import datetime
+import macros
+from pymodbus.client.sync import ModbusSerialClient as ModbusClient
 
 # Try to import venv utilities (optional - for advanced setup)
 try:
@@ -58,7 +60,6 @@ except ImportError:
     VENV_UTILS_AVAILABLE = False
 
 # Modbus imports for hardware communication (same as legacy version)
-from pymodbus.client.sync import ModbusSerialClient as ModbusClient
 
 # Configuration Section
 """
@@ -116,11 +117,9 @@ DEVICE_CONFIG = [
 DEVICE_NAMES = [device["name"] for device in DEVICE_CONFIG]
 
 # Optional: Override the imported DEVICE_NAMES from macros
-import macros
 macros.DEVICE_NAMES = DEVICE_NAMES
 
 # Hardware Configuration - Auto-detect platform
-import platform
 if platform.system() == "Linux":
     # Linux/Raspberry Pi - try common serial ports
     PORT = "/dev/ttyUSB0"  # Most common for USB-to-Serial adapters
@@ -132,7 +131,8 @@ if platform.system() == "Linux":
                 break
 else:
     # Windows
-    PORT = "COM7"           # For Windows - Change this to your actual COM port (COM3, COM6, COM7, etc.)
+    # For Windows - Change this to your actual COM port (COM3, COM6, COM7, etc.)
+    PORT = "COM7"
 
 # Initialize MQTT
 mqtt.mqtt_main()
@@ -142,8 +142,9 @@ client = None
 error_file = None
 
 if not SIMULATION_MODE:
-    client = ModbusClient(method="rtu", port=PORT, stopbits=1, bytesize=8, parity='E', baudrate=9600, timeout=0.5)
-    
+    client = ModbusClient(method="rtu", port=PORT, stopbits=1,
+                          bytesize=8, parity='E', baudrate=9600, timeout=0.5)
+
     try:
         client.connect()
         print(f"✓ Successfully connected to {PORT}")
@@ -155,8 +156,6 @@ if not SIMULATION_MODE:
         client = None
 
 # Create CSV data directory and generate filenames based on device names
-import os
-from datetime import datetime
 
 csv_dir = "csv_data"
 os.makedirs(csv_dir, exist_ok=True)
@@ -165,7 +164,8 @@ timestamp = datetime.now().strftime("%Y%m%d")
 csv_filenames = []
 for device in DEVICE_CONFIG:
     # Clean device name for filename (remove spaces, special chars)
-    clean_name = "".join(c for c in device["name"] if c.isalnum() or c in ('-', '_'))
+    clean_name = "".join(
+        c for c in device["name"] if c.isalnum() or c in ('-', '_'))
     filename = f"{csv_dir}/{clean_name}_{timestamp}.csv"
     csv_filenames.append(filename)
 
@@ -173,9 +173,9 @@ for device in DEVICE_CONFIG:
 meters = []
 for i, device in enumerate(DEVICE_CONFIG):
     meter = MeterDevice(
-        name=device["name"], 
-        model=device["model"], 
-        parameters=PARAMETERS, 
+        name=device["name"],
+        model=device["model"],
+        parameters=PARAMETERS,
         client=client,
         error_file=error_file,
         simulation_mode=SIMULATION_MODE,
@@ -216,13 +216,14 @@ Error Handling:
     - MQTT connection issues: Handled by mqtt_client module
 """
 
+
 def setup_venv_if_requested():
     """
     Optional venv setup for print_dashboard2.py
-    
+
     This function can be called with special command line arguments to set up
     a virtual environment with all required dependencies.
-    
+
     Usage:
         python print_dashboard2.py --setup-venv           # Online installation
         python print_dashboard2.py --setup-venv --offline # Offline installation
@@ -230,47 +231,50 @@ def setup_venv_if_requested():
     """
     import sys
     from pathlib import Path
-    
+
     if '--setup-venv' in sys.argv:
         if not VENV_UTILS_AVAILABLE:
-            print("❌ venv_utils not available. Make sure venv_utils.py is in the same directory.")
+            print(
+                "❌ venv_utils not available. Make sure venv_utils.py is in the same directory.")
             return False
-        
+
         # Check if offline mode is requested
         offline_mode = '--offline' in sys.argv
         offline_dir = None
-        
+
         if offline_mode:
             offline_dir = "offline_packages"
             offline_path = Path(offline_dir)
             if not offline_path.exists():
-                print(f"❌ Offline packages directory not found: {offline_path}")
+                print(
+                    f"❌ Offline packages directory not found: {offline_path}")
                 print("💡 To prepare offline packages, run: python prepare_offline.py")
                 return False
-            print(f"🔧 Setting up virtual environment offline from: {offline_path}")
+            print(
+                f"🔧 Setting up virtual environment offline from: {offline_path}")
         else:
             print("🔧 Setting up virtual environment online...")
-        
+
         # Required packages for the dashboard
         required_packages = [
             "pymodbus==2.5.3",
-            "pyserial==3.5", 
+            "pyserial==3.5",
             "paho-mqtt==2.1.0",
             "termcolor==3.1.0",
             "numpy==1.24.3",
             "pandas==2.0.3"
         ]
-        
+
         script_dir = Path(__file__).parent.absolute()
         venv_dir = script_dir / "dashboard_venv"
-        
+
         success, python_exe = setup_complete_venv_environment(
             venv_dir=venv_dir,
             packages=required_packages,
             force_recreate=False,
             offline_dir=offline_dir
         )
-        
+
         if success:
             mode_str = "offline" if offline_mode else "online"
             print(f"✅ Virtual environment setup complete ({mode_str})!")
@@ -286,36 +290,37 @@ def setup_venv_if_requested():
                 print(f"   python print_dashboard2.py")
         else:
             print("❌ Virtual environment setup failed!")
-        
+
         return success
-    
+
     elif '--check-venv' in sys.argv:
         script_dir = Path(__file__).parent.absolute()
         venv_dir = script_dir / "dashboard_venv"
-        
+
         print("🔍 Checking virtual environment status...")
-        
+
         if venv_dir.exists():
             print(f"✅ Virtual environment exists: {venv_dir}")
-            
+
             # Check if python executable exists
             if os.name == 'nt':
                 python_exe = venv_dir / "Scripts" / "python.exe"
             else:
                 python_exe = venv_dir / "bin" / "python"
-            
+
             if python_exe.exists():
                 print(f"✅ Python executable found: {python_exe}")
-                
+
                 # Try to check installed packages
                 try:
                     import subprocess
-                    result = subprocess.run([str(python_exe), "-m", "pip", "list"], 
-                                          capture_output=True, text=True)
+                    result = subprocess.run([str(python_exe), "-m", "pip", "list"],
+                                            capture_output=True, text=True)
                     if result.returncode == 0:
                         print("✅ pip is working in venv")
                         print("📦 Installed packages:")
-                        for line in result.stdout.split('\n')[:10]:  # Show first 10 packages
+                        # Show first 10 packages
+                        for line in result.stdout.split('\n')[:10]:
                             if line.strip() and not line.startswith('Package'):
                                 print(f"   {line}")
                     else:
@@ -327,10 +332,11 @@ def setup_venv_if_requested():
         else:
             print("❌ Virtual environment not found")
             print("Run: python print_dashboard2.py --setup-venv")
-        
+
         return True
-    
+
     return None  # No venv setup requested
+
 
 # Check for venv setup commands before normal execution
 venv_result = setup_venv_if_requested()
@@ -347,17 +353,18 @@ try:
     while True:
         # Clear the screen
         os.system('cls' if os.name == 'nt' else 'clear')
-        
+
         # Read new data (this also publishes to MQTT if enabled)
         manager.read_all()
-        
+
         # Print header with status
         print(f"Meter Reading Dashboard - Cycle: {manager.TotalReadings}")
         print(f"Last updated: {time.strftime('%Y-%m-%d %H:%M:%S')}")
         print(f"MQTT Publishing: {'Enabled' if PUBLISH_MQTT else 'Disabled'}")
-        print(f"Simulation Mode: {'Enabled' if SIMULATION_MODE else 'Disabled'}")
+        print(
+            f"Simulation Mode: {'Enabled' if SIMULATION_MODE else 'Disabled'}")
         print("=" * 80)
-        
+
         # Data Display Section
         """
         Format and display meter readings in tabular format.
@@ -372,34 +379,33 @@ try:
         header = ["Device"] + PARAMETERS
         print("\t".join(header))
         print("-" * 120)  # separator line
-        
+
         # Print each device's readings
         for i, values in enumerate(manager.allRegValues):
             row = [DEVICE_NAMES[i]] + [str(val) for val in values]
             print("\t".join(row))
-        
+
         print("=" * 80)
-        print(f"Next update in {REFRESH_INTERVAL} seconds... (Press Ctrl+C to exit)")
-        
-        
+        print(
+            f"Next update in {REFRESH_INTERVAL} seconds... (Press Ctrl+C to exit)")
 
         # Calculate precise sleep time
         next_time += REFRESH_INTERVAL
         sleep_time = max(0, next_time - time.time())
         time.sleep(sleep_time)
-        
+
 except KeyboardInterrupt:
     print("\nShutting down dashboard...")
     manager.close()
     mqtt.mqtt_close()
-    
+
     # Close Modbus connection and error file
     if client and hasattr(client, 'close'):
         client.close()
         print("✓ Modbus connection closed")
-    
+
     if error_file:
         error_file.close()
         print("✓ Error log file closed")
-    
+
     print("Dashboard stopped.")

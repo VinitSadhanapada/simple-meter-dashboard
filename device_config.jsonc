@@ -5,16 +5,28 @@
 // Please ensure the address is unique for each device and model number is correct.
 [
     {
-        "name": "SP3 UPS",
+        "name": "EB INCOMER",
         "address": 1,
         "model": "LG6400",
-        "location": "SP3Panel"
+        "location": "SP3 PH"
     },
     {
-        "name": "SP3 EB",
+        "name": "SP3",
         "address": 2,
         "model": "LG+5220",
-        "location": "SP3Panel"
+        "location": "SP3 PH"
+    },
+    {
+        "name": "SP4",
+        "address": 3,
+        "model": "LG+5310",
+        "location": "SP3 PH"
+    },
+    {
+        "name": "DG INCOMER",
+        "address": 4,
+        "model": "EN8410",
+        "location": "SP3 PH"
     }
     // Add more devices as needed:
     // {"name": "Your Device Name", "address": 4, "model": "LG6400", "location": "PanelA"},

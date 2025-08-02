@@ -1,4 +1,3 @@
-
 #!/usr/bin/env python3
 
 # Add delay at startup to allow system and hardware to initialize (important for cron @reboot)
@@ -16,62 +15,105 @@ import os
 import re
 import time as _time
 
-# Set RTC time at startup if running as 'pi' user
 
-try:
-    user = os.getenv('USER', 'unknown')
-    if user in ('pi', 'root'):
-        rtc_script = Path(__file__).parent / 'rtc_new.py'
-        if rtc_script.exists():
-            # Check for internet connectivity
-            import socket
+def debug_rtc_and_user_startup(logger=None):
+    import pwd
+    user_env = os.getenv('USER', 'unknown')
+    try:
+        user_pwd = pwd.getpwuid(os.geteuid()).pw_name
+    except Exception:
+        user_pwd = 'unknown'
+    msg_before = f"[Before try block] USER(env): {user_env} | USER(pwd): {user_pwd}"
+    with open("/tmp/debug_startup.log", "a") as f:
+        f.write(
+            f"[main] USER(env)={user_env} | USER(pwd)={user_pwd} | sys.executable={sys.executable} | argv={sys.argv}\n")
+    print(msg_before)
+    if logger:
+        logger.info(msg_before)
+    # Set RTC time at startup if running as 'pi' user
+    try:
+        msg_inside = f"[Inside try block] USER(env): {user_env} | USER(pwd): {user_pwd}"
+        print(msg_inside)
+        if logger:
+            logger.info(msg_inside)
+        if user_env in ('pi', 'root') or user_pwd in ('pi', 'root'):
+            rtc_script = Path(__file__).parent / 'rtc_new.py'
+            if rtc_script.exists():
+                # Check for internet connectivity
+                import socket
 
-            def has_internet(host="8.8.8.8", port=53, timeout=2):
-                try:
-                    socket.setdefaulttimeout(timeout)
-                    socket.socket(socket.AF_INET, socket.SOCK_STREAM).connect(
-                        (host, port))
-                    return True
-                except Exception:
-                    return False
-            if has_internet():
-                print(
-                    "⏰ Internet detected. RTC time updated from internet (rtc_new.py --set-rtc)...")
-                result = subprocess.run([sys.executable, str(
-                    rtc_script), '--set-rtc'], capture_output=True, text=True)
+                def has_internet(host="8.8.8.8", port=53, timeout=2):
+                    try:
+                        socket.setdefaulttimeout(timeout)
+                        socket.socket(socket.AF_INET, socket.SOCK_STREAM).connect(
+                            (host, port))
+                        return True
+                    except Exception:
+                        return False
+                if has_internet():
+                    msg_inet = "⏰ Internet detected. RTC time updated from internet (rtc_new.py --set-rtc)..."
+                    print(msg_inet)
+                    if logger:
+                        logger.info(msg_inet)
+                    result = subprocess.run([sys.executable, str(
+                        rtc_script), '--set-rtc'], capture_output=True, text=True)
+                else:
+                    msg_noinet = "⏰ No internet detected. Correcting system time from RTC IC (rtc_new.py)..."
+                    print(msg_noinet)
+                    if logger:
+                        logger.info(msg_noinet)
+                    result = subprocess.run([sys.executable, str(
+                        rtc_script)], capture_output=True, text=True)
+                with open("/tmp/debug_startup.log", "a") as f:
+                    f.write(
+                        f"RTC script result: returncode={result.returncode}, stdout={result.stdout}, stderr={result.stderr}\n")
+                if result.returncode == 0:
+                    msg_ok = "✅ RTC time set successfully."
+                    print(msg_ok)
+                    if logger:
+                        logger.info(msg_ok)
+                else:
+                    msg_fail = f"⚠️ RTC set failed: {result.stderr.strip()}"
+                    print(msg_fail)
+                    if logger:
+                        logger.info(msg_fail)
             else:
-                print(
-                    "⏰ No internet detected. Correcting system time from RTC IC (rtc_new.py)...")
-                result = subprocess.run([sys.executable, str(
-                    rtc_script)], capture_output=True, text=True)
-            if result.returncode == 0:
-                print("✅ RTC time set successfully.")
-            else:
-                print(f"⚠️ RTC set failed: {result.stderr.strip()}")
+                msg_nortc = "⚠️ rtc_new.py not found, skipping RTC set."
+                print(msg_nortc)
+                if logger:
+                    logger.info(msg_nortc)
         else:
-            print("⚠️ rtc_new.py not found, skipping RTC set.")
-except Exception as e:
-    print(f"⚠️ RTC set error: {e}")
+            msg_skip = f"[RTC] Not running as 'pi' or 'root' (user_env={user_env}, user_pwd={user_pwd}), skipping RTC set."
+            print(msg_skip)
+            if logger:
+                logger.info(msg_skip)
+    except Exception as e:
+        msg_err = f"⚠️ RTC set error: {e}"
+        print(msg_err)
+        if logger:
+            logger.info(msg_err)
+        with open("/tmp/debug_startup.log", "a") as f:
+            f.write(f"RTC set error: {e}\n")
+
+
 """
 Offline RPi Auto-Startup Dashboard - All-in-One Solution (No Internet Required)
 
 This script is a copy of simple_rpi_dashboard.py, but it only installs Python packages from the local 'packages_folder' directory. It will not attempt to download packages from the internet.
 
 Usage:
-    python3 offline_rpi_dashboard.py --setup      # Initial setup (offline)
-    python3 offline_rpi_dashboard.py --install    # Install auto-startup
-    python3 offline_rpi_dashboard.py --run        # Run dashboard
-    python3 offline_rpi_dashboard.py --status     # Check status
-    python3 offline_rpi_dashboard.py --stop       # Stop dashboard
+    python3 offline_rpi_dashboard_debug.py --setup      # Initial setup (offline)
+    python3 offline_rpi_dashboard_debug.py --install    # Install auto-startup
+    python3 offline_rpi_dashboard_debug.py --run        # Run dashboard
+    python3 offline_rpi_dashboard_debug.py --status     # Check status
+    python3 offline_rpi_dashboard_debug.py --stop       # Stop dashboard
 
 Author: Simplified approach (offline version)
 Date: 24/07/30
 """
 
 
-# Import shared venv utilities
-
-
+# --- Begin: Copied from offline_rpi_dashboard.py after RTC try/except block ---
 def strip_jsonc_comments(text):
     # Remove // and /* */ comments for JSONC
     text = re.sub(r"//.*", "", text)
@@ -408,6 +450,24 @@ class OfflineDashboard:
 
 
 def main():
+    # Setup a basic logger for early startup info
+    logger = None
+    try:
+        log_dir = Path(__file__).parent.absolute() / "logs"
+        log_dir.mkdir(exist_ok=True)
+        log_file = log_dir / f"startup_{datetime.now().strftime('%Y%m%d')}.log"
+        logging.basicConfig(
+            level=logging.INFO,
+            format='%(asctime)s - %(levelname)s - %(message)s',
+            handlers=[
+                logging.FileHandler(log_file),
+                logging.StreamHandler()
+            ]
+        )
+        logger = logging.getLogger("rtc_startup")
+    except Exception:
+        pass
+    debug_rtc_and_user_startup(logger=logger)
     auto_use_venv_if_needed()
     parser = argparse.ArgumentParser(
         description="Offline RPi Dashboard Manager")
@@ -458,14 +518,20 @@ def main():
             sys.exit(1)
         dashboard.run_dashboard()
     elif args.print_readings:
-        # Print the latest data being written to CSVs by --run, in a loop (per-location CSVs)
+        # Print the latest data being written to CSVs by --run, only for locations in device_config
         from macros import PARAMETERS
         import time
         import csv
         script_dir = Path(__file__).parent.absolute()
         csv_dir = script_dir / "csv_data"
-        # Find all location-based CSV files
-        csv_files = sorted(csv_dir.glob("*.csv"))
+        # Get valid location-based CSV filenames from DEVICE_CONFIG
+        valid_locations = set()
+        for device in DEVICE_CONFIG:
+            loc = device.get("location", "Unknown")
+            clean_location = "".join(
+                c for c in loc if c.isalnum() or c in ('-', '_'))
+            valid_locations.add(clean_location)
+        csv_files = [csv_dir / f"{loc}.csv" for loc in valid_locations]
         print("\nLive meter readings from CSV (Ctrl+C to stop):\n")
         try:
             while True:
@@ -547,3 +613,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+# --- End: Copied from offline_rpi_dashboard.py after RTC try/except block ---
