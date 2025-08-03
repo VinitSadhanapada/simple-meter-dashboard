@@ -102,7 +102,7 @@ script_dir = Path(__file__).parent.absolute()
 CONFIG = load_main_config(script_dir / "config.jsonc")
 DEVICE_CONFIG = load_device_config(script_dir / "device_config.jsonc")
 REQUIRED_PACKAGES = load_required_packages(
-    script_dir / "requirements_offline.txt")
+    script_dir / "requirements.txt")
 
 
 def auto_use_venv_if_needed():
