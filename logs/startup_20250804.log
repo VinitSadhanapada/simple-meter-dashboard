@@ -1,3 +1,6 @@
 2025-08-04 15:48:42,809 - INFO - [Before try block] USER(env): isha | USER(pwd): isha
 2025-08-04 15:48:42,809 - INFO - [Inside try block] USER(env): isha | USER(pwd): isha
 2025-08-04 15:48:42,809 - INFO - [RTC] Not running as 'pi' or 'root' (user_env=isha, user_pwd=isha), skipping RTC set.
+2025-08-04 16:11:44,656 - INFO - [Before try block] USER(env): isha | USER(pwd): isha
+2025-08-04 16:11:44,656 - INFO - [Inside try block] USER(env): isha | USER(pwd): isha
+2025-08-04 16:11:44,656 - INFO - [RTC] Not running as 'pi' or 'root' (user_env=isha, user_pwd=isha), skipping RTC set.
