@@ -24,9 +24,15 @@ def debug_rtc_and_user_startup(logger=None):
     except Exception:
         user_pwd = 'unknown'
     msg_before = f"[Before try block] USER(env): {user_env} | USER(pwd): {user_pwd}"
-    with open("/tmp/debug_startup.log", "a") as f:
-        f.write(
-            f"[main] USER(env)={user_env} | USER(pwd)={user_pwd} | sys.executable={sys.executable} | argv={sys.argv}\n")
+    # Use user_env if set and not 'unknown', else user_pwd, else 'unknown'
+    log_user = user_env if user_env and user_env != 'unknown' else user_pwd if user_pwd and user_pwd != 'unknown' else 'unknown'
+    debug_log_path = f"/tmp/debug_startup_{log_user}.log"
+    try:
+        with open(debug_log_path, "a") as f:
+            f.write(
+                f"[main] USER(env)={user_env} | USER(pwd)={user_pwd} | sys.executable={sys.executable} | argv={sys.argv}\n")
+    except Exception as e:
+        print(f"[DebugLog] Could not write to {debug_log_path}: {e}")
     print(msg_before)
     if logger:
         logger.info(msg_before)
@@ -64,9 +70,13 @@ def debug_rtc_and_user_startup(logger=None):
                         logger.info(msg_noinet)
                     result = subprocess.run([sys.executable, str(
                         rtc_script)], capture_output=True, text=True)
-                with open("/tmp/debug_startup.log", "a") as f:
-                    f.write(
-                        f"RTC script result: returncode={result.returncode}, stdout={result.stdout}, stderr={result.stderr}\n")
+                try:
+                    with open(debug_log_path, "a") as f:
+                        f.write(
+                            f"RTC script result: returncode={result.returncode}, stdout={result.stdout}, stderr={result.stderr}\n")
+                except Exception as e:
+                    print(
+                        f"[DebugLog] Could not write to {debug_log_path}: {e}")
                 if result.returncode == 0:
                     msg_ok = "✅ RTC time set successfully."
                     print(msg_ok)
@@ -92,8 +102,11 @@ def debug_rtc_and_user_startup(logger=None):
         print(msg_err)
         if logger:
             logger.info(msg_err)
-        with open("/tmp/debug_startup.log", "a") as f:
-            f.write(f"RTC set error: {e}\n")
+        try:
+            with open(debug_log_path, "a") as f:
+                f.write(f"RTC set error: {e}\n")
+        except Exception as e2:
+            print(f"[DebugLog] Could not write to {debug_log_path}: {e2}")
 
 
 """
@@ -393,6 +406,7 @@ class OfflineDashboard:
         self.venv_dir = self.script_dir / "venv"
         self.log_dir = self.script_dir / "logs"
         self.csv_dir = self.script_dir / "csv_data"
+        self.csv_dir.mkdir(exist_ok=True)
         self.service_name = "meter-dashboard-offline"
 
     def setup_logging(self):
@@ -524,6 +538,7 @@ def main():
         import csv
         script_dir = Path(__file__).parent.absolute()
         csv_dir = script_dir / "csv_data"
+        csv_dir.mkdir(exist_ok=True)
         # Get valid location-based CSV filenames from DEVICE_CONFIG
         valid_locations = set()
         for device in DEVICE_CONFIG:
