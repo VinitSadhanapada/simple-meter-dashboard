@@ -23,7 +23,7 @@ DB_CONFIG = {
     'dbname': 'mfmdb',
     'user': 'mfmuser',
     'password': 'devi',
-    'host': 'localhost',  # or your DB server IP
+    'host': '172.20.10.2',  # or your DB server IP
     'port': 5432
 }
 
@@ -76,6 +76,34 @@ create_meter_table(db)
 
 def main():
     logger.info("Starting dashboard DB version...")
+    # Setup pymodbus ModbusSerialClient
+    from pymodbus.client.sync import ModbusSerialClient as ModbusClient
+    client = None
+    port_exists = os.path.exists(CONFIG["PORT"])
+    simulation_mode = CONFIG["SIMULATION_MODE"]
+    use_default = False
+    if not simulation_mode:
+        if port_exists:
+            try:
+                client = ModbusClient(
+                    method="rtu", port=CONFIG["PORT"],
+                    stopbits=1, bytesize=8, parity='E',
+                    baudrate=9600, timeout=0.5
+                )
+                if client.connect():
+                    logger.info(f"Connected to {CONFIG['PORT']}")
+                else:
+                    logger.warning(
+                        "Failed to connect, will use default value -1 for all readings.")
+                    use_default = True
+            except Exception as e:
+                logger.error(
+                    f"Hardware error: {e}, will use default value -1 for all readings.")
+                use_default = True
+        else:
+            logger.warning(
+                f"Port {CONFIG['PORT']} not found, will use default value -1 for all readings.")
+            use_default = True
     # Setup meters by location
     location_meters = defaultdict(list)
     for device_config in DEVICE_CONFIG:
@@ -84,11 +112,16 @@ def main():
             name=device_config["name"],
             model=device_config["model"],
             parameters=PARAMETERS,
-            client=None,  # Set up Modbus client as needed
+            client=client,
             error_file=None,
-            simulation_mode=CONFIG["SIMULATION_MODE"],
+            simulation_mode=simulation_mode,
             device_address=device_config["address"]
         )
+        # Patch: If not simulation_mode and use_default, override meter to always return -1 for all params
+        if not simulation_mode and use_default:
+            def always_minus_one(*args, **kwargs):
+                return [-1 for _ in PARAMETERS]
+            meter.read_parameters = always_minus_one
         location_meters[location].append(meter)
 
     managers = []
@@ -98,6 +131,7 @@ def main():
         csv_file = CSV_DIR / f"{clean_location}.csv"
         manager = MeterManager(
             meters, PARAMETERS, [str(csv_file)],
+            location=location,
             mqtt_client=None,  # Add MQTT if needed
             publish_mqtt=False
         )
@@ -109,53 +143,55 @@ def main():
     try:
         while True:
             for location, manager, csv_file, meters in managers:
-                # Read all meters for this location
-                manager.read_all(
-                    inter_device_delay=CONFIG["INTER_DEVICE_DELAY"])
-                # Get latest row for each meter and write to DB
-                with open(csv_file, "r") as f:
-                    reader = list(csv.reader(f))
-                    if len(reader) < 2:
-                        continue  # No data yet
-                    header = reader[0]
-                    for row in reader[-len(meters):]:
-                        row_dict = dict(zip(header, row))
-                        # Map CSV columns to DB insert
-                        insert_meter_reading(
-                            db,
-                            row_dict.get("Device_ID"),
-                            row_dict.get("Meter_Name"),
-                            row_dict.get("Time"),
-                            row_dict.get("Model"),
-                            float_or_none(row_dict.get("Watts Total")),
-                            float_or_none(row_dict.get("Watts R Ph")),
-                            float_or_none(row_dict.get("Watts Y Ph")),
-                            float_or_none(row_dict.get("Watts B Ph")),
-                            float_or_none(row_dict.get("PF Ave")),
-                            float_or_none(row_dict.get("PF R Ph")),
-                            float_or_none(row_dict.get("PF Y Ph")),
-                            float_or_none(row_dict.get("PF B Ph")),
-                            float_or_none(row_dict.get("VLN average")),
-                            float_or_none(row_dict.get("V R Ph")),
-                            float_or_none(row_dict.get("V Y Ph")),
-                            float_or_none(row_dict.get("V B Ph")),
-                            float_or_none(row_dict.get("A average")),
-                            float_or_none(row_dict.get("A R Ph")),
-                            float_or_none(row_dict.get("A Y Ph")),
-                            float_or_none(row_dict.get("A B Ph")),
-                            float_or_none(row_dict.get("Frequency")),
-                            float_or_none(row_dict.get("Wh received")),
-                            float_or_none(row_dict.get(
-                                "Load Hours Delivered")),
-                            float_or_none(row_dict.get("No of interruption")),
-                            float_or_none(row_dict.get("On Hours")),
-                            float_or_none(row_dict.get("V R Harmonics")),
-                            float_or_none(row_dict.get("V Y Harmonics")),
-                            float_or_none(row_dict.get("V B Harmonics")),
-                            float_or_none(row_dict.get("A R Harmonics")),
-                            float_or_none(row_dict.get("A Y Harmonics")),
-                            float_or_none(row_dict.get("A B Harmonics"))
-                        )
+                # Generate a single timestamp for all meters in this reading cycle
+                reading_time = datetime.now().isoformat()
+                meter_data_list = manager.read_all(
+                    inter_device_delay=CONFIG["INTER_DEVICE_DELAY"],
+                    reading_time=reading_time
+                )
+                for meter_data in meter_data_list:
+                    meter_data["Location"] = location
+                    meter_data["Time"] = reading_time
+                    print(f"DEBUG: meter_data before DB insert: {meter_data}")
+                    # Handle On Hours for different meter models
+                    on_hours_val = meter_data.get("On Hours")
+                    if meter_data.get("Model") == "LG+5220" and (on_hours_val in [None, "", "00:00:00"]):
+                        on_hours_val = None
+                    insert_meter_reading(
+                        db,
+                        meter_data.get("Location"),
+                        meter_data.get("Device_ID"),
+                        meter_data.get("Meter_Name"),
+                        meter_data.get("Time"),
+                        meter_data.get("Model"),
+                        float_or_none(meter_data.get("Watts Total")),
+                        float_or_none(meter_data.get("Watts R Ph")),
+                        float_or_none(meter_data.get("Watts Y Ph")),
+                        float_or_none(meter_data.get("Watts B Ph")),
+                        float_or_none(meter_data.get("PF Ave")),
+                        float_or_none(meter_data.get("PF R Ph")),
+                        float_or_none(meter_data.get("PF Y Ph")),
+                        float_or_none(meter_data.get("PF B Ph")),
+                        float_or_none(meter_data.get("VLN average")),
+                        float_or_none(meter_data.get("V R Ph")),
+                        float_or_none(meter_data.get("V Y Ph")),
+                        float_or_none(meter_data.get("V B Ph")),
+                        float_or_none(meter_data.get("A average")),
+                        float_or_none(meter_data.get("A R Ph")),
+                        float_or_none(meter_data.get("A Y Ph")),
+                        float_or_none(meter_data.get("A B Ph")),
+                        float_or_none(meter_data.get("Frequency")),
+                        float_or_none(meter_data.get("Wh received")),
+                        float_or_none(meter_data.get("Load Hours Delivered")),
+                        float_or_none(meter_data.get("No of interruption")),
+                        on_hours_val,
+                        float_or_none(meter_data.get("V R Harmonics")),
+                        float_or_none(meter_data.get("V Y Harmonics")),
+                        float_or_none(meter_data.get("V B Harmonics")),
+                        float_or_none(meter_data.get("A R Harmonics")),
+                        float_or_none(meter_data.get("A Y Harmonics")),
+                        float_or_none(meter_data.get("A B Harmonics"))
+                    )
             time.sleep(CONFIG["READING_INTERVAL"])
     except KeyboardInterrupt:
         logger.info("Dashboard stopped by user.")

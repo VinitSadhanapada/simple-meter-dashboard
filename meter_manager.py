@@ -39,7 +39,7 @@ def create_formatted_csv_header(parameters):
     Returns:
         list: Formatted header row
     """
-    formatted_headers = ["Device_ID", "Meter_Name"]
+    formatted_headers = ["Location", "Device_ID", "Meter_Name"]
     # Insert 'Time' and 'Model' in the correct order
     for i, param in enumerate(parameters):
         clean_name = param.replace(" ", "_").replace(
@@ -108,32 +108,34 @@ class MeterManager:
         return result
     """
     Manages multiple meter devices with coordinated data collection and publishing.
-    
+
     The MeterManager class serves as the central coordinator for a meter reading system,
     handling multiple MeterDevice instances and providing integrated logging, MQTT
     publishing, and UI update capabilities.
-    
+
     Args:
         meters (List[MeterDevice]): List of MeterDevice instances to manage.
     parameters (List[str]): Parameter names that match across all devices.
         csv_filenames (List[str]): CSV file paths for logging each device's data.
                                  Must have same length as meters list.
         ui_callback (callable, optional): Function to call for UI updates.
-                                        Signature: callback(total_readings, stdscr, reg_values)
+                                        Signature: callback(
+                                            total_readings, stdscr, reg_values)
         mqtt_client (object, optional): MQTT client instance for data publishing.
         publish_mqtt (bool): Enable MQTT publishing. Default: False.
-    
+
     Attributes:
         meters (List[MeterDevice]): Managed meter devices.
         TotalReadings (int): Total number of reading cycles completed.
         allRegValues (List[List]): Latest readings from all devices.
-                                 Structure: [[device0_readings], [device1_readings], ...]
+                                 Structure: [[device0_readings],
+                                     [device1_readings], ...]
         published_msg (int): Count of MQTT messages successfully published.
-        
+
     Raises:
         ValueError: If meters and csv_filenames lists have different lengths.
         FileNotFoundError: If CSV file paths cannot be created.
-        
+
     Example:
         >>> meters = [MeterDevice("Meter1", "LG6400", params, simulation_mode=True)]
         >>> manager = MeterManager(
@@ -146,7 +148,8 @@ class MeterManager:
         >>> print(f"Completed {manager.TotalReadings} reading cycles")
     """
 
-    def __init__(self, meters, parameters, csv_filenames, ui_callback=None, mqtt_client=None, publish_mqtt=False):
+    def __init__(self, meters, parameters, csv_filenames, location=None, ui_callback=None, mqtt_client=None, publish_mqtt=False):
+        self.location = location
         """
         Initialize MeterManager with devices and configuration.
 
@@ -187,7 +190,7 @@ class MeterManager:
         self.mqtt_client = mqtt_client
         self.publish_mqtt = publish_mqtt
 
-    def read_all(self, stdscr=None, inter_device_delay=0.1):
+    def read_all(self, stdscr=None, inter_device_delay=0.1, reading_time=None):
         """
         Read data from all meters and perform associated operations.
 
@@ -219,7 +222,8 @@ class MeterManager:
 
         Example:
             >>> manager.read_all()  # Simple reading cycle
-            >>> manager.read_all(inter_device_delay=0.2)  # With 200ms delay between devices
+            # With 200ms delay between devices
+            >>> manager.read_all(inter_device_delay=0.2)
 
         Note:
             The stdscr parameter exists for backwards compatibility with legacy
@@ -227,14 +231,16 @@ class MeterManager:
             dashboard (print_dashboard2.py).
         """
         self.TotalReadings += 1
+        meter_data_list = []
         for i, meter in enumerate(self.meters):
             regValue = meter.read_data()
             # Ensure CSV file exists and is open before writing
             self._ensure_csv_file()
             try:
                 formatted_row = [
-                    getattr(meter, 'device_address', i +
-                            1), getattr(meter, 'name', f"Meter_{i+1}")
+                    self.location if self.location else "Unknown",
+                    getattr(meter, 'device_address', i + 1),
+                    getattr(meter, 'name', f"Meter_{i+1}")
                 ]
                 for j, value in enumerate(regValue):
                     if j == 0:  # Timestamp - keep as-is
@@ -257,16 +263,39 @@ class MeterManager:
                     self.parameters, regValue, meter.name)
             self.allRegValues[i] = regValue.copy()
 
-            # Add delay between device reads to avoid Modbus conflicts
-            if i < len(self.meters) - 1 and inter_device_delay > 0:
-                time.sleep(inter_device_delay)
-        if self.ui_callback and stdscr is not None:
-            self.ui_callback(self.TotalReadings, stdscr, self.allRegValues)
-
-    def close(self):
-        """Closes the CSV file safely."""
-        if hasattr(self, 'csv_file') and self.csv_file is not None and not self.csv_file.closed:
-            try:
-                self.csv_file.close()
-            except Exception as e:
-                print(f"Error closing CSV file: {e}")
+            # --- DB dict construction ---
+            # Only use a valid ISO timestamp string; otherwise, use current time
+            failed_read = not regValue or (isinstance(regValue, list) and all(
+                (v == -1 or v is None) for v in regValue))
+            ts = regValue[0] if regValue and len(regValue) > 0 else None
+            if isinstance(ts, str) and ('T' in ts) and (len(ts) >= 16):
+                meter_time = ts
+            ts = regValue[0] if regValue and len(regValue) > 0 else None
+            if reading_time is not None:
+                meter_time = reading_time
+            elif isinstance(ts, str) and ('T' in ts) and (len(ts) >= 16):
+                meter_time = ts
+            else:
+                meter_time = datetime.now().isoformat()
+                print(
+                    f"DEBUG: meter_time to be used: {meter_time} (type: {type(meter_time)})")
+            meter_data = {
+                "Device_ID": getattr(meter, 'device_address', i + 1),
+                "Meter_Name": getattr(meter, 'name', f"Meter_{i+1}"),
+                "Time": meter_time,
+                "Model": getattr(meter, 'model', 'Unknown'),
+            }
+            for j, param in enumerate(self.parameters):
+                # Never overwrite 'Time' or 'Model' keys
+                if param in ("Time", "Model"):
+                    continue
+                if failed_read:
+                    meter_data[param] = None
+                elif j < len(regValue):
+                    meter_data[param] = regValue[j]
+                else:
+                    meter_data[param] = None
+            print(
+                f"DEBUG: meter_data constructed in MeterManager: {meter_data}")
+            meter_data_list.append(meter_data)
+        return meter_data_list

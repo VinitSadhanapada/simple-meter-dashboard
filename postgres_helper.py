@@ -32,6 +32,17 @@ class PostgresHelper:
                 self.conn.commit()
 
     def fetchall(self, query, params=None):
+def get_readings_by_time_prefix(db, time_prefix):
+    """
+    Select all rows from meter_readings where the timestamp starts with the given prefix (e.g., '2025-08-06 17:20').
+    time_prefix should be in 'YYYY-MM-DD HH:MM' format for minute-level match.
+    """
+    return db.fetchall('''
+        SELECT * FROM meter_readings
+        WHERE to_char(time, 'YYYY-MM-DD HH24:MI') LIKE %s
+        ORDER BY time
+    ''', (time_prefix + '%',))
+
         with self.conn.cursor(cursor_factory=RealDictCursor) as cur:
             cur.execute(query, params)
             return cur.fetchall()
@@ -54,7 +65,7 @@ if __name__ == "__main__":
         dbname="mfmdb",
         user="mfmuser",
         password="devi",
-        host="localhost",  # or your DB server IP
+        host="172.20.10.2",  # or your DB server IP
         port=5432
     )
     db.connect()
@@ -66,6 +77,14 @@ if __name__ == "__main__":
     print(rows)
     db.close()
 
+    # Example: select all meter readings for timestamp prefix '2025-08-06 17:20'
+    db.connect()
+    readings = get_readings_by_time_prefix(db, '2025-08-06 17:20')
+    print(f"Meter readings for 2025-08-06 17:20:")
+    for r in readings:
+        print(r)
+    db.close()
+
 # --- Meter Data Example ---
 # Suppose your meter data has: timestamp, device_id, param1, param2, ...
 # Adjust columns as needed for your real data structure.
@@ -75,6 +94,7 @@ def create_meter_table(db):
     db.execute('''
         CREATE TABLE IF NOT EXISTS meter_readings (
             id SERIAL PRIMARY KEY,
+            location TEXT,
             device_id TEXT NOT NULL,
             meter_name TEXT,
             time TIMESTAMP NOT NULL,
@@ -99,7 +119,7 @@ def create_meter_table(db):
             wh_received REAL,
             load_hours_delivered REAL,
             no_of_interruption REAL,
-            on_hours REAL,
+            on_hours TEXT,
             v_r_harmonics REAL,
             v_y_harmonics REAL,
             v_b_harmonics REAL,
@@ -110,7 +130,7 @@ def create_meter_table(db):
     ''', commit=True)
 
 
-def insert_meter_reading(db, device_id, meter_name, time, model,
+def insert_meter_reading(db, location, device_id, meter_name, time, model,
                          watts_total, watts_r_ph, watts_y_ph, watts_b_ph,
                          pf_ave, pf_r_ph, pf_y_ph, pf_b_ph,
                          vln_average, v_r_ph, v_y_ph, v_b_ph,
@@ -118,9 +138,11 @@ def insert_meter_reading(db, device_id, meter_name, time, model,
                          frequency, wh_received, load_hours_delivered, no_of_interruption, on_hours,
                          v_r_harmonics, v_y_harmonics, v_b_harmonics,
                          a_r_harmonics, a_y_harmonics, a_b_harmonics):
+    print(
+        f"DEBUG: insert_meter_reading time value: {time} (type: {type(time)})")
     db.execute('''
         INSERT INTO meter_readings (
-            device_id, meter_name, time, model,
+            location, device_id, meter_name, time, model,
             watts_total, watts_r_ph, watts_y_ph, watts_b_ph,
             pf_ave, pf_r_ph, pf_y_ph, pf_b_ph,
             vln_average, v_r_ph, v_y_ph, v_b_ph,
@@ -129,7 +151,7 @@ def insert_meter_reading(db, device_id, meter_name, time, model,
             v_r_harmonics, v_y_harmonics, v_b_harmonics,
             a_r_harmonics, a_y_harmonics, a_b_harmonics
         ) VALUES (
-            %s, %s, %s, %s,
+            %s, %s, %s, %s, %s,
             %s, %s, %s, %s,
             %s, %s, %s, %s,
             %s, %s, %s, %s,
@@ -139,7 +161,7 @@ def insert_meter_reading(db, device_id, meter_name, time, model,
             %s, %s, %s
         )
     ''', (
-        device_id, meter_name, time, model,
+        location, device_id, meter_name, time, model,
         watts_total, watts_r_ph, watts_y_ph, watts_b_ph,
         pf_ave, pf_r_ph, pf_y_ph, pf_b_ph,
         vln_average, v_r_ph, v_y_ph, v_b_ph,
