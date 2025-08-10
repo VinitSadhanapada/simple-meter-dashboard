@@ -32,17 +32,6 @@ class PostgresHelper:
                 self.conn.commit()
 
     def fetchall(self, query, params=None):
-def get_readings_by_time_prefix(db, time_prefix):
-    """
-    Select all rows from meter_readings where the timestamp starts with the given prefix (e.g., '2025-08-06 17:20').
-    time_prefix should be in 'YYYY-MM-DD HH:MM' format for minute-level match.
-    """
-    return db.fetchall('''
-        SELECT * FROM meter_readings
-        WHERE to_char(time, 'YYYY-MM-DD HH24:MI') LIKE %s
-        ORDER BY time
-    ''', (time_prefix + '%',))
-
         with self.conn.cursor(cursor_factory=RealDictCursor) as cur:
             cur.execute(query, params)
             return cur.fetchall()
@@ -75,14 +64,6 @@ if __name__ == "__main__":
                ("hello",), commit=True)
     rows = db.fetchall("SELECT * FROM test_table")
     print(rows)
-    db.close()
-
-    # Example: select all meter readings for timestamp prefix '2025-08-06 17:20'
-    db.connect()
-    readings = get_readings_by_time_prefix(db, '2025-08-06 17:20')
-    print(f"Meter readings for 2025-08-06 17:20:")
-    for r in readings:
-        print(r)
     db.close()
 
 # --- Meter Data Example ---

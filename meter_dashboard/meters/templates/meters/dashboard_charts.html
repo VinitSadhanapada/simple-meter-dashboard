@@ -1,0 +1,75 @@
+<!-- filepath: /home/isha/deepak/MFM_offline_setup/meter_dashboard/meters/templates/meters/dashboard_charts.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Meter Dashboard Charts</title>
+    <style>
+        .chart-container {
+            width: 80%;
+            margin: 20px auto;
+            text-align: center;
+        }
+        form {
+            margin: 20px;
+            padding: 20px;
+            border: 1px solid #ccc;
+            background: #f9f9f9;
+        }
+        form label {
+            margin-right: 10px;
+        }
+        form select, form input {
+            margin: 5px;
+            padding: 5px;
+        }
+        button {
+            background: #007cba;
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            cursor: pointer;
+        }
+    </style>
+    <!-- Debug: Show context data for troubleshooting -->
+    <pre>Times: {{ times }}</pre>
+    <p>Latest time in chart: {{ times|last }}</p>
+    <pre>VLN Average: {{ vln_average }}</pre>
+</head>
+
+<body>
+    <h1>Live Meter Dashboard - VLN Average Analysis</h1>
+    <form method="get" id="meter-filter-form">
+        <label for="location">Location:</label>
+        <select name="location" id="location" onchange="this.form.submit();">
+            <option value="">Select Location</option>
+            {% for loc in locations %}
+            <option value="{{ loc }}" {% if loc == selected_location %}selected{% endif %}>{{ loc }}</option>
+            {% endfor %}
+        </select>
+        <label for="meter">Meter:</label>
+        <select name="meter" id="meter" onchange="this.form.submit();">
+            <option value="">Select Meter</option>
+            {% for m in meters %}
+            <option value="{{ m }}" {% if m == selected_meter %}selected{% endif %}>{{ m }}</option>
+            {% endfor %}
+        </select>
+        <label for="start_time">Start Time:</label>
+        <input type="datetime-local" name="start_time" value="{{ start_time }}">
+        <label for="end_time">End Time:</label>
+        <input type="datetime-local" name="end_time" value="{{ end_time }}">
+        <button type="submit">Show Data</button>
+    </form>
+
+    <div class="chart-container">
+        {% if chart_img %}
+            <h2>VLN Average Chart</h2>
+            <img src="data:image/png;base64,{{ chart_img }}" alt="VLN Average Chart" style="max-width: 100%;"/>
+            <p><strong>Data Points:</strong> {{ times|length }}</p>
+            <p><strong>Selected Meter:</strong> {{ selected_meter|default:"None" }}</p>
+            <p><strong>Selected Location:</strong> {{ selected_location|default:"None" }}</p>
+        {% else %}
+            <p>No data available for the selected range. Please select location, meter, and time range.</p>
+        {% endif %}
+    </div>
+</body>
+</html>
