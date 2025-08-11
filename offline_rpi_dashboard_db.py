@@ -17,14 +17,23 @@ from meter_device import MeterDevice
 from collections import defaultdict
 import csv
 import json
+import requests
 
 # --- Config ---
 DB_CONFIG = {
     'dbname': 'mfmdb',
     'user': 'mfmuser',
     'password': 'devi',
-    'host': '172.20.10.2',  # or your DB server IP
+    'host': '192.168.43.127',  # or your DB server IP
     'port': 5432
+}
+
+# Server config for posting data
+SERVER_CONFIG = {
+    'url': 'http://192.168.43.127:8000/api/meter/',
+    'enabled': True,  # Set to False to disable server posting
+    'timeout': 10,    # Request timeout in seconds
+    'retry_attempts': 3
 }
 
 script_dir = Path(__file__).parent.absolute()
@@ -153,10 +162,13 @@ def main():
                     meter_data["Location"] = location
                     meter_data["Time"] = reading_time
                     print(f"DEBUG: meter_data before DB insert: {meter_data}")
+                    
                     # Handle On Hours for different meter models
                     on_hours_val = meter_data.get("On Hours")
                     if meter_data.get("Model") == "LG+5220" and (on_hours_val in [None, "", "00:00:00"]):
                         on_hours_val = None
+                    
+                    # Insert into database
                     insert_meter_reading(
                         db,
                         meter_data.get("Location"),
@@ -192,6 +204,9 @@ def main():
                         float_or_none(meter_data.get("A Y Harmonics")),
                         float_or_none(meter_data.get("A B Harmonics"))
                     )
+                    
+                    # Post to server
+                    post_to_server(meter_data)
             time.sleep(CONFIG["READING_INTERVAL"])
     except KeyboardInterrupt:
         logger.info("Dashboard stopped by user.")
@@ -204,6 +219,81 @@ def float_or_none(val):
         return float(val)
     except (TypeError, ValueError):
         return None
+
+
+def post_to_server(meter_data):
+    """Post meter data to the server API endpoint."""
+    if not SERVER_CONFIG['enabled']:
+        return
+    
+    try:
+        # Prepare data in the format expected by the server
+        server_data = {
+            'device_id': str(meter_data.get("Device_ID", "")),
+            'location': meter_data.get("Location", ""),
+            'meter_name': meter_data.get("Meter_Name", ""),
+            'time': meter_data.get("Time", ""),
+            'model': meter_data.get("Model", ""),
+            'watts_total': float_or_none(meter_data.get("Watts Total")),
+            'watts_r_ph': float_or_none(meter_data.get("Watts R Ph")),
+            'watts_y_ph': float_or_none(meter_data.get("Watts Y Ph")),
+            'watts_b_ph': float_or_none(meter_data.get("Watts B Ph")),
+            'pf_ave': float_or_none(meter_data.get("PF Ave")),
+            'pf_r_ph': float_or_none(meter_data.get("PF R Ph")),
+            'pf_y_ph': float_or_none(meter_data.get("PF Y Ph")),
+            'pf_b_ph': float_or_none(meter_data.get("PF B Ph")),
+            'vln_average': float_or_none(meter_data.get("VLN average")),
+            'v_r_ph': float_or_none(meter_data.get("V R Ph")),
+            'v_y_ph': float_or_none(meter_data.get("V Y Ph")),
+            'v_b_ph': float_or_none(meter_data.get("V B Ph")),
+            'a_average': float_or_none(meter_data.get("A average")),
+            'a_r_ph': float_or_none(meter_data.get("A R Ph")),
+            'a_y_ph': float_or_none(meter_data.get("A Y Ph")),
+            'a_b_ph': float_or_none(meter_data.get("A B Ph")),
+            'frequency': float_or_none(meter_data.get("Frequency")),
+            'wh_received': float_or_none(meter_data.get("Wh received")),
+            'load_hours_delivered': float_or_none(meter_data.get("Load Hours Delivered")),
+            'no_of_interruption': float_or_none(meter_data.get("No of interruption")),
+            'on_hours': meter_data.get("On Hours"),
+            'v_r_harmonics': float_or_none(meter_data.get("V R Harmonics")),
+            'v_y_harmonics': float_or_none(meter_data.get("V Y Harmonics")),
+            'v_b_harmonics': float_or_none(meter_data.get("V B Harmonics")),
+            'a_r_harmonics': float_or_none(meter_data.get("A R Harmonics")),
+            'a_y_harmonics': float_or_none(meter_data.get("A Y Harmonics")),
+            'a_b_harmonics': float_or_none(meter_data.get("A B Harmonics"))
+        }
+        
+        # Remove None values to reduce payload size
+        server_data = {k: v for k, v in server_data.items() if v is not None}
+        
+        for attempt in range(SERVER_CONFIG['retry_attempts']):
+            try:
+                response = requests.post(
+                    SERVER_CONFIG['url'],
+                    json=server_data,
+                    timeout=SERVER_CONFIG['timeout']
+                )
+                
+                if response.status_code == 200 or response.status_code == 201:
+                    logger.info(f"Successfully posted data to server for {meter_data.get('Meter_Name', 'unknown')}")
+                    return
+                else:
+                    logger.warning(f"Server returned status {response.status_code}: {response.text}")
+                    
+            except requests.exceptions.Timeout:
+                logger.warning(f"Timeout posting to server (attempt {attempt + 1}/{SERVER_CONFIG['retry_attempts']})")
+            except requests.exceptions.ConnectionError:
+                logger.warning(f"Connection error posting to server (attempt {attempt + 1}/{SERVER_CONFIG['retry_attempts']})")
+            except requests.exceptions.RequestException as e:
+                logger.warning(f"Request error posting to server (attempt {attempt + 1}/{SERVER_CONFIG['retry_attempts']}): {e}")
+            
+            if attempt < SERVER_CONFIG['retry_attempts'] - 1:
+                time.sleep(2)  # Wait 2 seconds before retry
+                
+        logger.error(f"Failed to post data to server after {SERVER_CONFIG['retry_attempts']} attempts")
+        
+    except Exception as e:
+        logger.error(f"Unexpected error posting to server: {e}")
 
 
 if __name__ == "__main__":

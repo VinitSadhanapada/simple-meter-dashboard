@@ -54,7 +54,7 @@ if __name__ == "__main__":
         dbname="mfmdb",
         user="mfmuser",
         password="devi",
-        host="172.20.10.2",  # or your DB server IP
+        host="192.168.43.127",  # or your DB server IP
         port=5432
     )
     db.connect()
