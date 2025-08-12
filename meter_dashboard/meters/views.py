@@ -31,8 +31,26 @@ def meter_data(request):
 
 @api_view(['GET'])
 def live_dashboard(request):
-    readings = MeterReading.objects.order_by(
-        '-time')[:50]  # latest 50 readings
+    readings = MeterReading.objects.all()
+    location = request.GET.get('location')
+    meter = request.GET.get('meter')
+    start_time = request.GET.get('start_time')
+    end_time = request.GET.get('end_time')
+
+    if location:
+        readings = readings.filter(location=location)
+    if meter:
+        readings = readings.filter(meter_name=meter)
+    if start_time:
+        readings = readings.filter(time__gte=start_time)
+    if end_time:
+        readings = readings.filter(time__lte=end_time)
+
+    # If a time range is set, return all points in that range (up to 1000 for safety)
+    if start_time or end_time:
+        readings = readings.order_by('time')[:1000]
+    else:
+        readings = readings.order_by('-time')[:50]
     serializer = MeterReadingSerializer(readings, many=True)
     return Response(serializer.data)
 
