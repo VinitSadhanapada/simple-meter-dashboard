@@ -438,12 +438,12 @@ def main():
         dashboard.check_prerequisites()
     elif args.setup:
         dashboard.ensure_venv_and_packages()
-    elif args.create_service:
-        dashboard.create_service_only()
+    # elif args.create_service:
+    #     pass
     elif args.install:
         print("🚀 Full installation starting (offline)...")
-        if dashboard.setup_environment():
-            dashboard.create_service_only()
+        dashboard.setup_environment()
+        # Removed call to dashboard.create_service_only()
     elif args.run or args.run_service:
         script_dir = Path(__file__).parent.absolute()
         venv_dir = script_dir / "venv"

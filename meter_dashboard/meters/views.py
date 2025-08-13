@@ -46,13 +46,51 @@ def live_dashboard(request):
     if end_time:
         readings = readings.filter(time__lte=end_time)
 
-    # If a time range is set, return all points in that range (up to 1000 for safety)
-    if start_time or end_time:
-        readings = readings.order_by('time')[:1000]
+    readings = readings.order_by('time')
+
+    # Determine time range and interval
+    if start_time and end_time:
+        from datetime import datetime, timedelta
+        import pytz
+        # Parse start/end time
+        tz = pytz.UTC
+        start_dt = datetime.fromisoformat(start_time).replace(tzinfo=tz) if 'T' in start_time else datetime.strptime(start_time, '%Y-%m-%d %H:%M:%S').replace(tzinfo=tz)
+        end_dt = datetime.fromisoformat(end_time).replace(tzinfo=tz) if 'T' in end_time else datetime.strptime(end_time, '%Y-%m-%d %H:%M:%S').replace(tzinfo=tz)
+        # Try to infer interval from data, default to 1 minute
+        times = list(readings.values_list('time', flat=True))
+        if len(times) >= 2:
+            intervals = [(t2 - t1).total_seconds() for t1, t2 in zip(times[:-1], times[1:])]
+            interval_sec = int(min(intervals)) if intervals else 60
+        else:
+            interval_sec = 60
+        interval = timedelta(seconds=interval_sec)
+        # Build a dict of readings by timestamp
+        reading_dict = {r.time.replace(second=0, microsecond=0): r for r in readings}
+        # Generate all expected timestamps
+        result = []
+        current = start_dt.replace(second=0, microsecond=0)
+        while current <= end_dt:
+            reading = reading_dict.get(current)
+            if reading:
+                serialized = MeterReadingSerializer(reading).data
+            else:
+                # Fill with nulls except for time, location, meter_name
+                serialized = {
+                    'time': current.isoformat(),
+                    'location': location,
+                    'meter_name': meter,
+                }
+                for field in MeterReading._meta.get_fields():
+                    if field.name not in serialized and field.name != 'id':
+                        serialized[field.name] = None
+            result.append(serialized)
+            current += interval
+        return Response(result)
     else:
+        # Default: last 50 points, no fill
         readings = readings.order_by('-time')[:50]
-    serializer = MeterReadingSerializer(readings, many=True)
-    return Response(serializer.data)
+        serializer = MeterReadingSerializer(readings, many=True)
+        return Response(serializer.data)
 
 
 def dashboard_charts(request):

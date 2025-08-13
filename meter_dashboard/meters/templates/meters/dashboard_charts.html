@@ -143,7 +143,12 @@
                 a_y_ph: 'Current Y Phase',
                 a_b_ph: 'Current B Phase',
             };
-            const values = data.map(r => r[parameter] != null ? r[parameter] : 0);
+
+            // Use null for missing data to create gaps
+            const values = data.map(r => r[parameter] != null ? r[parameter] : null);
+
+            // Markers: red for nulls or -1, blue for valid data
+            const pointColors = values.map(v => (v === null || v === -1) ? 'red' : 'blue');
 
             document.getElementById('selectedParameterLabel').textContent = parameterLabels[parameter] || parameter;
 
@@ -158,10 +163,21 @@
                         data: values,
                         borderColor: 'blue',
                         fill: false,
+                        spanGaps: false,
+                        pointBackgroundColor: pointColors,
+                        pointRadius: 4,
+                        pointStyle: values.map(v => v === null ? 'circle' : 'circle'),
+                        segment: {
+                            borderColor: ctx => {
+                                // Draw line in blue, but skip over nulls (default behavior)
+                                return 'blue';
+                            },
+                        },
                     }],
                 },
                 options: {
                     responsive: true,
+                    spanGaps: false,
                     interaction: {
                         mode: 'nearest',
                         axis: 'x',

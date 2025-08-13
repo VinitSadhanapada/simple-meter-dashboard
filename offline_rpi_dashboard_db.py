@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Offline RPi Dashboard - DB Version
+Offline RPi Dashboard - DB Version (Modularized)
 Writes meter readings to both CSV and PostgreSQL DB for all locations/devices.
 """
 from pathlib import Path
@@ -9,28 +9,21 @@ import logging
 import time
 import sys
 import os
-import argparse
-from postgres_helper import PostgresHelper, create_meter_table, insert_meter_reading
-from macros import PARAMETERS
-from meter_manager import MeterManager
-from meter_device import MeterDevice
-from collections import defaultdict
 import csv
 import json
-import requests
 
 # --- Config ---
 DB_CONFIG = {
     'dbname': 'mfmdb',
     'user': 'mfmuser',
     'password': 'devi',
-    'host': '192.168.43.127',  # or your DB server IP
+    'host': None,  # will be set after config load
     'port': 5432
 }
 
 # Server config for posting data
 SERVER_CONFIG = {
-    'url': 'http://192.168.43.127:8000/api/meter/',
+    'url': None,  # will be set after config load
     'enabled': True,  # Set to False to disable server posting
     'timeout': 10,    # Request timeout in seconds
     'retry_attempts': 3
@@ -43,22 +36,20 @@ CSV_DIR = script_dir / "csv_data"
 CSV_DIR.mkdir(exist_ok=True)
 
 # --- Load config ---
-
-
 def strip_jsonc_comments(text):
     import re
     text = re.sub(r"//.*", "", text)
     text = re.sub(r"/\*.*?\*/", "", text, flags=re.DOTALL)
     return text
 
-
 def load_jsonc_config(path):
     with open(path, 'r') as f:
         content = f.read()
         return json.loads(strip_jsonc_comments(content))
 
-
 CONFIG = load_jsonc_config(CONFIG_PATH)
+DB_CONFIG['host'] = CONFIG.get('DB_SERVER_IP', 'localhost')
+SERVER_CONFIG['url'] = f"http://{CONFIG.get('SERVER_API_IP', 'localhost')}:8000/api/meter/"
 DEVICE_CONFIG = load_jsonc_config(DEVICE_CONFIG_PATH)
 
 # --- Setup logging ---
@@ -75,18 +66,23 @@ logging.basicConfig(
 )
 logger = logging.getLogger("dashboard_db")
 
-# --- Setup DB ---
-db = PostgresHelper(**DB_CONFIG)
-db.connect()
-create_meter_table(db)
-
-# --- Main ---
-
-
-def main():
-    logger.info("Starting dashboard DB version...")
-    # Setup pymodbus ModbusSerialClient
+# --- Main Dashboard Logic ---
+def run_dashboard():
+    # Import runtime dependencies only when running dashboard
+    from postgres_helper import PostgresHelper, create_meter_table, insert_meter_reading
+    from macros import PARAMETERS
+    from meter_manager import MeterManager
+    from meter_device import MeterDevice
+    from collections import defaultdict
+    import requests
     from pymodbus.client.sync import ModbusSerialClient as ModbusClient
+
+    # --- Setup DB ---
+    db = PostgresHelper(**DB_CONFIG)
+    db.connect()
+    create_meter_table(db)
+
+    logger.info("Starting dashboard DB version...")
     client = None
     port_exists = os.path.exists(CONFIG["PORT"])
     simulation_mode = CONFIG["SIMULATION_MODE"]
@@ -102,16 +98,13 @@ def main():
                 if client.connect():
                     logger.info(f"Connected to {CONFIG['PORT']}")
                 else:
-                    logger.warning(
-                        "Failed to connect, will use default value -1 for all readings.")
+                    logger.warning("Failed to connect, will use default value -1 for all readings.")
                     use_default = True
             except Exception as e:
-                logger.error(
-                    f"Hardware error: {e}, will use default value -1 for all readings.")
+                logger.error(f"Hardware error: {e}, will use default value -1 for all readings.")
                 use_default = True
         else:
-            logger.warning(
-                f"Port {CONFIG['PORT']} not found, will use default value -1 for all readings.")
+            logger.warning(f"Port {CONFIG['PORT']} not found, will use default value -1 for all readings.")
             use_default = True
     # Setup meters by location
     location_meters = defaultdict(list)
@@ -145,8 +138,7 @@ def main():
             publish_mqtt=False
         )
         managers.append((location, manager, csv_file, meters))
-        logger.info(
-            f"Location '{location}': {len(meters)} devices, CSV: {csv_file}")
+        logger.info(f"Location '{location}': {len(meters)} devices, CSV: {csv_file}")
 
     # Main loop
     try:
@@ -162,12 +154,10 @@ def main():
                     meter_data["Location"] = location
                     meter_data["Time"] = reading_time
                     print(f"DEBUG: meter_data before DB insert: {meter_data}")
-                    
                     # Handle On Hours for different meter models
                     on_hours_val = meter_data.get("On Hours")
                     if meter_data.get("Model") == "LG+5220" and (on_hours_val in [None, "", "00:00:00"]):
                         on_hours_val = None
-                    
                     # Insert into database
                     insert_meter_reading(
                         db,
@@ -204,7 +194,6 @@ def main():
                         float_or_none(meter_data.get("A Y Harmonics")),
                         float_or_none(meter_data.get("A B Harmonics"))
                     )
-                    
                     # Post to server
                     post_to_server(meter_data)
             time.sleep(CONFIG["READING_INTERVAL"])
@@ -213,22 +202,18 @@ def main():
     finally:
         db.close()
 
-
 def float_or_none(val):
     try:
         return float(val)
     except (TypeError, ValueError):
         return None
 
-
 def post_to_server(meter_data):
-    """Post meter data to the server API endpoint."""
+    import requests
     if not SERVER_CONFIG['enabled']:
         return
-    
     try:
-        # Prepare data in the format expected by the server
-        server_data = {
+        server_data = {k: v for k, v in {
             'device_id': str(meter_data.get("Device_ID", "")),
             'location': meter_data.get("Location", ""),
             'meter_name': meter_data.get("Meter_Name", ""),
@@ -261,11 +246,7 @@ def post_to_server(meter_data):
             'a_r_harmonics': float_or_none(meter_data.get("A R Harmonics")),
             'a_y_harmonics': float_or_none(meter_data.get("A Y Harmonics")),
             'a_b_harmonics': float_or_none(meter_data.get("A B Harmonics"))
-        }
-        
-        # Remove None values to reduce payload size
-        server_data = {k: v for k, v in server_data.items() if v is not None}
-        
+        }.items() if v is not None}
         for attempt in range(SERVER_CONFIG['retry_attempts']):
             try:
                 response = requests.post(
@@ -273,28 +254,34 @@ def post_to_server(meter_data):
                     json=server_data,
                     timeout=SERVER_CONFIG['timeout']
                 )
-                
                 if response.status_code == 200 or response.status_code == 201:
                     logger.info(f"Successfully posted data to server for {meter_data.get('Meter_Name', 'unknown')}")
                     return
                 else:
                     logger.warning(f"Server returned status {response.status_code}: {response.text}")
-                    
             except requests.exceptions.Timeout:
                 logger.warning(f"Timeout posting to server (attempt {attempt + 1}/{SERVER_CONFIG['retry_attempts']})")
             except requests.exceptions.ConnectionError:
                 logger.warning(f"Connection error posting to server (attempt {attempt + 1}/{SERVER_CONFIG['retry_attempts']})")
             except requests.exceptions.RequestException as e:
                 logger.warning(f"Request error posting to server (attempt {attempt + 1}/{SERVER_CONFIG['retry_attempts']}): {e}")
-            
             if attempt < SERVER_CONFIG['retry_attempts'] - 1:
                 time.sleep(2)  # Wait 2 seconds before retry
-                
         logger.error(f"Failed to post data to server after {SERVER_CONFIG['retry_attempts']} attempts")
-        
     except Exception as e:
         logger.error(f"Unexpected error posting to server: {e}")
 
-
 if __name__ == "__main__":
-    main()
+    import sys
+    import subprocess
+    if '--install' in sys.argv:
+        print("Delegating --install to offline_rpi_dashboard.py...")
+        script_dir = Path(__file__).parent.absolute()
+        dashboard_script = script_dir / 'offline_rpi_dashboard.py'
+        result = subprocess.run([sys.executable, str(dashboard_script), '--install'])
+        sys.exit(result.returncode)
+    elif '--run' in sys.argv or len(sys.argv) == 1:
+        run_dashboard()
+    else:
+        print("Unknown argument. Use --install or --run.")
+

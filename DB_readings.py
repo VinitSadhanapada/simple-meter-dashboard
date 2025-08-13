@@ -1,11 +1,21 @@
+db = PostgresHelper(
 import time
 from postgres_helper import PostgresHelper, get_latest_readings
-
+import json
+import re
+from pathlib import Path
+def strip_jsonc_comments(text):
+    text = re.sub(r"//.*", "", text)
+    text = re.sub(r"/\*.*?\*/", "", text, flags=re.DOTALL)
+    return text
+config_path = Path(__file__).parent.absolute() / "config.jsonc"
+with open(config_path, 'r') as f:
+    config = json.loads(strip_jsonc_comments(f.read()))
 db = PostgresHelper(
     dbname="mfmdb",
     user="mfmuser",
     password="devi",
-    host="172.20.10.2",
+    host=config.get("DB_SERVER_IP", "localhost"),
     port=5432
 )
 db.connect()

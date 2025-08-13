@@ -7,5 +7,7 @@
     "PORT": "/dev/ttyUSB0", // Serial port for Modbus
     "ENABLE_MQTT": false, // Enable MQTT publishing
     "ENABLE_RTC": true, // Enable RTC for offline time keeping
-    "LOG_LEVEL": "INFO" // Logging level
+    "LOG_LEVEL": "INFO", // Logging level
+    "DB_SERVER_IP": "192.168.43.127", // Centralized DB server IP
+    "SERVER_API_IP": "192.168.43.128" // Centralized API server IP
 }
