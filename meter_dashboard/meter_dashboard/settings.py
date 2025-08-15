@@ -11,6 +11,11 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 from pathlib import Path
+import os
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -27,7 +32,6 @@ DEBUG = True
 
 # Allow all hosts for development, restrict in production
 ALLOWED_HOSTS = ['*']
-
 
 # Application definition
 
@@ -75,12 +79,35 @@ WSGI_APPLICATION = 'meter_dashboard.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
+# Using your existing PostgreSQL database credentials
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'mfmdb',  # Your existing database name
+        'USER': 'mfmuser',  # Your existing username
+        'PASSWORD': 'devi',  # Your existing password
+        'HOST': '192.168.43.127',  # Your existing host
+        'PORT': '5432',
+        'OPTIONS': {
+            'connect_timeout': 10,
+        },
     }
 }
+
+# Alternative: Environment variable override (optional)
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql',
+#         'NAME': os.getenv('DB_NAME', 'mfmdb'),
+#         'USER': os.getenv('DB_USER', 'mfmuser'),
+#         'PASSWORD': os.getenv('DB_PASSWORD', 'devi'),
+#         'HOST': os.getenv('DB_HOST', '192.168.43.127'),
+#         'PORT': os.getenv('DB_PORT', '5432'),
+#         'OPTIONS': {
+#             'connect_timeout': 10,
+#         },
+#     }
+# }
 
 
 # Password validation
@@ -123,3 +150,10 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Field encryption key for sensitive data
+FIELD_ENCRYPTION_KEY = os.getenv('FIELD_ENCRYPTION_KEY')
+if not FIELD_ENCRYPTION_KEY:
+    import warnings
+    warnings.warn(
+        "FIELD_ENCRYPTION_KEY not found in environment. Encrypted fields will not work properly.")
