@@ -1,0 +1,355 @@
+{% extends 'device_manager/base.html' %}
+
+{% block title %}{{ pi.pi_name }} - DCMS{% endblock %}
+
+{% block header %}{{ pi.pi_name }} Details{% endblock %}
+
+{% block header_actions %}
+<div class="btn-group">
+    <button type="button" class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown">
+        <i class="fas fa-upload me-2"></i>Deploy Config
+    </button>
+    <ul class="dropdown-menu">
+        <li><a class="dropdown-item" href="#" onclick="deployConfig({{ pi.id }}, 'DEVICE_CONFIG')">Device Config Only</a></li>
+        <li><a class="dropdown-item" href="#" onclick="deployConfig({{ pi.id }}, 'SYSTEM_CONFIG')">System Config Only</a></li>
+        <li><hr class="dropdown-divider"></li>
+        <li><a class="dropdown-item" href="#" onclick="deployConfig({{ pi.id }}, 'BOTH')">Both Configurations</a></li>
+    </ul>
+</div>
+<div class="btn-group ms-2">
+    <button type="button" class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
+        <i class="fas fa-download me-2"></i>Export
+    </button>
+    <ul class="dropdown-menu">
+        <li><a class="dropdown-item" href="{% url 'export_device_config' pi.id %}">Device Config JSON</a></li>
+        <li><a class="dropdown-item" href="{% url 'export_system_config' pi.id %}">System Config JSON</a></li>
+    </ul>
+</div>
+{% endblock %}
+
+{% block content %}
+<!-- Pi Information -->
+<div class="row mb-4">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Raspberry Pi Information</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <table class="table table-borderless">
+                            <tr>
+                                <td><strong>Name:</strong></td>
+                                <td>{{ pi.pi_name }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>IP Address:</strong></td>
+                                <td><code>{{ pi.pi_ip }}</code></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Location:</strong></td>
+                                <td>{{ pi.location|default:"-" }}</td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <table class="table table-borderless">
+                            <tr>
+                                <td><strong>Status:</strong></td>
+                                <td>
+                                    {% if pi.is_active %}
+                                        <span class="badge bg-success">Active</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">Inactive</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><strong>Active Meters:</strong></td>
+                                <td><span class="badge bg-primary">{{ meters.count }}</span></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Last Updated:</strong></td>
+                                <td>{{ pi.last_updated|date:"M d, Y H:i" }}</td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <button class="btn btn-outline-info btn-sm" onclick="testConnection({{ pi.id }})">
+                        <i class="fas fa-wifi me-2"></i>Test Connection
+                    </button>
+                    <button class="btn btn-outline-secondary btn-sm" onclick="getStatus({{ pi.id }})">
+                        <i class="fas fa-info-circle me-2"></i>Get Status
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- System Configuration -->
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">System Configuration</h5>
+            </div>
+            <div class="card-body">
+                {% if system_config %}
+                <table class="table table-borderless table-sm">
+                    <tr>
+                        <td><strong>Simulation Mode:</strong></td>
+                        <td>
+                            {% if system_config.simulation_mode %}
+                                <span class="badge bg-warning">Enabled</span>
+                            {% else %}
+                                <span class="badge bg-success">Disabled</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><strong>Reading Interval:</strong></td>
+                        <td>{{ system_config.reading_interval }}s</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Port:</strong></td>
+                        <td><code>{{ system_config.port }}</code></td>
+                    </tr>
+                    <tr>
+                        <td><strong>MQTT:</strong></td>
+                        <td>
+                            {% if system_config.enable_mqtt %}
+                                <span class="badge bg-success">Enabled</span>
+                            {% else %}
+                                <span class="badge bg-secondary">Disabled</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><strong>Log Level:</strong></td>
+                        <td><span class="badge bg-info">{{ system_config.log_level }}</span></td>
+                    </tr>
+                </table>
+                {% else %}
+                <p class="text-muted">No system configuration found.</p>
+                <a href="/admin/device_manager/systemconfiguration/add/" class="btn btn-sm btn-outline-primary">
+                    Create Configuration
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Meters -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">Meter Devices</h5>
+                <a href="/admin/device_manager/meterdevice/add/?raspberry_pi={{ pi.id }}" class="btn btn-sm btn-outline-primary">
+                    <i class="fas fa-plus me-2"></i>Add Meter
+                </a>
+            </div>
+            <div class="card-body">
+                {% if meters %}
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Model</th>
+                                <th>Address</th>
+                                <th>Location</th>
+                                <th>Status</th>
+                                <th>Last Updated</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for meter in meters %}
+                            <tr>
+                                <td><strong>{{ meter.meter_name }}</strong></td>
+                                <td><span class="badge bg-info">{{ meter.meter_model }}</span></td>
+                                <td><code>{{ meter.meter_address }}</code></td>
+                                <td>{{ meter.location }}</td>
+                                <td>
+                                    {% if meter.is_active %}
+                                        <span class="badge bg-success">Active</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">Inactive</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ meter.last_updated|date:"M d, H:i" }}</td>
+                                <td>
+                                    <a href="/admin/device_manager/meterdevice/{{ meter.id }}/change/" class="btn btn-outline-primary btn-sm">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-4">
+                    <i class="fas fa-plug fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">No meters configured</h5>
+                    <p class="text-muted">Add meter devices to monitor power consumption.</p>
+                    <a href="/admin/device_manager/meterdevice/add/?raspberry_pi={{ pi.id }}" class="btn btn-primary">
+                        <i class="fas fa-plus me-2"></i>Add First Meter
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Deployments -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Recent Deployments</h5>
+            </div>
+            <div class="card-body">
+                {% if deployments %}
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Type</th>
+                                <th>Status</th>
+                                <th>Deployed At</th>
+                                <th>Completed At</th>
+                                <th>Duration</th>
+                                <th>Error</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for deployment in deployments %}
+                            <tr>
+                                <td>{{ deployment.deployment_type }}</td>
+                                <td>
+                                    <span class="badge bg-{% if deployment.status == 'SUCCESS' %}success{% elif deployment.status == 'FAILED' %}danger{% elif deployment.status == 'IN_PROGRESS' %}info{% else %}warning{% endif %}">
+                                        {{ deployment.status }}
+                                    </span>
+                                </td>
+                                <td>{{ deployment.deployed_at|date:"M d, Y H:i:s" }}</td>
+                                <td>
+                                    {% if deployment.completed_at %}
+                                        {{ deployment.completed_at|date:"M d, Y H:i:s" }}
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if deployment.completed_at %}
+                                        {% with duration=deployment.completed_at|timeuntil:deployment.deployed_at %}
+                                            {{ duration }}
+                                        {% endwith %}
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if deployment.error_message %}
+                                        <span class="text-danger" title="{{ deployment.error_message }}">
+                                            <i class="fas fa-exclamation-triangle"></i>
+                                        </span>
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-3">
+                    <i class="fas fa-upload fa-2x text-muted mb-2"></i>
+                    <p class="text-muted mb-0">No deployments yet</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Hidden form for deployments -->
+<form id="deployForm" method="POST" action="{% url 'deploy_config' pi.id %}" style="display: none;">
+    {% csrf_token %}
+    <input type="hidden" name="deployment_type" id="deploymentType">
+</form>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function deployConfig(piId, deploymentType) {
+    if (confirm('Are you sure you want to deploy configuration to this Raspberry Pi?')) {
+        document.getElementById('deploymentType').value = deploymentType;
+        document.getElementById('deployForm').submit();
+    }
+}
+
+function testConnection(piId) {
+    const btn = event.target;
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Testing...';
+    btn.disabled = true;
+    
+    fetch(`/api/pis/${piId}/test_connection/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Connection successful!');
+        } else {
+            alert('Connection failed: ' + data.message);
+        }
+    })
+    .catch(error => {
+        alert('Error testing connection: ' + error.message);
+    })
+    .finally(() => {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+    });
+}
+
+function getStatus(piId) {
+    const btn = event.target;
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Getting Status...';
+    btn.disabled = true;
+    
+    fetch(`/api/pis/${piId}/status/`)
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            let statusMessage = 'Pi Status:\n';
+            for (const [key, value] of Object.entries(data.status)) {
+                statusMessage += `${key}: ${value}\n`;
+            }
+            alert(statusMessage);
+        } else {
+            alert('Failed to get status: ' + JSON.stringify(data.status));
+        }
+    })
+    .catch(error => {
+        alert('Error getting status: ' + error.message);
+    })
+    .finally(() => {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+    });
+}
+</script>
+{% endblock %}

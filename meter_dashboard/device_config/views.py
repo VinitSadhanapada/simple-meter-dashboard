@@ -1,0 +1,223 @@
+from django.shortcuts import render, get_object_or_404, redirect
+from django.http import JsonResponse, HttpResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
+from rest_framework import viewsets, status
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+import json
+
+from .models import RaspberryPi, MeterDevice, SystemConfiguration, ConfigurationDeployment
+from .serializers import (
+    RaspberryPiSerializer,
+    MeterDeviceSerializer,
+    SystemConfigurationSerializer,
+    ConfigurationDeploymentSerializer,
+    MeterDeviceJSONSerializer
+)
+
+# Django Views for Web Interface
+
+
+def dashboard(request):
+    """Main dashboard view"""
+    pis = RaspberryPi.objects.filter(is_active=True)
+    total_meters = MeterDevice.objects.filter(is_active=True).count()
+    recent_deployments = ConfigurationDeployment.objects.all()[:10]
+
+    context = {
+        'pis': pis,
+        'total_meters': total_meters,
+        'recent_deployments': recent_deployments,
+    }
+    return render(request, 'device_config/dashboard.html', context)
+
+
+def pi_detail(request, pi_id):
+    """Raspberry Pi detail view"""
+    pi = get_object_or_404(RaspberryPi, id=pi_id)
+    meters = pi.meters.filter(is_active=True)
+    system_config = getattr(pi, 'system_config', None)
+    deployments = pi.deployments.all()[:10]
+
+    context = {
+        'pi': pi,
+        'meters': meters,
+        'system_config': system_config,
+        'deployments': deployments,
+    }
+    return render(request, 'device_config/pi_detail.html', context)
+
+
+def meter_list(request):
+    """List all meters"""
+    meters = MeterDevice.objects.filter(
+        is_active=True).select_related('raspberry_pi')
+    context = {'meters': meters}
+    return render(request, 'device_config/meter_list.html', context)
+
+
+# REST API ViewSets
+
+
+class RaspberryPiViewSet(viewsets.ModelViewSet):
+    """ViewSet for Raspberry Pi management"""
+    queryset = RaspberryPi.objects.all()
+    serializer_class = RaspberryPiSerializer
+
+    @action(detail=True, methods=['post'])
+    def test_connection(self, request, pk=None):
+        """Test SSH connection to Raspberry Pi"""
+        pi = self.get_object()
+        success, message = pi.test_ssh_connection()
+
+        return Response({
+            'success': success,
+            'message': message,
+            'pi_ip': pi.pi_ip
+        })
+
+    @action(detail=True, methods=['post'])
+    def setup_ssh_key(self, request, pk=None):
+        """Setup SSH key for Raspberry Pi"""
+        pi = self.get_object()
+        force_regenerate = request.data.get('force_regenerate', False)
+        success, message = pi.setup_ssh_key(force_regenerate=force_regenerate)
+
+        return Response({
+            'success': success,
+            'message': message,
+            'pi_ip': pi.pi_ip
+        })
+
+    @action(detail=True, methods=['get'])
+    def device_config_json(self, request, pk=None):
+        """Get device_config.json for this Pi"""
+        pi = self.get_object()
+        meters = pi.meters.filter(is_active=True)
+        device_config = [MeterDeviceJSONSerializer(
+            meter).data for meter in meters]
+
+        return Response(device_config)
+
+    @action(detail=True, methods=['get'])
+    def system_config_json(self, request, pk=None):
+        """Get config.json for this Pi"""
+        pi = self.get_object()
+        system_config, created = SystemConfiguration.objects.get_or_create(
+            raspberry_pi=pi)
+
+        return Response(system_config.to_json())
+
+
+class MeterDeviceViewSet(viewsets.ModelViewSet):
+    """ViewSet for Meter Device management"""
+    queryset = MeterDevice.objects.all()
+    serializer_class = MeterDeviceSerializer
+
+    def get_queryset(self):
+        queryset = MeterDevice.objects.all()
+        pi_id = self.request.query_params.get('pi_id', None)
+        if pi_id is not None:
+            queryset = queryset.filter(raspberry_pi_id=pi_id)
+        return queryset
+
+    @action(detail=False, methods=['get'])
+    def by_pi(self, request):
+        """Get meters grouped by Raspberry Pi"""
+        meters_by_pi = {}
+        pis = RaspberryPi.objects.filter(
+            is_active=True).prefetch_related('meters')
+
+        for pi in pis:
+            meters = pi.meters.filter(is_active=True)
+            meters_by_pi[pi.pi_ip] = {
+                'pi_name': pi.pi_name,
+                'pi_ip': pi.pi_ip,
+                'meters': MeterDeviceSerializer(meters, many=True).data
+            }
+
+        return Response(meters_by_pi)
+
+    @action(detail=False, methods=['get'])
+    def available_models(self, request):
+        """Get all available meter models (predefined + custom)"""
+        available_models = MeterDevice.get_available_meter_models()
+        predefined_models = MeterDevice.get_predefined_choices()
+
+        return Response({
+            'predefined': predefined_models,
+            'custom': [model for model in available_models if model not in predefined_models],
+            'all': available_models
+        })
+
+
+class SystemConfigurationViewSet(viewsets.ModelViewSet):
+    """ViewSet for System Configuration management"""
+    queryset = SystemConfiguration.objects.all()
+    serializer_class = SystemConfigurationSerializer
+
+    def get_queryset(self):
+        queryset = SystemConfiguration.objects.all()
+        pi_id = self.request.query_params.get('pi_id', None)
+        if pi_id is not None:
+            queryset = queryset.filter(raspberry_pi_id=pi_id)
+        return queryset
+
+
+class ConfigurationDeploymentViewSet(viewsets.ReadOnlyModelViewSet):
+    """ViewSet for Configuration Deployment tracking"""
+    queryset = ConfigurationDeployment.objects.all()
+    serializer_class = ConfigurationDeploymentSerializer
+
+    def get_queryset(self):
+        queryset = ConfigurationDeployment.objects.all()
+        pi_id = self.request.query_params.get('pi_id', None)
+        if pi_id is not None:
+            queryset = queryset.filter(raspberry_pi_id=pi_id)
+        return queryset.order_by('-deployed_at')
+
+# Utility Views
+
+
+@csrf_exempt
+def export_device_config(request, pi_id):
+    """Export device_config.json for a specific Pi"""
+    try:
+        pi = RaspberryPi.objects.get(id=pi_id, is_active=True)
+        meters = pi.meters.filter(is_active=True)
+        device_config = [MeterDeviceJSONSerializer(
+            meter).data for meter in meters]
+
+        response = HttpResponse(
+            json.dumps(device_config, indent=2),
+            content_type='application/json'
+        )
+        response['Content-Disposition'] = f'attachment; filename="device_config_{pi.pi_name}.json"'
+        return response
+
+    except RaspberryPi.DoesNotExist:
+        return JsonResponse({'error': 'Raspberry Pi not found'}, status=404)
+
+
+@csrf_exempt
+def export_system_config(request, pi_id):
+    """Export config.json for a specific Pi"""
+    try:
+        pi = RaspberryPi.objects.get(id=pi_id, is_active=True)
+        system_config, created = SystemConfiguration.objects.get_or_create(
+            raspberry_pi=pi)
+        config_data = system_config.to_json()
+
+        response = HttpResponse(
+            json.dumps(config_data, indent=2),
+            content_type='application/json'
+        )
+        response['Content-Disposition'] = f'attachment; filename="config_{pi.pi_name}.json"'
+        return response
+
+    except RaspberryPi.DoesNotExist:
+        return JsonResponse({'error': 'Raspberry Pi not found'}, status=404)

@@ -70,6 +70,7 @@ class Command(BaseCommand):
             f"meters_{table_name}",
             f"meters_meter{table_name}",
             f"meter_dashboard_{table_name}",
+            f"device_config_{table_name}",
         ]
 
         cursor.execute("""

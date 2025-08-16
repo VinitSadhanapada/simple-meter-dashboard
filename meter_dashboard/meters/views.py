@@ -38,7 +38,7 @@ def live_dashboard(request):
     end_time = request.GET.get('end_time')
 
     if location:
-        readings = readings.filter(location=location)
+        readings = readings.filter(pi_setup__location=location)
     if meter:
         readings = readings.filter(meter_name=meter)
     if start_time:
@@ -54,18 +54,22 @@ def live_dashboard(request):
         import pytz
         # Parse start/end time
         tz = pytz.UTC
-        start_dt = datetime.fromisoformat(start_time).replace(tzinfo=tz) if 'T' in start_time else datetime.strptime(start_time, '%Y-%m-%d %H:%M:%S').replace(tzinfo=tz)
-        end_dt = datetime.fromisoformat(end_time).replace(tzinfo=tz) if 'T' in end_time else datetime.strptime(end_time, '%Y-%m-%d %H:%M:%S').replace(tzinfo=tz)
+        start_dt = datetime.fromisoformat(start_time).replace(
+            tzinfo=tz) if 'T' in start_time else datetime.strptime(start_time, '%Y-%m-%d %H:%M:%S').replace(tzinfo=tz)
+        end_dt = datetime.fromisoformat(end_time).replace(tzinfo=tz) if 'T' in end_time else datetime.strptime(
+            end_time, '%Y-%m-%d %H:%M:%S').replace(tzinfo=tz)
         # Try to infer interval from data, default to 1 minute
         times = list(readings.values_list('time', flat=True))
         if len(times) >= 2:
-            intervals = [(t2 - t1).total_seconds() for t1, t2 in zip(times[:-1], times[1:])]
+            intervals = [(t2 - t1).total_seconds()
+                         for t1, t2 in zip(times[:-1], times[1:])]
             interval_sec = int(min(intervals)) if intervals else 60
         else:
             interval_sec = 60
         interval = timedelta(seconds=interval_sec)
         # Build a dict of readings by timestamp
-        reading_dict = {r.time.replace(second=0, microsecond=0): r for r in readings}
+        reading_dict = {r.time.replace(
+            second=0, microsecond=0): r for r in readings}
         # Generate all expected timestamps
         result = []
         current = start_dt.replace(second=0, microsecond=0)
@@ -95,9 +99,9 @@ def live_dashboard(request):
 
 def dashboard_charts(request):
     locations = MeterReading.objects.values_list(
-        'location', flat=True).distinct()
+        'pi_setup__location', flat=True).distinct()
     selected_location = request.GET.get('location')
-    meters = MeterReading.objects.filter(location=selected_location).values_list(
+    meters = MeterReading.objects.filter(pi_setup__location=selected_location).values_list(
         'meter_name', flat=True).distinct() if selected_location else []
     selected_meter = request.GET.get('meter')
 
@@ -107,7 +111,7 @@ def dashboard_charts(request):
 
     readings = MeterReading.objects.all()
     if selected_location:
-        readings = readings.filter(location=selected_location)
+        readings = readings.filter(pi_setup__location=selected_location)
     if selected_meter:
         readings = readings.filter(meter_name=selected_meter)
     if start_time:

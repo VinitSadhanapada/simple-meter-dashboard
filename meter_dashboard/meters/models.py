@@ -77,7 +77,9 @@ class MeterReading(models.Model):
     pi_setup = models.ForeignKey(
         DcmsPiSetup,
         on_delete=models.CASCADE,
-        related_name='meter_readings'
+        related_name='meter_readings',
+        null=True,
+        blank=True
     )
 
     # Original fields

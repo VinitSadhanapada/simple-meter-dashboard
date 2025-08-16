@@ -24,6 +24,9 @@ urlpatterns = [
     # Meter Dashboard App - All meter-related URLs
     path('', include('meters.urls')),
 
+    # Device Configuration Management
+    path('device-config/', include('device_config.urls')),
+
     # Future: API versioning
     # path('api/v1/', include('meters.api_v1_urls')),
     # path('api/v2/', include('meters.api_v2_urls')),
