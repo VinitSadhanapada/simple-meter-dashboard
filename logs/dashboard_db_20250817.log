@@ -1,0 +1,853 @@
+2025-08-17 15:18:29,748 - INFO - Starting dashboard DB version...
+2025-08-17 15:18:29,749 - WARNING - Port /dev/ttyUSB0 not found, will use default value -1 for all readings.
+2025-08-17 15:18:29,750 - INFO - Location 'SP3 PH': 2 devices, CSV: /home/pi/Desktop/merging/simple-meter-dashboard/csv_data/SP3PH.csv
+2025-08-17 15:18:29,807 - WARNING - Server returned status 404: <!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <title>Page not found at /api/meter/</title>
+  <meta name="robots" content="NONE,NOARCHIVE">
+  <style>
+    html * { padding:0; margin:0; }
+    body * { padding:10px 20px; }
+    body * * { padding:0; }
+    body { font-family: sans-serif; background:#eee; color:#000; }
+    body > :where(header, main, footer) { border-bottom:1px solid #ddd; }
+    h1 { font-weight:normal; margin-bottom:.4em; }
+    h1 small { font-size:60%; color:#666; font-weight:normal; }
+    table { border:none; border-collapse: collapse; width:100%; }
+    td, th { vertical-align:top; padding:2px 3px; }
+    th { width:12em; text-align:right; color:#666; padding-right:.5em; }
+    #info { background:#f6f6f6; }
+    #info ol { margin: 0.5em 4em; }
+    #info ol li { font-family: monospace; }
+    #summary { background: #ffc; }
+    #explanation { background:#eee; border-bottom: 0px none; }
+    pre.exception_value { font-family: sans-serif; color: #575757; font-size: 1.5em; margin: 10px 0 10px 0; }
+  </style>
+</head>
+<body>
+  <header id="summary">
+    <h1>Page not found <small>(404)</small></h1>
+    
+    <table class="meta">
+      <tr>
+        <th scope="row">Request Method:</th>
+        <td>POST</td>
+      </tr>
+      <tr>
+        <th scope="row">Request URL:</th>
+        <td>http://localhost:8000/api/meter/</td>
+      </tr>
+      
+    </table>
+  </header>
+
+  <main id="info">
+    
+      <p>
+      Using the URLconf defined in <code>meter_dashboard.urls</code>,
+      Django tried these URL patterns, in this order:
+      </p>
+      <ol>
+        
+          <li>
+            
+              <code>
+                admin/
+                
+              </code>
+            
+          </li>
+        
+      </ol>
+      <p>
+        
+          The current path, <code>api/meter/</code>,
+        
+        didn’t match any of these.
+      </p>
+    
+  </main>
+
+  <footer id="explanation">
+    <p>
+      You’re seeing this error because you have <code>DEBUG = True</code> in
+      your Django settings file. Change that to <code>False</code>, and Django
+      will display a standard 404 page.
+    </p>
+  </footer>
+</body>
+</html>
+
+2025-08-17 15:18:31,826 - WARNING - Server returned status 404: <!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <title>Page not found at /api/meter/</title>
+  <meta name="robots" content="NONE,NOARCHIVE">
+  <style>
+    html * { padding:0; margin:0; }
+    body * { padding:10px 20px; }
+    body * * { padding:0; }
+    body { font-family: sans-serif; background:#eee; color:#000; }
+    body > :where(header, main, footer) { border-bottom:1px solid #ddd; }
+    h1 { font-weight:normal; margin-bottom:.4em; }
+    h1 small { font-size:60%; color:#666; font-weight:normal; }
+    table { border:none; border-collapse: collapse; width:100%; }
+    td, th { vertical-align:top; padding:2px 3px; }
+    th { width:12em; text-align:right; color:#666; padding-right:.5em; }
+    #info { background:#f6f6f6; }
+    #info ol { margin: 0.5em 4em; }
+    #info ol li { font-family: monospace; }
+    #summary { background: #ffc; }
+    #explanation { background:#eee; border-bottom: 0px none; }
+    pre.exception_value { font-family: sans-serif; color: #575757; font-size: 1.5em; margin: 10px 0 10px 0; }
+  </style>
+</head>
+<body>
+  <header id="summary">
+    <h1>Page not found <small>(404)</small></h1>
+    
+    <table class="meta">
+      <tr>
+        <th scope="row">Request Method:</th>
+        <td>POST</td>
+      </tr>
+      <tr>
+        <th scope="row">Request URL:</th>
+        <td>http://localhost:8000/api/meter/</td>
+      </tr>
+      
+    </table>
+  </header>
+
+  <main id="info">
+    
+      <p>
+      Using the URLconf defined in <code>meter_dashboard.urls</code>,
+      Django tried these URL patterns, in this order:
+      </p>
+      <ol>
+        
+          <li>
+            
+              <code>
+                admin/
+                
+              </code>
+            
+          </li>
+        
+      </ol>
+      <p>
+        
+          The current path, <code>api/meter/</code>,
+        
+        didn’t match any of these.
+      </p>
+    
+  </main>
+
+  <footer id="explanation">
+    <p>
+      You’re seeing this error because you have <code>DEBUG = True</code> in
+      your Django settings file. Change that to <code>False</code>, and Django
+      will display a standard 404 page.
+    </p>
+  </footer>
+</body>
+</html>
+
+2025-08-17 15:18:33,845 - WARNING - Server returned status 404: <!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <title>Page not found at /api/meter/</title>
+  <meta name="robots" content="NONE,NOARCHIVE">
+  <style>
+    html * { padding:0; margin:0; }
+    body * { padding:10px 20px; }
+    body * * { padding:0; }
+    body { font-family: sans-serif; background:#eee; color:#000; }
+    body > :where(header, main, footer) { border-bottom:1px solid #ddd; }
+    h1 { font-weight:normal; margin-bottom:.4em; }
+    h1 small { font-size:60%; color:#666; font-weight:normal; }
+    table { border:none; border-collapse: collapse; width:100%; }
+    td, th { vertical-align:top; padding:2px 3px; }
+    th { width:12em; text-align:right; color:#666; padding-right:.5em; }
+    #info { background:#f6f6f6; }
+    #info ol { margin: 0.5em 4em; }
+    #info ol li { font-family: monospace; }
+    #summary { background: #ffc; }
+    #explanation { background:#eee; border-bottom: 0px none; }
+    pre.exception_value { font-family: sans-serif; color: #575757; font-size: 1.5em; margin: 10px 0 10px 0; }
+  </style>
+</head>
+<body>
+  <header id="summary">
+    <h1>Page not found <small>(404)</small></h1>
+    
+    <table class="meta">
+      <tr>
+        <th scope="row">Request Method:</th>
+        <td>POST</td>
+      </tr>
+      <tr>
+        <th scope="row">Request URL:</th>
+        <td>http://localhost:8000/api/meter/</td>
+      </tr>
+      
+    </table>
+  </header>
+
+  <main id="info">
+    
+      <p>
+      Using the URLconf defined in <code>meter_dashboard.urls</code>,
+      Django tried these URL patterns, in this order:
+      </p>
+      <ol>
+        
+          <li>
+            
+              <code>
+                admin/
+                
+              </code>
+            
+          </li>
+        
+      </ol>
+      <p>
+        
+          The current path, <code>api/meter/</code>,
+        
+        didn’t match any of these.
+      </p>
+    
+  </main>
+
+  <footer id="explanation">
+    <p>
+      You’re seeing this error because you have <code>DEBUG = True</code> in
+      your Django settings file. Change that to <code>False</code>, and Django
+      will display a standard 404 page.
+    </p>
+  </footer>
+</body>
+</html>
+
+2025-08-17 15:18:33,845 - ERROR - Failed to post data to server after 3 attempts
+2025-08-17 15:18:33,868 - WARNING - Server returned status 404: <!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <title>Page not found at /api/meter/</title>
+  <meta name="robots" content="NONE,NOARCHIVE">
+  <style>
+    html * { padding:0; margin:0; }
+    body * { padding:10px 20px; }
+    body * * { padding:0; }
+    body { font-family: sans-serif; background:#eee; color:#000; }
+    body > :where(header, main, footer) { border-bottom:1px solid #ddd; }
+    h1 { font-weight:normal; margin-bottom:.4em; }
+    h1 small { font-size:60%; color:#666; font-weight:normal; }
+    table { border:none; border-collapse: collapse; width:100%; }
+    td, th { vertical-align:top; padding:2px 3px; }
+    th { width:12em; text-align:right; color:#666; padding-right:.5em; }
+    #info { background:#f6f6f6; }
+    #info ol { margin: 0.5em 4em; }
+    #info ol li { font-family: monospace; }
+    #summary { background: #ffc; }
+    #explanation { background:#eee; border-bottom: 0px none; }
+    pre.exception_value { font-family: sans-serif; color: #575757; font-size: 1.5em; margin: 10px 0 10px 0; }
+  </style>
+</head>
+<body>
+  <header id="summary">
+    <h1>Page not found <small>(404)</small></h1>
+    
+    <table class="meta">
+      <tr>
+        <th scope="row">Request Method:</th>
+        <td>POST</td>
+      </tr>
+      <tr>
+        <th scope="row">Request URL:</th>
+        <td>http://localhost:8000/api/meter/</td>
+      </tr>
+      
+    </table>
+  </header>
+
+  <main id="info">
+    
+      <p>
+      Using the URLconf defined in <code>meter_dashboard.urls</code>,
+      Django tried these URL patterns, in this order:
+      </p>
+      <ol>
+        
+          <li>
+            
+              <code>
+                admin/
+                
+              </code>
+            
+          </li>
+        
+      </ol>
+      <p>
+        
+          The current path, <code>api/meter/</code>,
+        
+        didn’t match any of these.
+      </p>
+    
+  </main>
+
+  <footer id="explanation">
+    <p>
+      You’re seeing this error because you have <code>DEBUG = True</code> in
+      your Django settings file. Change that to <code>False</code>, and Django
+      will display a standard 404 page.
+    </p>
+  </footer>
+</body>
+</html>
+
+2025-08-17 15:18:35,889 - WARNING - Server returned status 404: <!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <title>Page not found at /api/meter/</title>
+  <meta name="robots" content="NONE,NOARCHIVE">
+  <style>
+    html * { padding:0; margin:0; }
+    body * { padding:10px 20px; }
+    body * * { padding:0; }
+    body { font-family: sans-serif; background:#eee; color:#000; }
+    body > :where(header, main, footer) { border-bottom:1px solid #ddd; }
+    h1 { font-weight:normal; margin-bottom:.4em; }
+    h1 small { font-size:60%; color:#666; font-weight:normal; }
+    table { border:none; border-collapse: collapse; width:100%; }
+    td, th { vertical-align:top; padding:2px 3px; }
+    th { width:12em; text-align:right; color:#666; padding-right:.5em; }
+    #info { background:#f6f6f6; }
+    #info ol { margin: 0.5em 4em; }
+    #info ol li { font-family: monospace; }
+    #summary { background: #ffc; }
+    #explanation { background:#eee; border-bottom: 0px none; }
+    pre.exception_value { font-family: sans-serif; color: #575757; font-size: 1.5em; margin: 10px 0 10px 0; }
+  </style>
+</head>
+<body>
+  <header id="summary">
+    <h1>Page not found <small>(404)</small></h1>
+    
+    <table class="meta">
+      <tr>
+        <th scope="row">Request Method:</th>
+        <td>POST</td>
+      </tr>
+      <tr>
+        <th scope="row">Request URL:</th>
+        <td>http://localhost:8000/api/meter/</td>
+      </tr>
+      
+    </table>
+  </header>
+
+  <main id="info">
+    
+      <p>
+      Using the URLconf defined in <code>meter_dashboard.urls</code>,
+      Django tried these URL patterns, in this order:
+      </p>
+      <ol>
+        
+          <li>
+            
+              <code>
+                admin/
+                
+              </code>
+            
+          </li>
+        
+      </ol>
+      <p>
+        
+          The current path, <code>api/meter/</code>,
+        
+        didn’t match any of these.
+      </p>
+    
+  </main>
+
+  <footer id="explanation">
+    <p>
+      You’re seeing this error because you have <code>DEBUG = True</code> in
+      your Django settings file. Change that to <code>False</code>, and Django
+      will display a standard 404 page.
+    </p>
+  </footer>
+</body>
+</html>
+
+2025-08-17 15:18:37,908 - WARNING - Server returned status 404: <!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <title>Page not found at /api/meter/</title>
+  <meta name="robots" content="NONE,NOARCHIVE">
+  <style>
+    html * { padding:0; margin:0; }
+    body * { padding:10px 20px; }
+    body * * { padding:0; }
+    body { font-family: sans-serif; background:#eee; color:#000; }
+    body > :where(header, main, footer) { border-bottom:1px solid #ddd; }
+    h1 { font-weight:normal; margin-bottom:.4em; }
+    h1 small { font-size:60%; color:#666; font-weight:normal; }
+    table { border:none; border-collapse: collapse; width:100%; }
+    td, th { vertical-align:top; padding:2px 3px; }
+    th { width:12em; text-align:right; color:#666; padding-right:.5em; }
+    #info { background:#f6f6f6; }
+    #info ol { margin: 0.5em 4em; }
+    #info ol li { font-family: monospace; }
+    #summary { background: #ffc; }
+    #explanation { background:#eee; border-bottom: 0px none; }
+    pre.exception_value { font-family: sans-serif; color: #575757; font-size: 1.5em; margin: 10px 0 10px 0; }
+  </style>
+</head>
+<body>
+  <header id="summary">
+    <h1>Page not found <small>(404)</small></h1>
+    
+    <table class="meta">
+      <tr>
+        <th scope="row">Request Method:</th>
+        <td>POST</td>
+      </tr>
+      <tr>
+        <th scope="row">Request URL:</th>
+        <td>http://localhost:8000/api/meter/</td>
+      </tr>
+      
+    </table>
+  </header>
+
+  <main id="info">
+    
+      <p>
+      Using the URLconf defined in <code>meter_dashboard.urls</code>,
+      Django tried these URL patterns, in this order:
+      </p>
+      <ol>
+        
+          <li>
+            
+              <code>
+                admin/
+                
+              </code>
+            
+          </li>
+        
+      </ol>
+      <p>
+        
+          The current path, <code>api/meter/</code>,
+        
+        didn’t match any of these.
+      </p>
+    
+  </main>
+
+  <footer id="explanation">
+    <p>
+      You’re seeing this error because you have <code>DEBUG = True</code> in
+      your Django settings file. Change that to <code>False</code>, and Django
+      will display a standard 404 page.
+    </p>
+  </footer>
+</body>
+</html>
+
+2025-08-17 15:18:37,909 - ERROR - Failed to post data to server after 3 attempts
+2025-08-17 15:18:55,058 - INFO - Dashboard stopped by user.
+2025-08-17 15:25:06,234 - INFO - Starting dashboard DB version...
+2025-08-17 15:25:06,234 - WARNING - Port /dev/ttyUSB0 not found, will use default value -1 for all readings.
+2025-08-17 15:25:06,235 - INFO - Location 'SP3 PH': 2 devices, CSV: /home/pi/Desktop/merging/simple-meter-dashboard/csv_data/SP3PH.csv
+2025-08-17 15:25:06,259 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 15:25:06,271 - INFO - Successfully posted data to server for SP3
+2025-08-17 15:25:36,285 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 15:25:36,296 - INFO - Successfully posted data to server for SP3
+2025-08-17 15:26:06,315 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 15:26:06,327 - INFO - Successfully posted data to server for SP3
+2025-08-17 15:26:36,342 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 15:26:36,355 - INFO - Successfully posted data to server for SP3
+2025-08-17 15:27:06,369 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 15:27:06,382 - INFO - Successfully posted data to server for SP3
+2025-08-17 15:27:36,394 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 15:27:36,405 - INFO - Successfully posted data to server for SP3
+2025-08-17 15:28:06,430 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 15:28:06,454 - INFO - Successfully posted data to server for SP3
+2025-08-17 15:28:36,468 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 15:28:36,479 - INFO - Successfully posted data to server for SP3
+2025-08-17 15:29:06,491 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 15:29:06,503 - INFO - Successfully posted data to server for SP3
+2025-08-17 15:29:36,517 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 15:29:36,538 - INFO - Successfully posted data to server for SP3
+2025-08-17 15:30:06,550 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 15:30:06,560 - INFO - Successfully posted data to server for SP3
+2025-08-17 15:30:36,572 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 15:30:36,583 - INFO - Successfully posted data to server for SP3
+2025-08-17 15:31:06,597 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 15:31:06,609 - INFO - Successfully posted data to server for SP3
+2025-08-17 15:31:36,623 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 15:31:36,634 - INFO - Successfully posted data to server for SP3
+2025-08-17 15:32:06,646 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 15:32:06,659 - INFO - Successfully posted data to server for SP3
+2025-08-17 15:32:36,676 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 15:32:36,693 - INFO - Successfully posted data to server for SP3
+2025-08-17 15:33:06,714 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 15:33:06,735 - INFO - Successfully posted data to server for SP3
+2025-08-17 15:33:36,757 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 15:33:36,771 - INFO - Successfully posted data to server for SP3
+2025-08-17 15:34:06,788 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 15:34:06,799 - INFO - Successfully posted data to server for SP3
+2025-08-17 15:34:36,811 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 15:34:36,824 - INFO - Successfully posted data to server for SP3
+2025-08-17 15:35:06,839 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 15:35:06,850 - INFO - Successfully posted data to server for SP3
+2025-08-17 15:35:36,862 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 15:35:36,873 - INFO - Successfully posted data to server for SP3
+2025-08-17 15:36:06,885 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 15:36:06,903 - INFO - Successfully posted data to server for SP3
+2025-08-17 15:36:36,938 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 15:36:36,963 - INFO - Successfully posted data to server for SP3
+2025-08-17 15:37:06,976 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 15:37:06,989 - INFO - Successfully posted data to server for SP3
+2025-08-17 15:37:37,005 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 15:37:37,019 - INFO - Successfully posted data to server for SP3
+2025-08-17 15:38:07,031 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 15:38:07,042 - INFO - Successfully posted data to server for SP3
+2025-08-17 15:38:37,054 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 15:38:37,066 - INFO - Successfully posted data to server for SP3
+2025-08-17 15:39:07,086 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 15:39:07,100 - INFO - Successfully posted data to server for SP3
+2025-08-17 15:39:37,124 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 15:39:37,139 - INFO - Successfully posted data to server for SP3
+2025-08-17 15:40:07,154 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 15:40:07,168 - INFO - Successfully posted data to server for SP3
+2025-08-17 15:40:37,180 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 15:40:37,192 - INFO - Successfully posted data to server for SP3
+2025-08-17 15:41:07,205 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 15:41:07,218 - INFO - Successfully posted data to server for SP3
+2025-08-17 15:41:37,233 - WARNING - Connection error posting to server (attempt 1/3)
+2025-08-17 15:41:39,237 - WARNING - Connection error posting to server (attempt 2/3)
+2025-08-17 15:41:41,242 - WARNING - Connection error posting to server (attempt 3/3)
+2025-08-17 15:41:41,242 - ERROR - Failed to post data to server after 3 attempts
+2025-08-17 15:41:41,249 - WARNING - Connection error posting to server (attempt 1/3)
+2025-08-17 15:41:43,257 - WARNING - Connection error posting to server (attempt 2/3)
+2025-08-17 15:41:45,261 - WARNING - Connection error posting to server (attempt 3/3)
+2025-08-17 15:41:45,262 - ERROR - Failed to post data to server after 3 attempts
+2025-08-17 15:42:15,273 - WARNING - Connection error posting to server (attempt 1/3)
+2025-08-17 15:42:17,277 - WARNING - Connection error posting to server (attempt 2/3)
+2025-08-17 15:42:19,281 - WARNING - Connection error posting to server (attempt 3/3)
+2025-08-17 15:42:19,282 - ERROR - Failed to post data to server after 3 attempts
+2025-08-17 15:42:19,293 - WARNING - Connection error posting to server (attempt 1/3)
+2025-08-17 15:42:21,301 - WARNING - Connection error posting to server (attempt 2/3)
+2025-08-17 15:42:23,306 - WARNING - Connection error posting to server (attempt 3/3)
+2025-08-17 15:42:23,306 - ERROR - Failed to post data to server after 3 attempts
+2025-08-17 15:42:53,326 - WARNING - Connection error posting to server (attempt 1/3)
+2025-08-17 15:42:55,331 - WARNING - Connection error posting to server (attempt 2/3)
+2025-08-17 15:42:57,334 - WARNING - Connection error posting to server (attempt 3/3)
+2025-08-17 15:42:57,335 - ERROR - Failed to post data to server after 3 attempts
+2025-08-17 15:42:57,344 - WARNING - Connection error posting to server (attempt 1/3)
+2025-08-17 15:42:59,355 - WARNING - Connection error posting to server (attempt 2/3)
+2025-08-17 15:43:01,366 - WARNING - Connection error posting to server (attempt 3/3)
+2025-08-17 15:43:01,366 - ERROR - Failed to post data to server after 3 attempts
+2025-08-17 15:43:31,375 - WARNING - Connection error posting to server (attempt 1/3)
+2025-08-17 15:43:33,380 - WARNING - Connection error posting to server (attempt 2/3)
+2025-08-17 15:43:35,389 - WARNING - Connection error posting to server (attempt 3/3)
+2025-08-17 15:43:35,390 - ERROR - Failed to post data to server after 3 attempts
+2025-08-17 15:43:35,408 - WARNING - Connection error posting to server (attempt 1/3)
+2025-08-17 15:43:37,413 - WARNING - Connection error posting to server (attempt 2/3)
+2025-08-17 15:43:39,417 - WARNING - Connection error posting to server (attempt 3/3)
+2025-08-17 15:43:39,417 - ERROR - Failed to post data to server after 3 attempts
+2025-08-17 15:44:09,433 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 15:44:09,448 - INFO - Successfully posted data to server for SP3
+2025-08-17 15:44:39,464 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 15:44:39,476 - INFO - Successfully posted data to server for SP3
+2025-08-17 15:45:09,492 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 15:45:09,507 - INFO - Successfully posted data to server for SP3
+2025-08-17 15:45:39,522 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 15:45:39,535 - INFO - Successfully posted data to server for SP3
+2025-08-17 15:46:09,552 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 15:46:09,565 - INFO - Successfully posted data to server for SP3
+2025-08-17 15:46:39,578 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 15:46:39,591 - INFO - Successfully posted data to server for SP3
+2025-08-17 15:47:09,606 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 15:47:09,617 - INFO - Successfully posted data to server for SP3
+2025-08-17 15:47:39,643 - WARNING - Server returned status 400: {"status": "error", "message": "no such table: meter_readings"}
+2025-08-17 15:47:41,654 - WARNING - Server returned status 400: {"status": "error", "message": "no such table: meter_readings"}
+2025-08-17 15:47:43,667 - WARNING - Server returned status 400: {"status": "error", "message": "no such table: meter_readings"}
+2025-08-17 15:47:43,668 - ERROR - Failed to post data to server after 3 attempts
+2025-08-17 15:47:43,683 - WARNING - Server returned status 400: {"status": "error", "message": "no such table: meter_readings"}
+2025-08-17 15:47:45,700 - WARNING - Server returned status 400: {"status": "error", "message": "no such table: meter_readings"}
+2025-08-17 15:47:47,711 - WARNING - Server returned status 400: {"status": "error", "message": "no such table: meter_readings"}
+2025-08-17 15:47:47,712 - ERROR - Failed to post data to server after 3 attempts
+2025-08-17 15:48:17,735 - WARNING - Server returned status 400: {"status": "error", "message": "no such table: meter_readings"}
+2025-08-17 15:48:19,751 - WARNING - Server returned status 400: {"status": "error", "message": "no such table: meter_readings"}
+2025-08-17 15:48:21,764 - WARNING - Server returned status 400: {"status": "error", "message": "no such table: meter_readings"}
+2025-08-17 15:48:21,764 - ERROR - Failed to post data to server after 3 attempts
+2025-08-17 15:48:21,781 - WARNING - Server returned status 400: {"status": "error", "message": "no such table: meter_readings"}
+2025-08-17 15:48:23,797 - WARNING - Server returned status 400: {"status": "error", "message": "no such table: meter_readings"}
+2025-08-17 15:48:25,808 - WARNING - Server returned status 400: {"status": "error", "message": "no such table: meter_readings"}
+2025-08-17 15:48:25,809 - ERROR - Failed to post data to server after 3 attempts
+2025-08-17 15:48:55,825 - WARNING - Server returned status 400: {"status": "error", "message": "no such table: meter_readings"}
+2025-08-17 15:48:57,837 - WARNING - Server returned status 400: {"status": "error", "message": "no such table: meter_readings"}
+2025-08-17 15:48:59,848 - WARNING - Server returned status 400: {"status": "error", "message": "no such table: meter_readings"}
+2025-08-17 15:48:59,849 - ERROR - Failed to post data to server after 3 attempts
+2025-08-17 15:48:59,866 - WARNING - Server returned status 400: {"status": "error", "message": "no such table: meter_readings"}
+2025-08-17 15:49:01,878 - WARNING - Server returned status 400: {"status": "error", "message": "no such table: meter_readings"}
+2025-08-17 15:49:03,893 - WARNING - Server returned status 400: {"status": "error", "message": "no such table: meter_readings"}
+2025-08-17 15:49:03,894 - ERROR - Failed to post data to server after 3 attempts
+2025-08-17 15:49:33,912 - WARNING - Server returned status 400: {"status": "error", "message": "no such table: meter_readings"}
+2025-08-17 15:49:35,924 - WARNING - Server returned status 400: {"status": "error", "message": "no such table: meter_readings"}
+2025-08-17 15:49:37,949 - WARNING - Server returned status 400: {"status": "error", "message": "no such table: meter_readings"}
+2025-08-17 15:49:37,949 - ERROR - Failed to post data to server after 3 attempts
+2025-08-17 15:49:37,985 - WARNING - Server returned status 400: {"status": "error", "message": "no such table: meter_readings"}
+2025-08-17 15:49:39,997 - WARNING - Server returned status 400: {"status": "error", "message": "no such table: meter_readings"}
+2025-08-17 15:49:42,008 - WARNING - Server returned status 400: {"status": "error", "message": "no such table: meter_readings"}
+2025-08-17 15:49:42,008 - ERROR - Failed to post data to server after 3 attempts
+2025-08-17 15:50:12,024 - WARNING - Server returned status 400: {"status": "error", "message": "no such table: meter_readings"}
+2025-08-17 15:50:14,037 - WARNING - Server returned status 400: {"status": "error", "message": "no such table: meter_readings"}
+2025-08-17 15:50:16,047 - WARNING - Server returned status 400: {"status": "error", "message": "no such table: meter_readings"}
+2025-08-17 15:50:16,048 - ERROR - Failed to post data to server after 3 attempts
+2025-08-17 15:50:16,065 - WARNING - Server returned status 400: {"status": "error", "message": "no such table: meter_readings"}
+2025-08-17 15:50:18,082 - WARNING - Server returned status 400: {"status": "error", "message": "no such table: meter_readings"}
+2025-08-17 15:50:20,093 - WARNING - Server returned status 400: {"status": "error", "message": "no such table: meter_readings"}
+2025-08-17 15:50:20,094 - ERROR - Failed to post data to server after 3 attempts
+2025-08-17 15:50:50,113 - WARNING - Server returned status 400: {"status": "error", "message": "no such table: meter_readings"}
+2025-08-17 15:50:52,126 - WARNING - Server returned status 400: {"status": "error", "message": "no such table: meter_readings"}
+2025-08-17 15:50:54,136 - WARNING - Server returned status 400: {"status": "error", "message": "no such table: meter_readings"}
+2025-08-17 15:50:54,137 - ERROR - Failed to post data to server after 3 attempts
+2025-08-17 15:50:54,153 - WARNING - Server returned status 400: {"status": "error", "message": "no such table: meter_readings"}
+2025-08-17 15:50:56,174 - WARNING - Server returned status 400: {"status": "error", "message": "no such table: meter_readings"}
+2025-08-17 15:50:58,198 - WARNING - Server returned status 400: {"status": "error", "message": "no such table: meter_readings"}
+2025-08-17 15:50:58,198 - ERROR - Failed to post data to server after 3 attempts
+2025-08-17 15:51:28,321 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 15:51:28,402 - INFO - Successfully posted data to server for SP3
+2025-08-17 15:51:58,459 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 15:51:58,511 - INFO - Successfully posted data to server for SP3
+2025-08-17 15:52:28,563 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 15:52:28,614 - INFO - Successfully posted data to server for SP3
+2025-08-17 15:52:58,666 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 15:52:58,719 - INFO - Successfully posted data to server for SP3
+2025-08-17 15:53:28,767 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 15:53:28,820 - INFO - Successfully posted data to server for SP3
+2025-08-17 15:53:58,871 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 15:53:58,925 - INFO - Successfully posted data to server for SP3
+2025-08-17 15:54:28,984 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 15:54:29,039 - INFO - Successfully posted data to server for SP3
+2025-08-17 15:54:59,093 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 15:54:59,148 - INFO - Successfully posted data to server for SP3
+2025-08-17 15:55:29,203 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 15:55:29,252 - INFO - Successfully posted data to server for SP3
+2025-08-17 15:55:59,351 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 15:55:59,426 - INFO - Successfully posted data to server for SP3
+2025-08-17 15:56:29,475 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 15:56:29,529 - INFO - Successfully posted data to server for SP3
+2025-08-17 15:56:59,578 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 15:56:59,628 - INFO - Successfully posted data to server for SP3
+2025-08-17 15:57:29,678 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 15:57:29,728 - INFO - Successfully posted data to server for SP3
+2025-08-17 15:57:59,788 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 15:57:59,836 - INFO - Successfully posted data to server for SP3
+2025-08-17 15:58:29,894 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 15:58:29,952 - INFO - Successfully posted data to server for SP3
+2025-08-17 15:59:00,004 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 15:59:00,054 - INFO - Successfully posted data to server for SP3
+2025-08-17 15:59:30,105 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 15:59:30,156 - INFO - Successfully posted data to server for SP3
+2025-08-17 16:00:00,204 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 16:00:00,253 - INFO - Successfully posted data to server for SP3
+2025-08-17 16:00:30,365 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 16:00:30,445 - INFO - Successfully posted data to server for SP3
+2025-08-17 16:01:00,504 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 16:01:00,556 - INFO - Successfully posted data to server for SP3
+2025-08-17 16:01:30,612 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 16:01:30,665 - INFO - Successfully posted data to server for SP3
+2025-08-17 16:02:00,725 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 16:02:00,774 - INFO - Successfully posted data to server for SP3
+2025-08-17 16:02:30,826 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 16:02:30,888 - INFO - Successfully posted data to server for SP3
+2025-08-17 16:03:00,943 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 16:03:00,994 - INFO - Successfully posted data to server for SP3
+2025-08-17 16:03:31,044 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 16:03:31,093 - INFO - Successfully posted data to server for SP3
+2025-08-17 16:04:01,148 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 16:04:01,201 - INFO - Successfully posted data to server for SP3
+2025-08-17 16:04:31,259 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 16:04:31,306 - INFO - Successfully posted data to server for SP3
+2025-08-17 16:05:01,364 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 16:05:01,419 - INFO - Successfully posted data to server for SP3
+2025-08-17 16:05:31,469 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 16:05:31,523 - INFO - Successfully posted data to server for SP3
+2025-08-17 16:06:01,576 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 16:06:01,628 - INFO - Successfully posted data to server for SP3
+2025-08-17 16:06:31,731 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 16:06:31,803 - INFO - Successfully posted data to server for SP3
+2025-08-17 16:07:01,853 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 16:07:01,903 - INFO - Successfully posted data to server for SP3
+2025-08-17 16:07:31,956 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 16:07:32,006 - INFO - Successfully posted data to server for SP3
+2025-08-17 16:08:02,056 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 16:08:02,108 - INFO - Successfully posted data to server for SP3
+2025-08-17 16:08:32,210 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 16:08:32,284 - INFO - Successfully posted data to server for SP3
+2025-08-17 16:09:02,334 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 16:09:02,388 - INFO - Successfully posted data to server for SP3
+2025-08-17 16:09:32,445 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 16:09:32,526 - INFO - Successfully posted data to server for SP3
+2025-08-17 16:10:02,575 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 16:10:02,626 - INFO - Successfully posted data to server for SP3
+2025-08-17 16:10:32,677 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 16:10:32,729 - INFO - Successfully posted data to server for SP3
+2025-08-17 16:11:02,793 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 16:11:02,850 - INFO - Successfully posted data to server for SP3
+2025-08-17 16:11:32,902 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 16:11:32,953 - INFO - Successfully posted data to server for SP3
+2025-08-17 16:12:03,006 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 16:12:03,057 - INFO - Successfully posted data to server for SP3
+2025-08-17 16:12:33,106 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 16:12:33,159 - INFO - Successfully posted data to server for SP3
+2025-08-17 16:13:03,213 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 16:13:03,265 - INFO - Successfully posted data to server for SP3
+2025-08-17 16:13:33,321 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 16:13:33,388 - INFO - Successfully posted data to server for SP3
+2025-08-17 16:14:03,436 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 16:14:03,485 - INFO - Successfully posted data to server for SP3
+2025-08-17 16:14:33,587 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 16:14:33,635 - INFO - Successfully posted data to server for SP3
+2025-08-17 16:15:03,688 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 16:15:03,737 - INFO - Successfully posted data to server for SP3
+2025-08-17 16:15:33,788 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 16:15:33,837 - INFO - Successfully posted data to server for SP3
+2025-08-17 16:16:03,905 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 16:16:03,973 - INFO - Successfully posted data to server for SP3
+2025-08-17 16:16:34,040 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 16:16:34,105 - INFO - Successfully posted data to server for SP3
+2025-08-17 16:17:04,157 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 16:17:04,206 - INFO - Successfully posted data to server for SP3
+2025-08-17 16:17:34,280 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 16:17:34,364 - INFO - Successfully posted data to server for SP3
+2025-08-17 16:18:04,477 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 16:18:04,551 - INFO - Successfully posted data to server for SP3
+2025-08-17 16:18:34,603 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 16:18:34,652 - INFO - Successfully posted data to server for SP3
+2025-08-17 16:19:04,703 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 16:19:04,757 - INFO - Successfully posted data to server for SP3
+2025-08-17 16:19:34,808 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 16:19:34,864 - INFO - Successfully posted data to server for SP3
+2025-08-17 16:19:44,812 - INFO - Starting dashboard DB version...
+2025-08-17 16:19:44,813 - WARNING - Port /dev/ttyUSB0 not found, will use default value -1 for all readings.
+2025-08-17 16:19:44,814 - INFO - Location 'SP3 PH': 2 devices, CSV: /home/pi/Desktop/merging/simple-meter-dashboard/csv_data/SP3PH.csv
+2025-08-17 16:19:44,868 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 16:19:44,922 - INFO - Successfully posted data to server for SP3
+2025-08-17 16:20:04,912 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 16:20:04,964 - INFO - Successfully posted data to server for SP3
+2025-08-17 16:20:15,011 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 16:20:15,078 - INFO - Successfully posted data to server for SP3
+2025-08-17 16:20:35,016 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 16:20:35,069 - INFO - Successfully posted data to server for SP3
+2025-08-17 16:20:45,168 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 16:20:45,259 - INFO - Successfully posted data to server for SP3
+2025-08-17 16:20:54,555 - INFO - Dashboard stopped by user.
+2025-08-17 16:21:05,123 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 16:21:05,171 - INFO - Successfully posted data to server for SP3
+2025-08-17 16:21:35,238 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 16:21:35,334 - INFO - Successfully posted data to server for SP3
+2025-08-17 16:22:05,394 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 16:22:05,452 - INFO - Successfully posted data to server for SP3
+2025-08-17 16:22:35,546 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 16:22:35,674 - INFO - Successfully posted data to server for SP3
+2025-08-17 16:23:05,743 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 16:23:05,801 - INFO - Successfully posted data to server for SP3
+2025-08-17 16:23:35,912 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 16:23:35,989 - INFO - Successfully posted data to server for SP3
+2025-08-17 16:23:40,491 - INFO - Starting dashboard DB version...
+2025-08-17 16:23:40,491 - WARNING - Port /dev/ttyUSB0 not found, will use default value -1 for all readings.
+2025-08-17 16:23:40,492 - INFO - Location 'SP3 PH': 2 devices, CSV: /home/pi/Desktop/merging/simple-meter-dashboard/csv_data/SP3PH.csv
+2025-08-17 16:23:40,545 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 16:23:40,606 - INFO - Successfully posted data to server for SP3
+2025-08-17 16:24:06,066 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 16:24:06,148 - INFO - Successfully posted data to server for SP3
+2025-08-17 16:24:10,693 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 16:24:10,783 - INFO - Successfully posted data to server for SP3
+2025-08-17 16:24:36,268 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 16:24:36,345 - INFO - Successfully posted data to server for SP3
+2025-08-17 16:24:40,839 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 16:24:40,889 - INFO - Successfully posted data to server for SP3
+2025-08-17 16:25:06,393 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 16:25:06,442 - INFO - Successfully posted data to server for SP3
+2025-08-17 16:25:10,938 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 16:25:10,989 - INFO - Successfully posted data to server for SP3
+2025-08-17 16:25:36,494 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 16:25:36,544 - INFO - Successfully posted data to server for SP3
+2025-08-17 16:25:41,038 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 16:25:41,089 - INFO - Successfully posted data to server for SP3
+2025-08-17 16:26:06,594 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 16:26:06,646 - INFO - Successfully posted data to server for SP3
+2025-08-17 16:26:11,138 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 16:26:11,191 - INFO - Successfully posted data to server for SP3
+2025-08-17 16:26:36,760 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 16:26:36,810 - INFO - Successfully posted data to server for SP3
+2025-08-17 16:26:41,239 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 16:26:41,289 - INFO - Successfully posted data to server for SP3
+2025-08-17 16:27:06,862 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 16:27:06,914 - INFO - Successfully posted data to server for SP3
+2025-08-17 16:27:11,337 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 16:27:11,389 - INFO - Successfully posted data to server for SP3
+2025-08-17 16:27:37,005 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 16:27:37,091 - INFO - Successfully posted data to server for SP3
+2025-08-17 16:27:41,462 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 16:27:41,513 - INFO - Successfully posted data to server for SP3
+2025-08-17 16:28:07,142 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 16:28:07,197 - INFO - Successfully posted data to server for SP3
+2025-08-17 16:28:11,590 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 16:28:11,665 - INFO - Successfully posted data to server for SP3
+2025-08-17 16:28:33,113 - INFO - Dashboard stopped by user.
+2025-08-17 16:28:37,248 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 16:28:37,303 - INFO - Successfully posted data to server for SP3
+2025-08-17 16:29:07,418 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 16:29:07,485 - INFO - Successfully posted data to server for SP3
+2025-08-17 16:29:37,537 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 16:29:37,588 - INFO - Successfully posted data to server for SP3
+2025-08-17 16:30:07,695 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 16:30:07,793 - INFO - Successfully posted data to server for SP3
+2025-08-17 16:30:37,923 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 16:30:38,011 - INFO - Successfully posted data to server for SP3
+2025-08-17 16:31:08,080 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 16:31:08,131 - INFO - Successfully posted data to server for SP3
+2025-08-17 16:31:38,203 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 16:31:38,305 - INFO - Successfully posted data to server for SP3
+2025-08-17 16:32:08,371 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 16:32:08,443 - INFO - Successfully posted data to server for SP3
+2025-08-17 16:32:38,495 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 16:32:38,545 - INFO - Successfully posted data to server for SP3
+2025-08-17 16:33:08,595 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 16:33:08,649 - INFO - Successfully posted data to server for SP3
+2025-08-17 16:33:38,698 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 16:33:38,753 - INFO - Successfully posted data to server for SP3
+2025-08-17 16:34:08,824 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 16:34:08,918 - INFO - Successfully posted data to server for SP3
+2025-08-17 16:34:38,970 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 16:34:39,022 - INFO - Successfully posted data to server for SP3
+2025-08-17 16:35:09,113 - INFO - Successfully posted data to server for EB INCOMER
+2025-08-17 16:35:09,182 - INFO - Successfully posted data to server for SP3

@@ -1,4 +1,3 @@
-
 #!/usr/bin/env python3
 
 # Add delay at startup to allow system and hardware to initialize (important for cron @reboot)
@@ -256,11 +255,68 @@ class OfflineDashboard:
                         f"    - Name: {meter.name}, Model: {meter.model}, Address: {getattr(meter, 'device_address', 'N/A')}, Simulation: {meter.simulation_mode}")
                 print("="*80)
 
+            # --- DCMS Integration: Save readings to MeterReading model ---
+            def save_reading_to_dcms(location, device_id, meter_name, model, readings, timestamp=None):
+                try:
+                    import os
+                    import django
+                    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'device_config_manager.settings')
+                    django.setup()
+                    from device_manager.models import MeterReading
+                    MeterReading.objects.create(
+                        location=location,
+                        device_id=device_id,
+                        meter_name=meter_name,
+                        time=timestamp or datetime.now(),
+                        model=model,
+                        watts_total=readings[0],
+                        watts_r_ph=readings[1],
+                        watts_y_ph=readings[2],
+                        watts_b_ph=readings[3],
+                        pf_ave=readings[4],
+                        pf_r_ph=readings[5],
+                        pf_y_ph=readings[6],
+                        pf_b_ph=readings[7],
+                        vln_average=readings[8],
+                        v_r_ph=readings[9],
+                        v_y_ph=readings[10],
+                        v_b_ph=readings[11],
+                        a_average=readings[12],
+                        a_r_ph=readings[13],
+                        a_y_ph=readings[14],
+                        a_b_ph=readings[15],
+                        frequency=readings[16],
+                        wh_received=readings[17],
+                        load_hours_delivered=readings[18],
+                        no_of_interruption=readings[19],
+                        on_hours=readings[20],
+                        v_r_harmonics=readings[21],
+                        v_y_harmonics=readings[22],
+                        v_b_harmonics=readings[23],
+                        a_r_harmonics=readings[24],
+                        a_y_harmonics=readings[25],
+                        a_b_harmonics=readings[26],
+                    )
+                    print(f"[DCMS] Saved reading for device {device_id} at {timestamp or datetime.now()}")
+                except Exception as e:
+                    print(f"[DCMS] Failed to save reading: {e}")
+
             # Main loop
             while True:
                 for manager in managers:
                     manager.read_all(
                         inter_device_delay=CONFIG["INTER_DEVICE_DELAY"])
+                    # --- BEGIN DCMS INTEGRATION ---
+                    for meter in manager.get_all_meter_readings():
+                        save_reading_to_dcms(
+                            location=meter.get('location', 'Unknown'),
+                            device_id=meter.get('device_id', ''),
+                            meter_name=meter.get('device_name', ''),
+                            model=meter.get('model', ''),
+                            readings=meter.get('readings', []),
+                            timestamp=datetime.now()
+                        )
+                    # --- END DCMS INTEGRATION ---
                     if manager.TotalReadings % 10 == 0:
                         self.logger.info(
                             f"Completed {manager.TotalReadings} reading cycles for location {manager.csv_file.name}")

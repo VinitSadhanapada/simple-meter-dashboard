@@ -8,6 +8,6 @@
     "ENABLE_MQTT": false, // Enable MQTT publishing
     "ENABLE_RTC": true, // Enable RTC for offline time keeping
     "LOG_LEVEL": "INFO", // Logging level
-    "DB_SERVER_IP": "192.168.43.127", // Centralized DB server IP
-    "SERVER_API_IP": "192.168.43.128" // Centralized API server IP
+    "DB_SERVER_IP": "localhost", // Centralized DB server IP
+    "SERVER_API_IP": "localhost" // Centralized API server IP
 }

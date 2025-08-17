@@ -290,11 +290,16 @@ class MeterManager:
                 if param in ("Time", "Model"):
                     continue
                 if failed_read:
-                    meter_data[param] = None
+                    meter_data[param] = -1 if param != "On Hours" else "-1"
                 elif j < len(regValue):
                     meter_data[param] = regValue[j]
                 else:
-                    meter_data[param] = None
+                    meter_data[param] = -1 if param != "On Hours" else "-1"
+
+            # Ensure all expected fields are present
+            for param in self.parameters:
+                if param not in meter_data:
+                    meter_data[param] = -1 if param != "On Hours" else "-1"
             print(
                 f"DEBUG: meter_data constructed in MeterManager: {meter_data}")
             meter_data_list.append(meter_data)
