@@ -43,7 +43,7 @@
                     <h4 class="text-white text-center mb-4">DCMS</h4>
                     <ul class="nav flex-column">
                         <li class="nav-item">
-                            <a class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}" href="{% url 'device_config:dashboard' %}">
+                            <a class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}" href="{% url 'meter_readings:dashboard' %}">
                                 <i class="fas fa-tachometer-alt me-2"></i>Dashboard
                             </a>
                         </li>
@@ -58,7 +58,7 @@
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="/device-config/api/">
+                            <a class="nav-link" href="/api/">
                                 <i class="fas fa-code me-2"></i>API
                             </a>
                         </li>

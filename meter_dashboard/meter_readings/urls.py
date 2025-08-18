@@ -1,0 +1,10 @@
+from django.urls import path
+from . import views
+
+app_name = 'meter_readings'
+
+urlpatterns = [
+    path('', views.dashboard, name='dashboard'),
+    path('dashboard/', views.dashboard, name='dashboard'),
+    path('api/meter/', views.api_meter_readings, name='api_meter_readings'),
+]

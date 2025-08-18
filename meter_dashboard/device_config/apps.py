@@ -1,6 +1,7 @@
-from django.apps import AppConfig
 
+from django.apps import AppConfig
 
 class DeviceConfigConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
     name = 'device_config'
+    verbose_name = 'Device Configuration Management'

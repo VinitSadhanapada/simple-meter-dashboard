@@ -1,0 +1,239 @@
+"""
+Frontend and User Experience Improvements
+
+1. Real-time Dashboard with WebSockets
+2. Interactive Charts with Chart.js/D3.js
+3. Mobile-Responsive Design
+4. Progressive Web App (PWA)
+5. Dark/Light Theme Toggle
+"""
+
+# Enhanced Dashboard with Real-time Updates
+DASHBOARD_IMPROVEMENTS = """
+<!-- Add to your dashboard template -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MFM Dashboard - Real-time</title>
+    
+    <!-- Modern CSS Framework -->
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    
+    <!-- Chart.js for Interactive Charts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+    
+    <!-- WebSocket for Real-time Updates -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.6.1/sockjs.min.js"></script>
+</head>
+<body class="bg-gray-100 dark:bg-gray-900">
+    <!-- Navigation with Theme Toggle -->
+    <nav class="bg-white dark:bg-gray-800 shadow-lg">
+        <div class="container mx-auto px-4">
+            <div class="flex justify-between items-center py-4">
+                <h1 class="text-2xl font-bold text-gray-800 dark:text-white">
+                    MFM Dashboard
+                </h1>
+                <button id="theme-toggle" class="p-2 rounded-lg bg-gray-200 dark:bg-gray-700">
+                    🌙
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Real-time Metrics Cards -->
+    <div class="container mx-auto px-4 py-8">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <!-- Total Power Card -->
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+                <div class="flex items-center">
+                    <div class="p-3 rounded-full bg-blue-500 text-white">
+                        ⚡
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Total Power</p>
+                        <p class="text-2xl font-bold text-gray-900 dark:text-white" id="total-power">
+                            0 kW
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Online Devices Card -->
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+                <div class="flex items-center">
+                    <div class="p-3 rounded-full bg-green-500 text-white">
+                        📡
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Online Devices</p>
+                        <p class="text-2xl font-bold text-gray-900 dark:text-white" id="online-devices">
+                            0/0
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Average Voltage Card -->
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+                <div class="flex items-center">
+                    <div class="p-3 rounded-full bg-yellow-500 text-white">
+                        🔌
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Avg Voltage</p>
+                        <p class="text-2xl font-bold text-gray-900 dark:text-white" id="avg-voltage">
+                            0 V
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Frequency Card -->
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+                <div class="flex items-center">
+                    <div class="p-3 rounded-full bg-purple-500 text-white">
+                        🎵
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Frequency</p>
+                        <p class="text-2xl font-bold text-gray-900 dark:text-white" id="frequency">
+                            0 Hz
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Interactive Charts -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- Power Consumption Chart -->
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+                <h3 class="text-lg font-semibold mb-4 text-gray-900 dark:text-white">
+                    Real-time Power Consumption
+                </h3>
+                <canvas id="powerChart"></canvas>
+            </div>
+
+            <!-- Location-wise Distribution -->
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+                <h3 class="text-lg font-semibold mb-4 text-gray-900 dark:text-white">
+                    Power by Location
+                </h3>
+                <canvas id="locationChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Device Status Table -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mt-8">
+            <h3 class="text-lg font-semibold mb-4 text-gray-900 dark:text-white">
+                Device Status
+            </h3>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm text-left">
+                    <thead class="text-xs uppercase bg-gray-50 dark:bg-gray-700">
+                        <tr>
+                            <th class="px-6 py-3">Device</th>
+                            <th class="px-6 py-3">Location</th>
+                            <th class="px-6 py-3">Status</th>
+                            <th class="px-6 py-3">Last Reading</th>
+                            <th class="px-6 py-3">Power</th>
+                        </tr>
+                    </thead>
+                    <tbody id="device-table">
+                        <!-- Populated by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Real-time dashboard JavaScript
+        class MFMDashboard {
+            constructor() {
+                this.initWebSocket();
+                this.initCharts();
+                this.initThemeToggle();
+                this.startPeriodicUpdates();
+            }
+
+            initWebSocket() {
+                // WebSocket connection for real-time updates
+                this.socket = new WebSocket('ws://localhost:8000/ws/dashboard/');
+                
+                this.socket.onmessage = (event) => {
+                    const data = JSON.parse(event.data);
+                    this.updateMetrics(data);
+                };
+            }
+
+            initCharts() {
+                // Initialize Chart.js charts
+                this.powerChart = new Chart(document.getElementById('powerChart'), {
+                    type: 'line',
+                    data: {
+                        labels: [],
+                        datasets: [{
+                            label: 'Power (kW)',
+                            data: [],
+                            borderColor: 'rgb(59, 130, 246)',
+                            tension: 0.1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: {
+                            x: {
+                                type: 'time',
+                                time: {
+                                    unit: 'minute'
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            startPeriodicUpdates() {
+                // Update data every 30 seconds
+                setInterval(() => {
+                    this.fetchLatestData();
+                }, 30000);
+                
+                // Initial load
+                this.fetchLatestData();
+            }
+
+            async fetchLatestData() {
+                try {
+                    const response = await fetch('/api/dashboard/real-time/');
+                    const data = await response.json();
+                    this.updateMetrics(data);
+                } catch (error) {
+                    console.error('Error fetching data:', error);
+                }
+            }
+
+            updateMetrics(data) {
+                // Update metric cards
+                document.getElementById('total-power').textContent = `${data.total_power} kW`;
+                document.getElementById('online-devices').textContent = `${data.online_devices}/${data.total_devices}`;
+                document.getElementById('avg-voltage').textContent = `${data.avg_voltage} V`;
+                document.getElementById('frequency').textContent = `${data.frequency} Hz`;
+                
+                // Update charts
+                this.updateCharts(data);
+            }
+        }
+
+        // Initialize dashboard when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            new MFMDashboard();
+        });
+    </script>
+</body>
+</html>
+"""

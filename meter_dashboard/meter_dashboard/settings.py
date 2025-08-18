@@ -42,8 +42,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'rest_framework',
-    'meters',
+    'meter_readings',
     'device_config',
 ]
 
@@ -87,7 +86,7 @@ DATABASES = {
         'NAME': 'mfmdb',  # Your existing database name
         'USER': 'mfmuser',  # Your existing username
         'PASSWORD': 'devi',  # Your existing password
-        'HOST': '192.168.43.127',  # Your existing host
+        'HOST': '172.20.10.3',  # Your existing host
         'PORT': '5432',
         'OPTIONS': {
             'connect_timeout': 10,

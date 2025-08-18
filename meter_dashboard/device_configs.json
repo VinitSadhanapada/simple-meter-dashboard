@@ -1,0 +1,68 @@
+[
+  {
+    "pi_name": "Building-A-Pi",
+    "pi_ip": "192.168.1.100",
+    "location": "Building A - Ground Floor",
+    "ssh_username": "pi",
+    "ssh_password": "raspberry",
+    "ssh_key_path": "/home/pi/.ssh/id_rsa",
+    "config_path": "/home/pi/MFM_offline_setup",
+    "description": "Main building power monitoring",
+    "contact_person": "John Doe",
+    "is_active": true,
+    "meters": [
+      {
+        "meter_name": "Main_Meter_1",
+        "meter_address": 1,
+        "meter_model": "LG6400",
+        "location": "Building A - Main Panel"
+      },
+      {
+        "meter_name": "Sub_Meter_2",
+        "meter_address": 2,
+        "meter_model": "LG6400",
+        "location": "Building A - Sub Panel"
+      }
+    ]
+  },
+  {
+    "pi_name": "Building-B-Pi",
+    "pi_ip": "192.168.1.101",
+    "location": "Building B - First Floor",
+    "ssh_username": "pi",
+    "ssh_password": "raspberry",
+    "ssh_key_path": "/home/pi/.ssh/id_rsa",
+    "config_path": "/home/pi/MFM_offline_setup",
+    "description": "Secondary building monitoring",
+    "contact_person": "Jane Smith",
+    "is_active": true,
+    "meters": [
+      {
+        "meter_name": "Building_B_Main",
+        "meter_address": 1,
+        "meter_model": "LG6400",
+        "location": "Building B - Main"
+      }
+    ]
+  },
+  {
+    "pi_name": "Devi_test11_18_Aug",
+    "pi_ip": "192.168.43.188",
+    "location": "devi",
+    "ssh_username": "pi",
+    "ssh_password": "mahadevi",
+    "ssh_key_path": "",
+    "config_path": "/home/pi/Desktop/meter_config/",
+    "description": "",
+    "contact_person": "",
+    "is_active": true,
+    "meters": [
+      {
+        "meter_name": "Devi11",
+        "meter_address": 1,
+        "meter_model": "LG6400",
+        "location": "devi"
+      }
+    ]
+  }
+]

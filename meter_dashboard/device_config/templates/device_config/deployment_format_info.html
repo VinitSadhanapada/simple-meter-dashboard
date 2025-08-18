@@ -1,0 +1,20 @@
+<!-- This shows EXACT device_config.jsonc format that gets deployed -->
+
+<div class="alert alert-info">
+    <h6><i class="fas fa-info-circle"></i> Deployment Format</h6>
+    <p>When you click "Deploy Config", this exact format is sent to the Pi:</p>
+    <pre><code>[ 
+{
+    "meter_name": "{{ meter.meter_name }}",
+    "meter_address": {{ meter.meter_address }},
+    "meter_model": "{{ meter.meter_model }}",
+    "location": "{{ meter.location }}",
+    "pi_ip": "{{ device.pi_ip }}",
+    "pi_name": "{{ device.pi_name }}"
+}
+]</code></pre>
+    <small class="text-muted">
+        <i class="fas fa-exclamation-triangle"></i> 
+        Only these 6 fields are deployed. No extra fields or metadata.
+    </small>
+</div>
