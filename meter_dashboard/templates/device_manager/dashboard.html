@@ -1,0 +1,256 @@
+{% extends 'device_manager/base.html' %}
+
+{% block title %}Device Dashboard - Meter Dashboard{% endblock %}
+
+{% block content %}
+<!-- Statistics Cards -->
+<div class="row mb-4">
+    <div class="col-xl-4 col-md-6">
+        <div class="card card-stat">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col">
+                        <h6 class="text-uppercase text-muted mb-2">Total Raspberry Pis</h6>
+                        <span class="h2 mb-0">{{ pis.count }}</span>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-microchip fa-2x text-primary"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-4 col-md-6">
+        <div class="card card-stat">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col">
+                        <h6 class="text-uppercase text-muted mb-2">Total Meters</h6>
+                        <span class="h2 mb-0">{{ total_meters }}</span>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-plug fa-2x text-success"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-4 col-md-6">
+        <div class="card card-stat">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col">
+                        <h6 class="text-uppercase text-muted mb-2">Active Pis</h6>
+                        <span class="h2 mb-0">{{ pis|length }}</span>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-check-circle fa-2x text-info"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Raspberry Pi List and Recent Meter Readings -->
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Raspberry Pi Devices</h5>
+            </div>
+            <div class="card-body">
+                {% if pis %}
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>IP Address</th>
+                                <th>Location</th>
+                                <th>Meters</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for pi in pis %}
+                            <tr>
+                                <td>
+                                    <a href="{% url 'pi_detail' pi.id %}" class="text-decoration-none"><strong>{{ pi.pi_name }}</strong></a>
+                                </td>
+                                <td>{{ pi.pi_ip }}</td>
+                                <td>{{ pi.location|default:"-" }}</td>
+                                <td>
+                                    <span class="badge bg-primary">{{ pi.meters.count }} meters</span>
+                                </td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        <a href="{% url 'pi_detail' pi.id %}" class="btn btn-outline-primary btn-sm">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <button class='btn btn-outline-success btn-sm' onclick="deployConfig({{ pi.id }}, 'BOTH')">
+                                            <i class="fas fa-upload"></i>
+                                        </button>
+                                        <button class='btn btn-outline-info btn-sm' onclick="testPiConnection({{ pi.id }}, this)">
+                                            <i class="fas fa-plug"></i> Test Connection
+                                        </button>
+                                    </div>
+                                    <div id="pi-status-{{ pi.id }}" style="margin-top:5px;">
+                                        {% if pi.ssh_status %}
+                                            <span style="font-size:1.5em; color:#28a745; vertical-align:middle;">●</span>
+                                        {% else %}
+                                            <span style="font-size:1.5em; color:#dc3545; vertical-align:middle;">●</span>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-4">
+                    <i class="fas fa-microchip fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">No Raspberry Pi devices found</h5>
+                    <p class="text-muted">Add devices through the admin interface to get started.</p>
+                    <a href="/admin/device_manager/raspberrypi/add/" class="btn btn-primary">
+                        <i class="fas fa-plus me-2"></i>Add Raspberry Pi
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        <!-- Recent Meter Readings -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">10 Most Recent Meter Readings</h5>
+            </div>
+            <div class="card-body">
+                {% if recent_readings %}
+                <div class="table-responsive">
+                    <table class="table table-bordered table-sm">
+                        <thead>
+                            <tr>
+                                <th>Time</th>
+                                <th>Device ID</th>
+                                <th>Meter Name</th>
+                                <th>Location</th>
+                                <th>Watts Total</th>
+                                <th>Model</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for reading in recent_readings %}
+                            <tr>
+                                <td>{{ reading.time|date:"Y-m-d H:i:s" }}</td>
+                                <td>{{ reading.device_id }}</td>
+                                <td>{{ reading.meter_name }}</td>
+                                <td>{{ reading.location }}</td>
+                                <td>{{ reading.watts_total }}</td>
+                                <td>{{ reading.model }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-3">
+                    <i class="fas fa-bolt fa-2x text-muted mb-2"></i>
+                    <p class="text-muted mb-0">No meter readings found</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <!-- Recent Deployments -->
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Recent Deployments</h5>
+            </div>
+            <div class="card-body">
+                {% if recent_deployments %}
+                <div class="list-group list-group-flush">
+                    {% for deployment in recent_deployments %}
+                    <div class="list-group-item px-0" 
+                        data-bs-toggle="tooltip" data-bs-placement="left"
+                        data-bs-html="true"
+                        title="IP: {{ deployment.raspberry_pi.pi_ip }}<br>Location: {{ deployment.raspberry_pi.location }}{% if deployment.raspberry_pi.system_config %}<br>Reading Interval: {{ deployment.raspberry_pi.system_config.reading_interval }}{% endif %}">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <h6 class="mb-1">{{ deployment.raspberry_pi.pi_name }}</h6>
+                                <p class="mb-1 small text-muted">{{ deployment.deployment_type }}</p>
+                                <small class="text-muted">{{ deployment.deployed_at|timesince }} ago</small>
+                            </div>
+                            <span class="badge bg-{% if deployment.status == 'SUCCESS' %}success{% elif deployment.status == 'FAILED' %}danger{% elif deployment.status == 'IN_PROGRESS' %}info{% else %}warning{% endif %}">
+                                {{ deployment.status }}
+                            </span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-3">
+                    <i class="fas fa-upload fa-2x text-muted mb-2"></i>
+                    <p class="text-muted mb-0">No deployments yet</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Enable Bootstrap tooltips with HTML support
+// (No-op for now, as we use minimal CSS)
+function deployConfig(piId, deploymentType) {
+    if (confirm('Are you sure you want to deploy configuration to this Raspberry Pi?')) {
+        // Create form and submit
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = `/pi/${piId}/deploy/`;
+        // Get CSRF token from meta tag only
+        const csrfMeta = document.querySelector('meta[name="csrf-token"]');
+        if (csrfMeta) {
+            const csrfInput = document.createElement('input');
+            csrfInput.type = 'hidden';
+            csrfInput.name = 'csrfmiddlewaretoken';
+            csrfInput.value = csrfMeta.content;
+            form.appendChild(csrfInput);
+        }
+        const deploymentInput = document.createElement('input');
+        deploymentInput.type = 'hidden';
+        deploymentInput.name = 'deployment_type';
+        deploymentInput.value = deploymentType;
+        form.appendChild(deploymentInput);
+        document.body.appendChild(form);
+        form.submit();
+    }
+}
+function testPiConnection(piId, btn) {
+    btn.disabled = true;
+    fetch("/pi/test_connection/", {
+        method: "POST",
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: `pi_id=${piId}`
+    })
+    .then(response => response.json())
+    .then(data => {
+        const statusDiv = document.getElementById(`pi-status-${piId}`);
+        if (data.ssh_status) {
+            statusDiv.innerHTML = '<span style="font-size:1.5em; color:#28a745; vertical-align:middle;">●</span>';
+        } else {
+            statusDiv.innerHTML = '<span style="font-size:1.5em; color:#dc3545; vertical-align:middle;">●</span>';
+        }
+        btn.disabled = false;
+        if (data.message) {
+            alert(data.message);
+        }
+    })
+    .catch(() => { btn.disabled = false; alert('Connection test failed.'); });
+}
+</script>
+{% endblock %}

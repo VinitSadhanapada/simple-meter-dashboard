@@ -1,0 +1,34 @@
+{% extends 'device_manager/base.html' %}
+
+{% block title %}Deploy Config Result{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header">
+            <h4>Deploy Config Result for {{ pi.pi_name }} ({{ pi.pi_ip }})</h4>
+        </div>
+        <div class="card-body">
+            {% if deployment %}
+                <p><strong>Status:</strong> 
+                    {% if deployment.status == 'SUCCESS' %}
+                        <span class="badge bg-success">Success</span>
+                    {% elif deployment.status == 'FAILED' %}
+                        <span class="badge bg-danger">Failed</span>
+                    {% else %}
+                        <span class="badge bg-secondary">{{ deployment.status }}</span>
+                    {% endif %}
+                </p>
+                <p><strong>Deployed At:</strong> {{ deployment.deployed_at }}</p>
+                <p><strong>Completed At:</strong> {{ deployment.completed_at }}</p>
+                {% if deployment.error_message %}
+                    <div class="alert alert-danger">{{ deployment.error_message }}</div>
+                {% endif %}
+            {% else %}
+                <div class="alert alert-danger">Deployment failed to start or unknown error occurred.</div>
+            {% endif %}
+            <a href="{% url 'pi_detail' pi.id %}" class="btn btn-primary mt-3">Back to Pi Details</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

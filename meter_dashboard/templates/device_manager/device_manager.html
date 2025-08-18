@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+
+{% block title %}Device Manager - Meter Dashboard{% endblock %}
+
+{% block content %}
+<h1>Device Manager</h1>
+<p>Manage all meter devices in the system.</p>
+<div class="mb-3">
+    <a href="/admin/device_manager/meterdevice/add/" class="btn btn-primary">
+        <i class="fas fa-plus me-2"></i>Add Meter
+    </a>
+</div>
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title mb-0">Meter Devices</h5>
+    </div>
+    <div class="card-body">
+        {% if meters %}
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Model</th>
+                        <th>Address</th>
+                        <th>Location</th>
+                        <th>Raspberry Pi</th>
+                        <th>Pi IP</th>
+                        <th>Status</th>
+                        <th>Last Updated</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for meter in meters %}
+                    <tr>
+                        <td><strong>{{ meter.meter_name }}</strong></td>
+                        <td><span class="badge bg-info">{{ meter.meter_model }}</span></td>
+                        <td><code>{{ meter.meter_address }}</code></td>
+                        <td>{{ meter.location }}</td>
+                        <td>
+                            <a href="{% url 'pi_detail' meter.raspberry_pi.id %}" class="text-decoration-none">
+                                {{ meter.raspberry_pi.pi_name }}
+                            </a>
+                        </td>
+                        <td><code>{{ meter.raspberry_pi.pi_ip }}</code></td>
+                        <td style="text-align:center;">
+                            {% if meter.is_active %}
+                                <span style="font-size:2em; color:#28a745; vertical-align:middle;">●</span>
+                            {% else %}
+                                <span style="font-size:2em; color:#dc3545; vertical-align:middle;">●</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ meter.last_updated|date:"M d, H:i" }}</td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <a href="/admin/device_manager/meterdevice/{{ meter.id }}/change/" class="btn btn-outline-primary btn-sm">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="{% url 'pi_detail' meter.raspberry_pi.id %}" class="btn btn-outline-info btn-sm">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <i class="fas fa-plug fa-4x text-muted mb-4"></i>
+            <h4 class="text-muted">No meters found</h4>
+            <p class="text-muted">Add meter devices to start monitoring power consumption.</p>
+            <a href="/admin/device_manager/meterdevice/add/" class="btn btn-primary btn-lg">
+                <i class="fas fa-plus me-2"></i>Add First Meter
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

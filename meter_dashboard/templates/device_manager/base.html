@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token }}">
+    <title>{% block title %}Device Manager{% endblock %}</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { background: #f8f9fa; }
+        .sidebar {
+            min-height: 100vh;
+            background: #212529;
+            color: #fff;
+        }
+        .sidebar .nav-link { color: #adb5bd; }
+        .sidebar .nav-link.active, .sidebar .nav-link:hover { color: #fff; background: #343a40; }
+        .sidebar .nav-link i { margin-right: 8px; }
+        .card-stat { border-left: 4px solid #0d6efd; }
+    </style>
+    {% block header %}{% endblock %}
+</head>
+<body>
+    <!-- Sidebar and Main Content Layout -->
+    <div class="container-fluid">
+        <div class="row">
+            <nav class="col-md-2 d-none d-md-block sidebar py-4">
+                <div class="position-sticky">
+                    <h4 class="px-3 mb-4">Device Manager</h4>
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.path == '/device/dashboard/' %}active{% endif %}" href="/device/dashboard/">
+                                <i class="fas fa-tachometer-alt"></i> Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/admin/device_manager/raspberrypi/">
+                                <i class="fas fa-microchip"></i> Raspberry Pis
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/admin/device_manager/meter/">
+                                <i class="fas fa-bolt"></i> Meters
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/admin/">
+                                <i class="fas fa-cogs"></i> Admin
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+            <main class="col-md-10 ms-sm-auto px-md-4 py-4">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2>{% block header_actions %}{% endblock %}</h2>
+                </div>
+                {% block content %}{% endblock %}
+            </main>
+        </div>
+    </div>
+    <!-- Bootstrap 5 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    {% block scripts %}{% endblock %}
+    <!-- Unique comment: Device Manager base.html loaded -->
+</body>
+</html>
