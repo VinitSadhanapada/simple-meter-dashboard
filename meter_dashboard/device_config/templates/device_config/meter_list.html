@@ -5,7 +5,7 @@
 {% block header %}All Meter Devices{% endblock %}
 
 {% block header_actions %}
-<a href="/admin/device_manager/meterdevice/add/" class="btn btn-primary">
+<a href="/admin/device_config/meterdevice/add/" class="btn btn-primary">
     <i class="fas fa-plus me-2"></i>Add Meter
 </a>
 {% endblock %}
@@ -57,7 +57,7 @@
                                 <td>{{ meter.last_updated|date:"M d, H:i" }}</td>
                                 <td>
                                     <div class="btn-group btn-group-sm">
-                                        <a href="/admin/device_manager/meterdevice/{{ meter.id }}/change/" class="btn btn-outline-primary btn-sm">
+                                        <a href="/admin/device_config/meterdevice/{{ meter.id }}/change/" class="btn btn-outline-primary btn-sm">
                                             <i class="fas fa-edit"></i>
                                         </a>
                                         <a href="{% url 'pi_detail' meter.raspberry_pi.id %}" class="btn btn-outline-info btn-sm">
@@ -75,7 +75,7 @@
                     <i class="fas fa-plug fa-4x text-muted mb-4"></i>
                     <h4 class="text-muted">No meters found</h4>
                     <p class="text-muted">Add meter devices to start monitoring power consumption.</p>
-                    <a href="/admin/device_manager/meterdevice/add/" class="btn btn-primary btn-lg">
+                    <a href="/admin/device_config/meterdevice/add/" class="btn btn-primary btn-lg">
                         <i class="fas fa-plus me-2"></i>Add First Meter
                     </a>
                 </div>

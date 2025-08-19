@@ -52,7 +52,9 @@ def load_jsonc_config(path):
 
 
 CONFIG = load_jsonc_config(CONFIG_PATH)
-DB_CONFIG['host'] = CONFIG.get('DB_SERVER_IP', 'localhost')
+# Use PSQL_SERVER_ADDRESS from config if present, else fallback to DB_SERVER_IP, else localhost
+DB_CONFIG['host'] = CONFIG.get(
+    'PSQL_SERVER_ADDRESS', CONFIG.get('DB_SERVER_IP', 'localhost'))
 SERVER_CONFIG['url'] = f"http://{CONFIG.get('SERVER_API_IP', 'localhost')}:8000/api/meter/"
 # Ensure server posting is disabled to avoid connection errors
 SERVER_CONFIG['enabled'] = False
