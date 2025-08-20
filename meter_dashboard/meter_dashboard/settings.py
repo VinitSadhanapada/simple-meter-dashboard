@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'meter_readings',
     'device_config',
+    'meters',
 ]
 
 MIDDLEWARE = [

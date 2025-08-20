@@ -2,6 +2,8 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from . import views
 
+app_name = 'device_config'
+
 # API Router
 router = DefaultRouter()
 router.register(r'pis', views.RaspberryPiViewSet)
@@ -25,4 +27,9 @@ urlpatterns = [
 
     # API URLs
     path('api/', include(router.urls)),
+
+    # Additional Pi URLs
+    path('pis/', views.pi_list, name='pi_list'),
+    path('pis/add/', views.add_pi, name='add_pi'),
+    path('pis/<int:pk>/edit/', views.edit_pi, name='edit_pi'),
 ]

@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import meter_data, live_dashboard, dashboard_charts, get_device_config, update_device_status, device_management, push_config_view
+from .views import meter_data, live_dashboard, dashboard_charts, get_device_config, update_device_status, device_management, push_config_view, add_pi
 
 # App namespace for better URL organization
 app_name = 'meters'
@@ -18,6 +18,7 @@ urlpatterns = [
     # Web Interface - Dashboard Views
     path('charts/', dashboard_charts, name='dashboard_charts'),
     path('devices/', device_management, name='device_management'),
+    path('add-pi/', add_pi, name='add_pi'),
 
     # Device Management Actions
     path('devices/<int:device_id>/push-config/',

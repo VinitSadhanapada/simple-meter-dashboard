@@ -94,7 +94,7 @@
                             {% for pi in pis %}
                             <tr>
                                 <td>
-                                    <a href="{% url 'pi_detail' pi.id %}" class="text-decoration-none">
+                                    <a href="{% url 'device_config:pi_detail' pi.id %}" class="text-decoration-none">
                                         <strong>{{ pi.pi_name }}</strong>
                                     </a>
                                 </td>
@@ -112,7 +112,7 @@
                                 </td>
                                 <td>
                                     <div class="btn-group btn-group-sm">
-                                        <a href="{% url 'pi_detail' pi.id %}" class="btn btn-outline-primary btn-sm">
+                                        <a href="{% url 'device_config:pi_detail' pi.id %}" class="btn btn-outline-primary btn-sm">
                                             <i class="fas fa-eye"></i>
                                         </a>
                                         <button class="btn btn-outline-success btn-sm" onclick="deployConfig({{ pi.id }}, 'BOTH')">

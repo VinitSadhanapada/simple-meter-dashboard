@@ -18,6 +18,8 @@ import json
 
 from .models import Device
 from .utils import push_config_to_pi
+from django import forms
+from .models import DcmsPiSetup
 
 
 @api_view(['POST'])
@@ -239,3 +241,22 @@ def push_config_view(request, device_id):
         return Response({"status": "Config pushed", "http_status": status})
     except Device.DoesNotExist:
         return Response({"error": "Device not found"}, status=404)
+
+
+class AddPiForm(forms.ModelForm):
+    class Meta:
+        model = DcmsPiSetup
+        fields = ['pi_name', 'pi_ip', 'location', 'ssh_username',
+                  'ssh_password', 'ssh_key_path', 'config_path', 'is_active']
+
+
+def add_pi(request):
+    if request.method == 'POST':
+        form = AddPiForm(request.POST)
+        if form.is_valid():
+            form.save()
+            # or wherever you want to go after adding
+            return redirect('meters:device_management')
+    else:
+        form = AddPiForm()
+    return render(request, 'meters/add_pi.html', {'form': form})

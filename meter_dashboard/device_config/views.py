@@ -10,6 +10,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 import json
 
+
 from .models import RaspberryPi, MeterDevice, SystemConfiguration, ConfigurationDeployment
 from .serializers import (
     RaspberryPiSerializer,
@@ -84,7 +85,23 @@ def deploy_config(request, pi_id):
             messages.error(
                 request, f'Failed to deploy configuration to {pi.pi_name}')
 
-    return redirect('pi_detail', pi_id=pi_id)
+    return redirect('device_config:pi_detail', pi_id=pi_id)
+
+
+def pi_list(request):
+    """List all Raspberry Pis"""
+    pis = RaspberryPi.objects.all().order_by('-last_updated')
+    return render(request, 'device_config/pi_list.html', {'pis': pis})
+
+
+def add_pi(request):
+    """Redirect to admin for adding a new Raspberry Pi"""
+    return redirect('/admin/device_config/raspberrypi/add/')
+
+
+def edit_pi(request, pk):
+    """Redirect to admin for editing an existing Raspberry Pi"""
+    return redirect(f'/admin/device_config/raspberrypi/{pk}/change/')
 
 # REST API ViewSets
 

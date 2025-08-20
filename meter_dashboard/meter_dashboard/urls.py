@@ -5,9 +5,12 @@ from django.views.generic import RedirectView
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('meter_readings.urls')),
-    path('device-config/', include('device_config.urls')),
-    
+    path('device-config/', include('device_config.urls', namespace='device_config')),
+
     # Old-style paths for backward compatibility
     path('device/', include('device_config.urls')),
     path('dashboard/', RedirectView.as_view(pattern_name='meter_readings:dashboard'), name='dashboard'),
+
+    # Include the meters app URLs
+    path('meters/', include('meters.urls')),
 ]

@@ -30,8 +30,8 @@ SERVER_CONFIG = {
 }
 
 script_dir = Path(__file__).parent.absolute()
-CONFIG_PATH = script_dir / "config.jsonc"
-DEVICE_CONFIG_PATH = script_dir / "device_config.jsonc"
+CONFIG_PATH = script_dir / "config.json"
+DEVICE_CONFIG_PATH = script_dir / "device_config.json"
 CSV_DIR = script_dir / "csv_data"
 CSV_DIR.mkdir(exist_ok=True)
 

@@ -1,0 +1,21 @@
+{% extends 'device_config/base.html' %}
+{% block title %}{% if is_edit %}Edit Pi{% else %}Add Pi{% endif %}{% endblock %}
+{% block content %}
+<div class="container mt-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>{% if is_edit %}Edit Pi{% else %}Add New Pi{% endif %}</h2>
+    <a href="{% url 'device_config:pi_list' %}" class="btn btn-secondary">Back to Pi List</a>
+  </div>
+  <div class="card">
+    <div class="card-body">
+      <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-primary">
+          <i class="fas fa-save me-2"></i>{% if is_edit %}Save Changes{% else %}Add Pi{% endif %}
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -21,8 +21,8 @@
         <i class="fas fa-download me-2"></i>Export
     </button>
     <ul class="dropdown-menu">
-        <li><a class="dropdown-item" href="{% url 'export_device_config' pi.id %}">Device Config JSON</a></li>
-        <li><a class="dropdown-item" href="{% url 'export_system_config' pi.id %}">System Config JSON</a></li>
+        <li><a class="dropdown-item" href="{% url 'device_config:export_device_config' pi.id %}">Device Config JSON</a></li>
+        <li><a class="dropdown-item" href="{% url 'device_config:export_system_config' pi.id %}">System Config JSON</a></li>
     </ul>
 </div>
 {% endblock %}
@@ -32,8 +32,11 @@
 <div class="row mb-4">
     <div class="col-lg-8">
         <div class="card">
-            <div class="card-header">
+            <div class="card-header d-flex justify-content-between align-items-center">
                 <h5 class="card-title mb-0">Raspberry Pi Information</h5>
+                <a href="/admin/device_config/raspberrypi/{{ pi.id }}/change/" class="btn btn-sm btn-outline-primary">
+                    <i class="fas fa-edit me-1"></i>Edit
+                </a>
             </div>
             <div class="card-body">
                 <div class="row">
@@ -91,8 +94,13 @@
     <!-- System Configuration -->
     <div class="col-lg-4">
         <div class="card">
-            <div class="card-header">
+            <div class="card-header d-flex justify-content-between align-items-center">
                 <h5 class="card-title mb-0">System Configuration</h5>
+                {% if system_config %}
+                <a href="/admin/device_config/systemconfiguration/{{ system_config.id }}/change/" class="btn btn-sm btn-outline-primary">
+                    <i class="fas fa-edit me-1"></i>Edit
+                </a>
+                {% endif %}
             </div>
             <div class="card-body">
                 {% if system_config %}
@@ -279,7 +287,7 @@
 </div>
 
 <!-- Hidden form for deployments -->
-<form id="deployForm" method="POST" action="{% url 'deploy_config' pi.id %}" style="display: none;">
+<form id="deployForm" method="POST" action="{% url 'device_config:deploy_config' pi.id %}" style="display: none;">
     {% csrf_token %}
     <input type="hidden" name="deployment_type" id="deploymentType">
 </form>
@@ -300,7 +308,7 @@ function testConnection(piId) {
     btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Testing...';
     btn.disabled = true;
     
-    fetch(`/api/pis/${piId}/test_connection/`, {
+    fetch(`/device-config/api/pis/${piId}/test_connection/`, {
         method: 'POST',
         headers: {
             'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
@@ -330,7 +338,7 @@ function getStatus(piId) {
     btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Getting Status...';
     btn.disabled = true;
     
-    fetch(`/api/pis/${piId}/status/`)
+    fetch(`/device-config/api/pis/${piId}/status/`)
     .then(response => response.json())
     .then(data => {
         if (data.success) {
