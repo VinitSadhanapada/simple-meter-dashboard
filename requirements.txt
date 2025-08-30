@@ -91,3 +91,11 @@ kiwisolver==1.4.8
 packaging==25.0
 Pillow==9.0.1
 pyparsing==2.4.7
+
+# Python requirements for MQTT-to-DB ingestion system
+paho-mqtt
+psycopg2
+
+# System requirements (install via apt, not pip):
+# Mosquitto broker: sudo apt install mosquitto
+# Mosquitto clients (for testing): sudo apt install mosquitto-clients
