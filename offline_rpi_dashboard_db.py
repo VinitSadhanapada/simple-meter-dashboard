@@ -1,27 +1,89 @@
+
+# --- Failure modes support ---
+def load_failure_modes():
+    try:
+        with open(FAILURE_MODES_PATH, 'r') as f:
+            return json.load(f)
+    except Exception:
+        return {}
+def register_pi_simple(db, pi_name, pi_ip, location):
+    """Register/update this Pi in the database with all required DCMS fields"""
+
+    query = """
+    INSERT INTO dcms_pi_setup (
+        pi_name, pi_ip, location, ssh_username, ssh_password, 
+        ssh_key_path, config_path, is_active, last_connected
+    )
+    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, CURRENT_TIMESTAMP)
+    ON CONFLICT (pi_name) 
+    DO UPDATE SET 
+        pi_ip = EXCLUDED.pi_ip,
+        location = EXCLUDED.location,
+        ssh_username = EXCLUDED.ssh_username,
+        ssh_password = EXCLUDED.ssh_password,
+        ssh_key_path = EXCLUDED.ssh_key_path,
+        config_path = EXCLUDED.config_path,
+        is_active = EXCLUDED.is_active,
+        last_connected = CURRENT_TIMESTAMP
+    RETURNING id;
+    """
+
+    try:
+        cursor = db.conn.cursor()
+
+        # Provide all required fields including config_path
+        values = (
+            pi_name,                                    # pi_name
+            pi_ip,                                     # pi_ip
+            location,                                  # location
+            'pi',                                      # ssh_username
+            '',                                        # ssh_password (empty string)
+            '/home/pi/.ssh/id_rsa',                   # ssh_key_path
+            '/home/isha/deepak/MFM_offline_setup',    # config_path (required!)
+            True                                       # is_active
+        )
+
+        cursor.execute(query, values)
+        pi_setup_id = cursor.fetchone()[0]
+        db.conn.commit()
+        logger.info(f"✅ Pi registered: {pi_name}")
+        return pi_setup_id
+
+    except Exception as e:
+        logger.error(f"❌ Error registering Pi: {e}")
+        return None
 #!/usr/bin/env python3
 """
 Offline RPi Dashboard - DB Version (Modularized)
 Writes meter readings to both CSV and PostgreSQL DB for all locations/devices.
 """
+
+
+
 from pathlib import Path
 from datetime import datetime
 import logging
 import time
 import sys
 import os
-import csv
 import json
 
-# --- Config ---
+
+# --- Path setup ---
+script_dir = Path(__file__).parent.absolute()
+CONFIG_PATH = script_dir / "config.jsonc"
+DEVICE_CONFIG_PATH = script_dir / "device_config.jsonc"
+CSV_DIR = script_dir / "csv_data"
+CSV_DIR.mkdir(exist_ok=True)
+
+# --- DB and Server config dicts ---
 DB_CONFIG = {
     'dbname': 'mfmdb',
     'user': 'mfmuser',
     'password': 'devi',
-    'host': '172.20.10.3',  # will be set after config load
+    'host': 'localhost',  # will be overwritten by config
     'port': '5432',
 }
-
-# Server config for posting data
 SERVER_CONFIG = {
     'url': None,  # will be set after config load
     'enabled': False,  # Set to False to disable server posting
@@ -29,17 +91,10 @@ SERVER_CONFIG = {
     'retry_attempts': 3
 }
 
-script_dir = Path(__file__).parent.absolute()
-CONFIG_PATH = script_dir / "config.json"
-DEVICE_CONFIG_PATH = script_dir / "device_config.json"
-CSV_DIR = script_dir / "csv_data"
-CSV_DIR.mkdir(exist_ok=True)
 
-# --- Load config ---
-
-
+# --- Utility to strip comments from JSONC ---
+import re
 def strip_jsonc_comments(text):
-    import re
     text = re.sub(r"//.*", "", text)
     text = re.sub(r"/\*.*?\*/", "", text, flags=re.DOTALL)
     return text
@@ -90,10 +145,8 @@ def create_pi_setup_table_simple(db):
         last_connected TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
-    
     CREATE INDEX IF NOT EXISTS idx_dcms_pi_setup_location ON dcms_pi_setup(location);
     """
-
     try:
         cursor = db.conn.cursor()
         cursor.execute(query)
@@ -101,29 +154,6 @@ def create_pi_setup_table_simple(db):
         logger.info("✅ dcms_pi_setup table ready")
     except Exception as e:
         logger.error(f"❌ Error creating dcms_pi_setup table: {e}")
-
-
-def register_pi_simple(db, pi_name, pi_ip, location):
-    """Register/update this Pi in the database with all required DCMS fields"""
-
-    query = """
-    INSERT INTO dcms_pi_setup (
-        pi_name, pi_ip, location, ssh_username, ssh_password, 
-        ssh_key_path, config_path, is_active, last_connected
-    )
-    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, CURRENT_TIMESTAMP)
-    ON CONFLICT (pi_name) 
-    DO UPDATE SET 
-        pi_ip = EXCLUDED.pi_ip,
-        location = EXCLUDED.location,
-        ssh_username = EXCLUDED.ssh_username,
-        ssh_password = EXCLUDED.ssh_password,
-        ssh_key_path = EXCLUDED.ssh_key_path,
-        config_path = EXCLUDED.config_path,
-        is_active = EXCLUDED.is_active,
-        last_connected = CURRENT_TIMESTAMP
-    RETURNING id;
-    """
 
     try:
         cursor = db.conn.cursor()
@@ -169,18 +199,18 @@ def insert_meter_reading_with_pi_simple(db, pi_setup_id, location, device_id, me
             DO $$ 
             BEGIN
                 IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
-                              WHERE table_name = 'meter_readings' AND column_name = 'pi_setup_id') THEN
-                    ALTER TABLE meter_readings ADD COLUMN pi_setup_id INTEGER;
+                              WHERE table_name = 'meterreadings' AND column_name = 'pi_setup_id') THEN
+                    ALTER TABLE meterreadings ADD COLUMN pi_setup_id INTEGER;
                 END IF;
                 
                 IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
-                              WHERE table_name = 'meter_readings' AND column_name = 'pi_name') THEN
-                    ALTER TABLE meter_readings ADD COLUMN pi_name VARCHAR(100);
+                              WHERE table_name = 'meterreadings' AND column_name = 'pi_name') THEN
+                    ALTER TABLE meterreadings ADD COLUMN pi_name VARCHAR(100);
                 END IF;
                 
                 IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
-                              WHERE table_name = 'meter_readings' AND column_name = 'pi_ip') THEN
-                    ALTER TABLE meter_readings ADD COLUMN pi_ip INET;
+                              WHERE table_name = 'meterreadings' AND column_name = 'pi_ip') THEN
+                    ALTER TABLE meterreadings ADD COLUMN pi_ip INET;
                 END IF;
             END $$;
         """)
@@ -190,7 +220,7 @@ def insert_meter_reading_with_pi_simple(db, pi_setup_id, location, device_id, me
 
     # Insert the reading with pi_setup_id and Pi details
     query = """
-    INSERT INTO meter_readings (
+    INSERT INTO meterreadings (
         pi_setup_id, pi_name, pi_ip, location, device_id, meter_name, time, model,
         watts_total, watts_r_ph, watts_y_ph, watts_b_ph,
         pf_ave, pf_r_ph, pf_y_ph, pf_b_ph,
@@ -397,7 +427,18 @@ def run_dashboard():
     # Main loop
     try:
         while True:
+            # Load failure modes from file each cycle
+            failure_modes = load_failure_modes()
             for location, manager, csv_file, meters in managers:
+                # Set per-meter failure mode for simulation
+                for meter in meters:
+                    mode = failure_modes.get(meter.name)
+                    # Treat None, "None", and empty dict as no failure mode
+                    if mode is None or mode == "None" or mode == {}:
+                        meter.failure_mode = None
+                    else:
+                        meter.failure_mode = mode
+
                 # Generate a single timestamp for all meters in this reading cycle
                 reading_time = datetime.now().isoformat()
                 meter_data_list = manager.read_all(

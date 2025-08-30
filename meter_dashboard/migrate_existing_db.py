@@ -20,7 +20,7 @@ DB_CONFIG = {
     'dbname': 'mfmdb',
     'user': 'mfmuser',
     'password': 'devi',
-    'host': '192.168.43.127',
+    'host': '10.53.66.59',
     'port': 5432
 }
 

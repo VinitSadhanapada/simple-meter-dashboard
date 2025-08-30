@@ -1,9 +1,10 @@
-# Requirements for Enhanced Dashboard System
-# Web-enabled dashboard with auto-setup and Flask integration
-# Version-locked for stability and offline deployment
+smbus2==0.4.2
+smbus2==0.4.2
+
+# Cleaned requirements for Linux deployment (pymodbus==2.5.3, no Windows/macOS-only packages, no duplicates)
 
 # Core Modbus and Communication
-pymodbus==3.9.2
+pymodbus==2.5.3
 pyserial==3.5
 paho-mqtt==2.1.0
 
@@ -29,7 +30,7 @@ cryptography==3.4.8
 # Environment and Configuration
 python-dotenv==1.1.1
 
-# Web Framework (Flask)
+# Web Framework (Flask, optional)
 flask==2.3.3
 blinker==1.9.0
 click==8.2.1
@@ -38,8 +39,15 @@ Jinja2==3.1.6
 MarkupSafe==3.0.2
 Werkzeug==3.1.3
 
-# Visualization and Plotting
-matplotlib
+# Visualization and Plotting (Optional)
+matplotlib==3.10.5
+contourpy==1.3.2
+cycler==0.12.1
+fonttools==4.59.0
+kiwisolver==1.4.8
+packaging==25.0
+Pillow==9.0.1
+pyparsing==2.4.7
 
 # HTTP and Requests
 requests==2.31.0
@@ -53,41 +61,3 @@ smbus2==0.4.2
 # Utilities and Support
 six==1.16.0
 typing_extensions==4.14.1
-
-# Plotting and Visualization (Optional)
-contourpy==1.3.2
-cycler==0.12.1
-fonttools==4.59.0
-kiwisolver==1.4.8
-packaging==25.0
-Pillow==9.0.1
-pyparsing==2.4.7
-blinker==1.9.0
-click==8.2.1
-itsdangerous==2.2.0
-Jinja2==3.1.6
-MarkupSafe==3.0.2
-Werkzeug==3.1.3
-
-# Terminal and CLI Enhancement
-termcolor==3.1.0
-
-# Hardware Interface (Raspberry Pi)
-smbus2==0.4.2
-
-# HTTP and Requests
-requests==2.25.1
-
-# Utilities and Support
-six==1.16.0
-typing_extensions==4.14.1
-
-# Plotting and Visualization (Optional)
-matplotlib==3.10.5
-contourpy==1.3.2
-cycler==0.12.1
-fonttools==4.59.0
-kiwisolver==1.4.8
-packaging==25.0
-Pillow==9.0.1
-pyparsing==2.4.7

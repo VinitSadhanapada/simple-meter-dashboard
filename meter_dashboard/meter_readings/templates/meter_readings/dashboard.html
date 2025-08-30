@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -27,13 +28,79 @@
                         <h5 class="mb-0">Meter Readings Dashboard</h5>
                     </div>
                     <div class="card-body">
-                        <div class="text-center py-5">
+                        <div class="text-center py-3">
                             <h4>Welcome to Meter Dashboard</h4>
                             <p class="text-muted">Your offline RPi dashboard is running successfully!</p>
-                            <a href="/device-config/" class="btn btn-primary">
+                            <a href="/device-config/" class="btn btn-primary mb-3">
                                 Manage Device Configuration
                             </a>
                         </div>
+                        <div class="table-responsive">
+                            <table class="table table-bordered align-middle">
+                                <thead>
+                                    <tr>
+                                        <th>Meter Name</th>
+                                        {% for mode in available_modes %}
+                                            <th>{{ mode|default:'Normal'|title }}</th>
+                                        {% endfor %}
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for meter in meters %}
+                                    <tr>
+                                        <td>{{ meter.meter_name }}</td>
+                                        {% for mode in available_modes %}
+                                        <td>
+                                            {% with failure_mode=failure_modes.meter_name|default:'' %}
+                                            <button class="btn btn-sm {% if failure_mode == mode %}btn-danger{% else %}btn-outline-secondary{% endif %} toggle-failure" 
+                                                data-meter="{{ meter.meter_name }}" data-mode="{{ mode }}">
+                                                {% if mode %}Toggle{% else %}Normal{% endif %}
+                                            </button>
+                                            {% endwith %}
+                                        </td>
+                                        {% endfor %}
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        <script>
+                        // CSRF helper for Django
+                        function getCookie(name) {
+                            let cookieValue = null;
+                            if (document.cookie && document.cookie !== '') {
+                                const cookies = document.cookie.split(';');
+                                for (let i = 0; i < cookies.length; i++) {
+                                    const cookie = cookies[i].trim();
+                                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                                        break;
+                                    }
+                                }
+                            }
+                            return cookieValue;
+                        }
+                        const csrftoken = getCookie('csrftoken');
+
+                        document.addEventListener('DOMContentLoaded', function() {
+                            document.querySelectorAll('.toggle-failure').forEach(function(btn) {
+                                btn.addEventListener('click', function() {
+                                    const meter = this.getAttribute('data-meter');
+                                    const mode = this.getAttribute('data-mode');
+                                    fetch('/api/set_failure_mode/', {
+                                        method: 'POST',
+                                        headers: {
+                                            'Content-Type': 'application/json',
+                                            'X-CSRFToken': csrftoken
+                                        },
+                                        body: JSON.stringify({meter_name: meter, mode: mode})
+                                    }).then(r => r.json()).then(data => {
+                                        if(data.status === 'ok') window.location.reload();
+                                    });
+                                });
+                            });
+                        });
+                        </script>
                     </div>
                 </div>
             </div>

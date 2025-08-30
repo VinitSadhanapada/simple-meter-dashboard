@@ -87,7 +87,7 @@ DATABASES = {
         'NAME': 'mfmdb',  # Your existing database name
         'USER': 'mfmuser',  # Your existing username
         'PASSWORD': 'devi',  # Your existing password
-        'HOST': '172.20.10.3',  # Your existing host
+    'HOST': '10.53.66.59',  # Updated DB host
         'PORT': '5432',
         'OPTIONS': {
             'connect_timeout': 10,
@@ -102,7 +102,7 @@ DATABASES = {
 #         'NAME': os.getenv('DB_NAME', 'mfmdb'),
 #         'USER': os.getenv('DB_USER', 'mfmuser'),
 #         'PASSWORD': os.getenv('DB_PASSWORD', 'devi'),
-#         'HOST': os.getenv('DB_HOST', '192.168.43.127'),
+#         'HOST': os.getenv('DB_HOST', '10.53.66.59'),
 #         'PORT': os.getenv('DB_PORT', '5432'),
 #         'OPTIONS': {
 #             'connect_timeout': 10,

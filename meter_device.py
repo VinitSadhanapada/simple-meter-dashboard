@@ -77,41 +77,103 @@ class MeterDevice:
         self.device_address = device_address
         self.reg_values = [0] * len(parameters)
 
+    # Instance variable to control failure mode
+    failure_mode = None  # e.g., 'phase_loss', 'overcurrent', etc.
+
     def read_data(self):
         """
         Read current parameter values from the meter device.
-        
-        Performs either hardware communication via Modbus or generates simulated
-        data based on the simulation_mode setting. Returns a complete set of
-        parameter readings with timestamp.
-        
-        Returns:
-            List: Parameter values in the same order as self.parameters.
-                 - Element 0: ISO format timestamp string (YYYY-MM-DD HH:MM:SS)
-                 - Elements 1+: Numerical readings as floats
-                 
-        Raises:
-            ConnectionError: When hardware communication fails (non-simulation mode).
-            ValueError: When parameter parsing or validation fails.
-            ModbusException: When Modbus protocol errors occur.
-            
-        Example:
-            >>> readings = device.read_data()
-            >>> timestamp = readings[0]      # "2025-01-21 14:30:25"
-            >>> voltage = readings[1]        # 230.5
-            >>> current = readings[2]        # 5.2
-            
-        Note:
-            In simulation mode, generates realistic values with small random variations
-            to simulate actual meter behavior. Hardware mode requires a valid Modbus
-            client connection. If no client connection is available in hardware mode,
-            returns -1 for all parameter values while maintaining timestamp.
+        In simulation mode, generates realistic values with small random variations and relationships.
+        Failure modes can be triggered via self.failure_mode.
         """
         if self.simulation_mode:
             now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             values = [now]
-            for _ in range(1, len(self.parameters)):
-                values.append(round(random.uniform(0, 500), 2))
+            # Default normal values (no-fault range)
+            v_r = random.uniform(210, 240)
+            v_y = random.uniform(210, 240)
+            v_b = random.uniform(210, 240)
+            a_r = random.uniform(0, 63)
+            a_y = random.uniform(0, 63)
+            a_b = random.uniform(0, 63)
+            pf_r = random.uniform(0.95, 1.0)
+            pf_y = random.uniform(0.95, 1.0)
+            pf_b = random.uniform(0.95, 1.0)
+            freq = random.uniform(49.5, 50.5)
+            # Failure modes
+            mode = self.failure_mode
+            if mode == 'phase_loss':
+                v_r = 0; a_r = 0; pf_r = 0
+                v_y = 0; a_y = 0; pf_y = 0
+                v_b = 0; a_b = 0; pf_b = 0
+            elif mode == 'overcurrent':
+                a_r = random.uniform(21, 25.5)
+            elif mode == 'bad_pf':
+                pf_r = pf_y = pf_b = random.uniform(0.6, 0.65)
+            elif mode == 'overvoltage':
+                v_b = random.uniform(265, 267.5)
+            elif mode == 'reverse_power':
+                pf_r = pf_y = pf_b = -random.uniform(0.95, 1.0)
+            elif mode == 'freq_drift':
+                freq = random.choice([random.uniform(48.25, 48.75), random.uniform(51.75, 52.25)])
+            # Calculate watts per phase
+            w_r = v_r * a_r * pf_r
+            w_y = v_y * a_y * pf_y
+            w_b = v_b * a_b * pf_b
+            w_total = w_r + w_y + w_b
+            # Averages
+            v_avg = (v_r + v_y + v_b) / 3
+            a_avg = (a_r + a_y + a_b) / 3
+            pf_avg = (pf_r + pf_y + pf_b) / 3
+            # Harmonics (no-fault range)
+            v_r_harmo = random.uniform(0, 5)
+            v_y_harmo = random.uniform(0, 5)
+            v_b_harmo = random.uniform(0, 5)
+            a_r_harmo = random.uniform(0, 8)
+            a_y_harmo = random.uniform(0, 8)
+            a_b_harmo = random.uniform(0, 8)
+            # Energy counters (simulate monotonic increase)
+            wh_received = getattr(self, '_wh_received', random.uniform(1000, 2000)) + random.uniform(1, 5)
+            self._wh_received = wh_received
+            load_hours = getattr(self, '_load_hours', random.uniform(100, 200)) + random.uniform(0.01, 0.05)
+            self._load_hours = load_hours
+            on_hours = getattr(self, '_on_hours', random.uniform(100, 200)) + random.uniform(0.01, 0.05)
+            self._on_hours = on_hours
+            no_of_intr = random.randint(0, 2) if mode == 'phase_loss' else random.randint(0, 1)
+            # Clamp Watts Total to no-fault range
+            w_total = max(0, min(w_total, 10000))
+            # Map to parameter order
+            param_map = {
+                'Watts Total': w_total,
+                'Watts R Ph': w_r,
+                'Watts Y Ph': w_y,
+                'Watts B Ph': w_b,
+                'PF Ave': pf_avg,
+                'PF R Ph': pf_r,
+                'PF Y Ph': pf_y,
+                'PF B Ph': pf_b,
+                'VLN average': v_avg,
+                'V R Ph': v_r,
+                'V Y Ph': v_y,
+                'V B Ph': v_b,
+                'A average': a_avg,
+                'A R Ph': a_r,
+                'A Y Ph': a_y,
+                'A B Ph': a_b,
+                'Frequency': freq,
+                'Wh received': wh_received,
+                'Load Hours Delivered': load_hours,
+                'No of interruption': no_of_intr,
+                'On Hours': on_hours,
+                'V R Harmonics': v_r_harmo,
+                'V Y Harmonics': v_y_harmo,
+                'V B Harmonics': v_b_harmo,
+                'A R Harmonics': a_r_harmo,
+                'A Y Harmonics': a_y_harmo,
+                'A B Harmonics': a_b_harmo,
+            }
+            for param in self.parameters[1:]:
+                values.append(round(param_map.get(param, 0), 2))
             self.reg_values = values
         else:
             # Check if client connection exists
