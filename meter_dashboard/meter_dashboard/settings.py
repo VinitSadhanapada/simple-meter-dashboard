@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'meter_readings',
     'device_config',
+    'visual.apps.VisualConfig',
 ]
 
 MIDDLEWARE = [
@@ -86,7 +87,7 @@ DATABASES = {
         'NAME': 'mfmdb',  # Your existing database name
         'USER': 'mfmuser',  # Your existing username
         'PASSWORD': 'devi',  # Your existing password
-        'HOST': '172.20.10.3',  # Your existing host
+        'HOST': '10.53.66.59',  # Updated host
         'PORT': '5432',
         'OPTIONS': {
             'connect_timeout': 10,
@@ -157,3 +158,6 @@ if not FIELD_ENCRYPTION_KEY:
     import warnings
     warnings.warn(
         "FIELD_ENCRYPTION_KEY not found in environment. Encrypted fields will not work properly.")
+
+# CSRF trusted origins for IP-based access
+CSRF_TRUSTED_ORIGINS = ['http://10.179.205.59:8000']

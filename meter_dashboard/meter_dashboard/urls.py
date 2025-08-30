@@ -10,4 +10,5 @@ urlpatterns = [
     # Old-style paths for backward compatibility
     path('device/', include('device_config.urls')),
     path('dashboard/', RedirectView.as_view(pattern_name='meter_readings:dashboard'), name='dashboard'),
+    path('visual/', include('visual.urls')),
 ]

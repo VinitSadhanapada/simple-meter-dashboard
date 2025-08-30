@@ -2,12 +2,12 @@
 // Edit values as needed for your deployment
 {
     "SIMULATION_MODE": true, // Set true to simulate readings
-    "READING_INTERVAL": 30, // Seconds between reading cycles
+    "READING_INTERVAL": 5, // Seconds between reading cycles
     "INTER_DEVICE_DELAY": 0.1, // Delay (seconds) between device reads
     "PORT": "/dev/ttyUSB0", // Serial port for Modbus
     "ENABLE_MQTT": false, // Enable MQTT publishing
     "ENABLE_RTC": true, // Enable RTC for offline time keeping
     "LOG_LEVEL": "INFO", // Logging level
-    "DB_SERVER_IP": "172.20.10.3", // Centralized DB server IP
-    "SERVER_API_IP": "172.20.10.3" // Centralized API server IP
+    "DB_SERVER_IP": "10.53.66.59", // Centralized DB server IP
+    "SERVER_API_IP": "10.53.66.59" // Centralized API server IP
 }

@@ -295,6 +295,16 @@ class MeterManager:
                     meter_data[param] = regValue[j]
                 else:
                     meter_data[param] = None
+
+            # --- Patch: If any phase fault is set, set V R Ph, V Y Ph, V B Ph to 0 (simulation mode only) ---
+            if getattr(meter, 'simulation_mode', False):
+                # Check for phase fault flags in meter_data
+                phase_fault_keys = ["V R Ph Fault", "V Y Ph Fault", "V B Ph Fault"]
+                phase_fault = any(meter_data.get(k) == 1 for k in phase_fault_keys)
+                if phase_fault:
+                    meter_data["V R Ph"] = 0
+                    meter_data["V Y Ph"] = 0
+                    meter_data["V B Ph"] = 0
             print(
                 f"DEBUG: meter_data constructed in MeterManager: {meter_data}")
             meter_data_list.append(meter_data)

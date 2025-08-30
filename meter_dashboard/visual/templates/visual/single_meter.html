@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Single Meter Data</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <h1>Meter {{ meter_id }} Data</h1>
+    <canvas id="meterChart" width="800" height="400"></canvas>
+    <script>
+        const data = {{ data|safe }};
+        const labels = data.map(row => row.timestamp);
+        const values = data.map(row => row.reading_value);
+        const ctx = document.getElementById('meterChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Reading Value',
+                    data: values,
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    fill: false
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    x: { display: true, title: { display: true, text: 'Timestamp' } },
+                    y: { display: true, title: { display: true, text: 'Value' } }
+                }
+            }
+        });
+    </script>
+</body>
+</html>

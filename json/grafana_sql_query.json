@@ -1,0 +1,42 @@
+SELECT
+	time,
+	meter_name,
+	GREATEST(
+		v_r_ph_fault,
+		v_y_ph_fault,
+		v_b_ph_fault,
+		a_r_ph_fault,
+		a_y_ph_fault,
+		a_b_ph_fault,
+		pf_ave_fault,
+		frequency_fault,
+		v_r_harmonics_fault,
+		v_y_harmonics_fault,
+		v_b_harmonics_fault,
+		a_r_harmonics_fault,
+		a_y_harmonics_fault,
+		a_b_harmonics_fault,
+		watts_total_fault
+	) AS fault,
+	CASE WHEN GREATEST(
+		v_r_ph_fault,
+		v_y_ph_fault,
+		v_b_ph_fault,
+		a_r_ph_fault,
+		a_y_ph_fault,
+		a_b_ph_fault,
+		pf_ave_fault,
+		frequency_fault,
+		v_r_harmonics_fault,
+		v_y_harmonics_fault,
+		v_b_harmonics_fault,
+		a_r_harmonics_fault,
+		a_y_harmonics_fault,
+		a_b_harmonics_fault,
+		watts_total_fault
+	) > 0 THEN 1 ELSE 0 END AS fault_true
+FROM meterreadings
+	FROM meter_fault_log
+	AND meter_name IN ($meter)
+		AND meter_name IN ($meter)
+	ORDER BY time ASC, meter_name ASC;

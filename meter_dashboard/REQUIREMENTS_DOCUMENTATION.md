@@ -90,7 +90,6 @@ Pillow==9.0.1                   # Image processing
 
 ### **Utilities**
 ```
-requests==2.25.1                # HTTP library
 six==1.16.0                     # Python 2/3 compatibility
 typing_extensions==4.14.1       # Type hints backport
 packaging==25.0                 # Package utilities

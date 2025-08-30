@@ -1,0 +1,590 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": 10,
+  "links": [],
+  "panels": [
+    {
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "eevjq33zl1b7kd"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "v_r_ph"
+            },
+            "properties": [
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "red",
+                      "value": 0
+                    },
+                    {
+                      "color": "green",
+                      "value": 250
+                    },
+                    {
+                      "color": "red",
+                      "value": 270
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "thresholds"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "v_y_ph"
+            },
+            "properties": [
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "red",
+                      "value": 0
+                    },
+                    {
+                      "color": "green",
+                      "value": 250
+                    },
+                    {
+                      "color": "red",
+                      "value": 270
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "thresholds"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "v_b_ph"
+            },
+            "properties": [
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "red",
+                      "value": 0
+                    },
+                    {
+                      "color": "green",
+                      "value": 250
+                    },
+                    {
+                      "color": "red",
+                      "value": 270
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "thresholds"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "phase_fault"
+            },
+            "properties": [
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": 0
+                    },
+                    {
+                      "color": "red",
+                      "value": 1
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "thresholds"
+                }
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "options": {
+                      "0": {
+                        "text": "OK"
+                      },
+                      "1": {
+                        "text": "Phase Fault"
+                      }
+                    },
+                    "type": 1
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "id": 1,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
+        "showHeader": true
+      },
+      "pluginVersion": "12.1.1",
+      "targets": [
+        {
+          "datasource": {
+            "uid": "PostgreSQL"
+          },
+          "format": "table",
+          "rawSql": "SELECT time AS \"time\", id, location, device_id, meter_name, model, watts_total, watts_r_ph, watts_y_ph, watts_b_ph, pf_ave, pf_r_ph, pf_y_ph, pf_b_ph, vln_average, v_r_ph, v_y_ph, v_b_ph, a_average, a_r_ph, a_y_ph, a_b_ph, frequency, wh_received, load_hours_delivered, no_of_interruption, on_hours, v_r_harmonics, v_y_harmonics, v_b_harmonics, a_r_harmonics, a_y_harmonics, a_b_harmonics, pi_setup_id, pi_name, pi_ip, CASE WHEN v_r_ph < 180 OR v_r_ph > 270 OR v_r_ph = 0 OR v_y_ph < 180 OR v_y_ph > 270 OR v_y_ph = 0 OR v_b_ph < 180 OR v_b_ph > 270 OR v_b_ph = 0 OR a_r_ph = 0 OR a_y_ph = 0 OR a_b_ph = 0 THEN 1 ELSE 0 END AS phase_fault FROM meterreadings WHERE $__timeFilter(time) ORDER BY time DESC",
+          "refId": "A"
+        }
+      ],
+      "title": "All Meter Data Table",
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "eevjq33zl1b7kd"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineStyle": {
+              "fill": "solid"
+            },
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "__systemRef": "hideSeriesFrom",
+            "matcher": {
+              "id": "byNames",
+              "options": {
+                "mode": "exclude",
+                "names": [
+                  "frequency"
+                ],
+                "prefix": "All except:",
+                "readOnly": true
+              }
+            },
+            "properties": [
+              {
+                "id": "custom.hideFrom",
+                "value": {
+                  "legend": false,
+                  "tooltip": false,
+                  "viz": true
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 24,
+        "x": 0,
+        "y": 10
+      },
+      "id": 2,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "right",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "12.1.1",
+      "targets": [
+        {
+          "datasource": {
+            "uid": "PostgreSQL"
+          },
+          "editorMode": "code",
+          "format": "time_series",
+          "rawQuery": true,
+          "rawSql": "SELECT time AS \"time\", v_r_ph, v_y_ph, v_b_ph, a_r_ph, a_y_ph, a_b_ph, pf_ave, frequency, v_r_harmonics, v_y_harmonics, v_b_harmonics, a_r_harmonics, a_y_harmonics, a_b_harmonics, watts_total, watts_r_ph, watts_y_ph, watts_b_ph, CASE WHEN v_r_ph < 180 OR v_r_ph > 270 OR v_r_ph = 0 OR v_y_ph < 180 OR v_y_ph > 270 OR v_y_ph = 0 OR v_b_ph < 180 OR v_b_ph > 270 OR v_b_ph = 0 OR a_r_ph = 0 OR a_y_ph = 0 OR a_b_ph = 0 THEN 1 ELSE 0 END AS phase_fault FROM meterreadings WHERE $__timeFilter(time) ORDER BY time DESC",
+          "refId": "A",
+          "sql": {
+            "columns": [
+              {
+                "parameters": [],
+                "type": "function"
+              }
+            ],
+            "groupBy": [
+              {
+                "property": {
+                  "type": "string"
+                },
+                "type": "groupBy"
+              }
+            ],
+            "limit": 50
+          }
+        }
+      ],
+      "title": "Meter Time Series",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "eevjq33zl1b7kd"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "frequency" },
+            "properties": [
+              { "id": "unit", "value": "hertz" },
+              { "id": "thresholds", "value": {
+                "mode": "absolute",
+                "steps": [
+                  { "value": null, "color": "green" },
+                  { "value": 48, "color": "red" },
+                  { "value": 52, "color": "red" }
+                ]
+              }}
+            ]
+          },
+          {
+            "matcher": { "id": "byRegexp", "options": "^v_._ph$" },
+            "properties": [
+              { "id": "unit", "value": "volt" },
+              { "id": "thresholds", "value": {
+                "mode": "absolute",
+                "steps": [
+                  { "value": null, "color": "green" },
+                  { "value": 180, "color": "red" },
+                  { "value": 270, "color": "red" }
+                ]
+              }}
+            ]
+          },
+          {
+            "matcher": { "id": "byRegexp", "options": "^a_._ph$" },
+            "properties": [
+              { "id": "unit", "value": "ampere" },
+              { "id": "thresholds", "value": {
+                "mode": "absolute",
+                "steps": [
+                  { "value": null, "color": "green" },
+                  { "value": 25, "color": "red" }
+                ]
+              }}
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "pf_ave" },
+            "properties": [
+              { "id": "unit", "value": "none" },
+              { "id": "thresholds", "value": {
+                "mode": "absolute",
+                "steps": [
+                  { "value": null, "color": "green" },
+                  { "value": 0.7, "color": "yellow" },
+                  { "value": 1.0, "color": "green" }
+                ]
+              }}
+            ]
+          },
+          {
+            "matcher": { "id": "byRegexp", "options": "^v_._harmonics$" },
+            "properties": [
+              { "id": "unit", "value": "percent" },
+              { "id": "thresholds", "value": {
+                "mode": "absolute",
+                "steps": [
+                  { "value": null, "color": "green" },
+                  { "value": 15, "color": "red" }
+                ]
+              }}
+            ]
+          },
+          {
+            "matcher": { "id": "byRegexp", "options": "^a_._harmonics$" },
+            "properties": [
+              { "id": "unit", "value": "percent" },
+              { "id": "thresholds", "value": {
+                "mode": "absolute",
+                "steps": [
+                  { "value": null, "color": "green" },
+                  { "value": 15, "color": "red" }
+                ]
+              }}
+            ]
+          },
+          {
+            "matcher": { "id": "byRegexp", "options": "^watts.*$" },
+            "properties": [
+              { "id": "unit", "value": "watt" }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "status" },
+            "properties": [
+              { "id": "mappings", "value": [
+                { "type": "value", "options": {
+                  "0": { "text": "Fault" },
+                  "1": { "text": "Warning" },
+                  "2": { "text": "Nominal" }
+                }}
+              ]},
+              { "id": "thresholds", "value": {
+                "mode": "absolute",
+                "steps": [
+                  { "value": null, "color": "green" },
+                  { "value": 1, "color": "yellow" },
+                  { "value": 2, "color": "green" }
+                ]
+              }}
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 24,
+        "x": 0,
+        "y": 20
+      },
+      "id": 3,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
+        "showHeader": true
+      },
+      "pluginVersion": "12.1.1",
+      "targets": [
+        {
+          "datasource": {
+            "uid": "PostgreSQL"
+          },
+          "format": "table",
+          "rawSql": "SELECT DISTINCT ON (meter_name) time AS \"time\", id, meter_name, device_id, location, CASE WHEN v_r_ph < 180 OR v_r_ph > 270 OR v_r_ph = 0 OR v_y_ph < 180 OR v_y_ph > 270 OR v_y_ph = 0 OR v_b_ph < 180 OR v_b_ph > 270 OR v_b_ph = 0 OR a_r_ph = 0 OR a_y_ph = 0 OR a_b_ph = 0 THEN 0 WHEN a_r_ph > 25 OR a_y_ph > 25 OR a_b_ph > 25 OR pf_ave < 0.7 OR pf_ave < 0 OR pf_ave > 1 OR frequency < 48 OR frequency > 52 OR v_r_harmonics > 15 OR v_y_harmonics > 15 OR v_b_harmonics > 15 OR a_r_harmonics > 15 OR a_y_harmonics > 15 OR a_b_harmonics > 15 THEN 1 ELSE 2 END AS status FROM meterreadings WHERE $__timeFilter(time) ORDER BY meter_name, time DESC",
+          "refId": "A"
+        }
+      ],
+      "title": "Active Status Table",
+      "type": "table"
+    }
+  ],
+  "preload": false,
+  "refresh": "10s",
+  "schemaVersion": 41,
+  "tags": [
+    "meter",
+    "faults",
+    "status"
+  ],
+  "templating": {
+    "list": [
+      {
+        "current": {
+          "text": "",
+          "value": ""
+        },
+        "name": "query0",
+        "options": [],
+        "query": "",
+        "refresh": 1,
+        "regex": "",
+        "type": "query"
+      }
+    ]
+  },
+  "time": {
+    "from": "2025-08-20T13:10:59.627Z",
+    "to": "2025-08-20T18:57:46.275Z"
+  },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "Meter Dashboard (Auto-generated)",
+  "uid": "71d71576-aae5-4926-8ab5-7a2e1725e0eb",
+  "version": 21
+}

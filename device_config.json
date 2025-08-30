@@ -1,10 +1,50 @@
 [ 
 {
-    "meter_name": "TEST 17.08",
+    "meter_name": "M1.1",
     "meter_address": 1,
     "meter_model": "LG6900",
     "location": "KONDRAI",
     "pi_ip": "172.20.10.2",
-    "pi_name": "Test pi 11"
+    "pi_name": "Test pi 1"
+  },
+{
+    "meter_name": "M1.2",
+    "meter_address": 2,
+    "meter_model": "LG6900",
+    "location": "KONDRAI",
+    "pi_ip": "172.20.10.2",
+    "pi_name": "Test pi 1"
+  },
+{
+    "meter_name": "M1.3",
+    "meter_address": 3,
+    "meter_model": "LG6900",
+    "location": "KONDRAI",
+    "pi_ip": "172.20.10.2",
+    "pi_name": "Test pi 1"
+  },
+{
+    "meter_name": "M1.4",
+    "meter_address": 4,
+    "meter_model": "LG6900",
+    "location": "KONDRAI",
+    "pi_ip": "172.20.10.2",
+    "pi_name": "Test pi 1"
+  },
+{
+    "meter_name": "M2.1",
+    "meter_address": 1,
+    "meter_model": "LG6900",
+    "location": "SEVANTHI",
+    "pi_ip": "172.20.10.2",
+    "pi_name": "Test pi 2"
+  },
+{
+    "meter_name": "M2.2",
+    "meter_address": 2,
+    "meter_model": "LG6900",
+    "location": "SEVANTHI",
+    "pi_ip": "172.20.10.2",
+    "pi_name": "Test pi 2"
   }
 ]

@@ -25,7 +25,7 @@ pytz==2022.1
 tzdata==2025.2
 
 # Hardware Communication
-pymodbus==3.9.2
+pymodbus==2.5.3
 pyserial==3.5
 paho-mqtt==2.1.0
 
@@ -36,7 +36,6 @@ termcolor==3.1.0
 smbus2==0.4.2
 
 # HTTP and Web Support
-requests==2.25.1
 
 # Utilities
 six==1.16.0

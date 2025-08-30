@@ -1,0 +1,652 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": 10,
+  "links": [],
+  "panels": [
+    {
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "eevjq33zl1b7kd"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {"id": "byName", "options": "a_r_ph"},
+            "properties": [
+              {"id": "thresholds", "value": {"mode": "absolute", "steps": [
+                {"color": "red", "value": 0},
+                {"color": "green", "value": 20},
+                {"color": "yellow", "value": 25},
+                {"color": "red", "value": 26}
+              ]}},
+              {"id": "color", "value": {"mode": "thresholds"}}
+            ]
+          },
+          {
+            "matcher": {"id": "byName", "options": "a_y_ph"},
+            "properties": [
+              {"id": "thresholds", "value": {"mode": "absolute", "steps": [
+                {"color": "red", "value": 0},
+                {"color": "green", "value": 20},
+                {"color": "yellow", "value": 25},
+                {"color": "red", "value": 26}
+              ]}},
+              {"id": "color", "value": {"mode": "thresholds"}}
+            ]
+          },
+          {
+            "matcher": {"id": "byName", "options": "a_b_ph"},
+            "properties": [
+              {"id": "thresholds", "value": {"mode": "absolute", "steps": [
+                {"color": "red", "value": 0},
+                {"color": "green", "value": 20},
+                {"color": "yellow", "value": 25},
+                {"color": "red", "value": 26}
+              ]}},
+              {"id": "color", "value": {"mode": "thresholds"}}
+            ]
+          },
+          {
+            "matcher": {"id": "byName", "options": "pf_ave"},
+            "properties": [
+              {"id": "thresholds", "value": {"mode": "absolute", "steps": [
+                {"color": "red", "value": 0.7},
+                {"color": "yellow", "value": 0.93},
+                {"color": "green", "value": 0.98},
+                {"color": "yellow", "value": 1},
+                {"color": "red", "value": 1.01}
+              ]}},
+              {"id": "color", "value": {"mode": "thresholds"}}
+            ]
+          },
+          {
+            "matcher": {"id": "byName", "options": "frequency"},
+            "properties": [
+              {"id": "thresholds", "value": {"mode": "absolute", "steps": [
+                {"color": "red", "value": 48},
+                {"color": "yellow", "value": 49},
+                {"color": "green", "value": 51},
+                {"color": "yellow", "value": 52},
+                {"color": "red", "value": 53}
+              ]}},
+              {"id": "color", "value": {"mode": "thresholds"}}
+            ]
+          },
+          {
+            "matcher": {"id": "byName", "options": "v_r_harmonics"},
+            "properties": [
+              {"id": "thresholds", "value": {"mode": "absolute", "steps": [
+                {"color": "green", "value": 10},
+                {"color": "yellow", "value": 15},
+                {"color": "red", "value": 16}
+              ]}},
+              {"id": "color", "value": {"mode": "thresholds"}}
+            ]
+          },
+          {
+            "matcher": {"id": "byName", "options": "v_y_harmonics"},
+            "properties": [
+              {"id": "thresholds", "value": {"mode": "absolute", "steps": [
+                {"color": "green", "value": 10},
+                {"color": "yellow", "value": 15},
+                {"color": "red", "value": 16}
+              ]}},
+              {"id": "color", "value": {"mode": "thresholds"}}
+            ]
+          },
+          {
+            "matcher": {"id": "byName", "options": "v_b_harmonics"},
+            "properties": [
+              {"id": "thresholds", "value": {"mode": "absolute", "steps": [
+                {"color": "green", "value": 10},
+                {"color": "yellow", "value": 15},
+                {"color": "red", "value": 16}
+              ]}},
+              {"id": "color", "value": {"mode": "thresholds"}}
+            ]
+          },
+          {
+            "matcher": {"id": "byName", "options": "a_r_harmonics"},
+            "properties": [
+              {"id": "thresholds", "value": {"mode": "absolute", "steps": [
+                {"color": "green", "value": 10},
+                {"color": "yellow", "value": 15},
+                {"color": "red", "value": 16}
+              ]}},
+              {"id": "color", "value": {"mode": "thresholds"}}
+            ]
+          },
+          {
+            "matcher": {"id": "byName", "options": "a_y_harmonics"},
+            "properties": [
+              {"id": "thresholds", "value": {"mode": "absolute", "steps": [
+                {"color": "green", "value": 10},
+                {"color": "yellow", "value": 15},
+                {"color": "red", "value": 16}
+              ]}},
+              {"id": "color", "value": {"mode": "thresholds"}}
+            ]
+          },
+          {
+            "matcher": {"id": "byName", "options": "a_b_harmonics"},
+            "properties": [
+              {"id": "thresholds", "value": {"mode": "absolute", "steps": [
+                {"color": "green", "value": 10},
+                {"color": "yellow", "value": 15},
+                {"color": "red", "value": 16}
+              ]}},
+              {"id": "color", "value": {"mode": "thresholds"}}
+            ]
+          },
+          {
+            "matcher": {"id": "byName", "options": "watts_total"},
+            "properties": [
+              {"id": "thresholds", "value": {"mode": "absolute", "steps": [
+                {"color": "red", "value": 0},
+                {"color": "green", "value": 1}
+              ]}},
+              {"id": "color", "value": {"mode": "thresholds"}}
+            ]
+          },
+          {
+            "matcher": {"id": "byName", "options": "watts_r_ph"},
+            "properties": [
+              {"id": "thresholds", "value": {"mode": "absolute", "steps": [
+                {"color": "red", "value": 0},
+                {"color": "green", "value": 1}
+              ]}},
+              {"id": "color", "value": {"mode": "thresholds"}}
+            ]
+          },
+          {
+            "matcher": {"id": "byName", "options": "watts_y_ph"},
+            "properties": [
+              {"id": "thresholds", "value": {"mode": "absolute", "steps": [
+                {"color": "red", "value": 0},
+                {"color": "green", "value": 1}
+              ]}},
+              {"id": "color", "value": {"mode": "thresholds"}}
+            ]
+          },
+          {
+            "matcher": {"id": "byName", "options": "watts_b_ph"},
+            "properties": [
+              {"id": "thresholds", "value": {"mode": "absolute", "steps": [
+                {"color": "red", "value": 0},
+                {"color": "green", "value": 1}
+              ]}},
+              {"id": "color", "value": {"mode": "thresholds"}}
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "id": 1,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
+        "showHeader": true
+      },
+      "pluginVersion": "12.1.1",
+      "targets": [
+        {
+          "datasource": {
+            "uid": "PostgreSQL"
+          {
+            "datasource": {
+              "uid": "PostgreSQL"
+            },
+            "format": "table",
+            "rawSql": "SELECT time AS \"time\", id, location, device_id, meter_name, model, watts_total, watts_r_ph, watts_y_ph, watts_b_ph, pf_ave, pf_r_ph, pf_y_ph, pf_b_ph, vln_average, v_r_ph, v_y_ph, v_b_ph, a_average, a_r_ph, a_y_ph, a_b_ph, frequency, wh_received, load_hours_delivered, no_of_interruption, on_hours, v_r_harmonics, v_y_harmonics, v_b_harmonics, a_r_harmonics, a_y_harmonics, a_b_harmonics, pi_setup_id, pi_name, pi_ip, CASE WHEN v_r_ph < 180 OR v_r_ph > 270 OR v_r_ph = 0 OR v_y_ph < 180 OR v_y_ph > 270 OR v_y_ph = 0 OR v_b_ph < 180 OR v_b_ph > 270 OR v_b_ph = 0 OR a_r_ph = 0 OR a_y_ph = 0 OR a_b_ph = 0 THEN 1 ELSE 0 END AS phase_fault FROM meterreadings WHERE $__timeFilter(time) ORDER BY time DESC",
+            "refId": "A"
+          }
+        {
+          "datasource": {
+            "uid": "PostgreSQL"
+          },
+          "format": "time_series",
+          "rawSql": "SELECT time AS \"time\", v_r_ph, v_y_ph, v_b_ph, a_r_ph, a_y_ph, a_b_ph, pf_ave, frequency, v_r_harmonics, v_y_harmonics, v_b_harmonics, a_r_harmonics, a_y_harmonics, a_b_harmonics, watts_total, watts_r_ph, watts_y_ph, watts_b_ph, CASE WHEN v_r_ph < 180 OR v_r_ph > 270 OR v_r_ph = 0 OR v_y_ph < 180 OR v_y_ph > 270 OR v_y_ph = 0 OR v_b_ph < 180 OR v_b_ph > 270 OR v_b_ph = 0 OR a_r_ph = 0 OR a_y_ph = 0 OR a_b_ph = 0 THEN 1 ELSE 0 END AS phase_fault FROM meterreadings WHERE $__timeFilter(time) ORDER BY time DESC",
+          "refId": "A"
+        }
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "v_r_ph"
+            },
+            "properties": [
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "red",
+                      "value": 0
+                    },
+                    {
+                      "color": "red",
+                      "value": 220
+                    },
+                    {
+                      "color": "green",
+                      "value": 250
+                    },
+                    {
+                      "color": "red",
+                      "value": 270
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "thresholds"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "v_y_ph"
+            },
+            "properties": [
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "red",
+                      "value": 0
+                    },
+                    {
+                      "color": "red",
+                      "value": 220
+                    },
+                    {
+                      "color": "green",
+                      "value": 250
+                    },
+                    {
+                      "color": "red",
+                      "value": 270
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "thresholds"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "v_b_ph"
+            },
+            "properties": [
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "red",
+                      "value": 0
+                    },
+                    {
+                      "color": "red",
+                      "value": 220
+                    },
+                    {
+                      "color": "green",
+                      "value": 250
+                    },
+                    {
+                      "color": "red",
+                      "value": 270
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "thresholds"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 24,
+        "x": 0,
+        "y": 10
+      },
+      "id": 2,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "12.1.1",
+      "targets": [
+        {
+          "datasource": {
+            "uid": "PostgreSQL"
+          },
+          "format": "time_series",
+          "rawSql": "SELECT time AS \"time\", v_r_ph, v_y_ph, v_b_ph, a_r_ph, a_y_ph, a_b_ph, pf_ave, frequency, v_r_harmonics, v_y_harmonics, v_b_harmonics, a_r_harmonics, a_y_harmonics, a_b_harmonics, watts_total, watts_r_ph, watts_y_ph, watts_b_ph, CASE WHEN v_r_ph < 180 OR v_r_ph > 270 OR v_r_ph = 0 OR v_y_ph < 180 OR v_y_ph > 270 OR v_y_ph = 0 OR v_b_ph < 180 OR v_b_ph > 270 OR v_b_ph = 0 OR a_r_ph = 0 OR a_y_ph = 0 OR a_b_ph = 0 THEN 1 ELSE 0 END AS phase_fault FROM meterreadings WHERE $__timeFilter(time) ORDER BY time DESC",
+          "refId": "A"
+        }
+      ],
+      "title": "Meter Time Series",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "uid": "PostgreSQL"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "status"
+            },
+            "properties": [
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "red",
+                      "value": 0
+                    },
+                    {
+                      "color": "yellow",
+                      "value": 1
+                    },
+                    {
+                      "color": "green",
+                      "value": 2
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "thresholds"
+                }
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "options": {
+                      "0": {
+                        "text": "Inactive"
+                      },
+                      "1": {
+                        "text": "Warning"
+                      },
+                      "2": {
+                        "text": "Active"
+                      }
+                    },
+                    "type": 1
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 24,
+        "x": 0,
+        "y": 20
+      },
+      "id": 3,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
+        "showHeader": true
+      },
+      "pluginVersion": "12.1.1",
+      "targets": [
+        {
+          "datasource": {
+            "uid": "PostgreSQL"
+          },
+          "format": "table",
+          "rawSql": "SELECT DISTINCT ON (meter_name) time AS \"time\", id, meter_name, device_id, location, CASE WHEN v_r_ph < 180 OR v_r_ph > 270 OR v_r_ph = 0 OR v_y_ph < 180 OR v_y_ph > 270 OR v_y_ph = 0 OR v_b_ph < 180 OR v_b_ph > 270 OR v_b_ph = 0 OR a_r_ph = 0 OR a_y_ph = 0 OR a_b_ph = 0 THEN 0 WHEN a_r_ph > 25 OR a_y_ph > 25 OR a_b_ph > 25 OR pf_ave < 0.7 OR pf_ave < 0 OR pf_ave > 1 OR frequency < 48 OR frequency > 52 OR v_r_harmonics > 15 OR v_y_harmonics > 15 OR v_b_harmonics > 15 OR a_r_harmonics > 15 OR a_y_harmonics > 15 OR a_b_harmonics > 15 THEN 1 ELSE 2 END AS status FROM meterreadings WHERE $__timeFilter(time) ORDER BY meter_name, time DESC",
+          "refId": "A"
+        }
+      ],
+      "title": "Active Status Table",
+      "type": "table"
+    }
+  ],
+  "preload": false,
+  "refresh": "5s",
+  "schemaVersion": 41,
+  "tags": [
+    "meter",
+    "faults",
+    "status"
+  ],
+  "templating": {
+    "list": [
+      {
+        "name": "Device",
+        "type": "query",
+        "datasource": "PostgreSQL",
+        "refresh": 1,
+        "query": "SELECT DISTINCT meter_name FROM meterreadings ORDER BY meter_name",
+        "definition": "SELECT DISTINCT meter_name FROM meterreadings ORDER BY meter_name",
+        "multi": true,
+        "includeAll": true,
+        "sort": 1,
+        "label": "Device",
+        "hide": 0
+      },
+      {
+        "name": "Parameter",
+        "type": "custom",
+        "options": [
+          {"value": "watts_total", "text": "Watts Total"},
+          {"value": "watts_r_ph", "text": "Watts R Phase"},
+          {"value": "watts_y_ph", "text": "Watts Y Phase"},
+          {"value": "watts_b_ph", "text": "Watts B Phase"},
+          {"value": "pf_ave", "text": "Power Factor Avg"},
+          {"value": "frequency", "text": "Frequency"},
+          {"value": "v_r_ph", "text": "Voltage R Phase"},
+          {"value": "v_y_ph", "text": "Voltage Y Phase"},
+          {"value": "v_b_ph", "text": "Voltage B Phase"},
+          {"value": "a_r_ph", "text": "Current R Phase"},
+          {"value": "a_y_ph", "text": "Current Y Phase"},
+          {"value": "a_b_ph", "text": "Current B Phase"},
+          {"value": "v_r_harmonics", "text": "V R Harmonics"},
+          {"value": "v_y_harmonics", "text": "V Y Harmonics"},
+          {"value": "v_b_harmonics", "text": "V B Harmonics"},
+          {"value": "a_r_harmonics", "text": "A R Harmonics"},
+          {"value": "a_y_harmonics", "text": "A Y Harmonics"},
+          {"value": "a_b_harmonics", "text": "A B Harmonics"}
+        ],
+        "multi": true,
+        "includeAll": true,
+        "label": "Parameter",
+        "hide": 0
+      }
+    ]
+  },
+  "time": {
+    "from": "2025-08-20T15:38:29.000Z",
+    "to": "2025-08-20T15:52:14.000Z"
+  },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "Meter Dashboard (Auto-generated)",
+  "uid": "71d71576-aae5-4926-8ab5-7a2e1725e0eb",
+  "version": 2
+}

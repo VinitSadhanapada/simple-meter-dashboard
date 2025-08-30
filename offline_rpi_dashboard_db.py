@@ -1,33 +1,12 @@
-#!/usr/bin/env python3
-"""
-Offline RPi Dashboard - DB Version (Modularized)
-Writes meter readings to both CSV and PostgreSQL DB for all locations/devices.
-"""
+
+
+# --- Config ---
+import os
+import json
+import time
 from pathlib import Path
 from datetime import datetime
 import logging
-import time
-import sys
-import os
-import csv
-import json
-
-# --- Config ---
-DB_CONFIG = {
-    'dbname': 'mfmdb',
-    'user': 'mfmuser',
-    'password': 'devi',
-    'host': '172.20.10.3',  # will be set after config load
-    'port': '5432',
-}
-
-# Server config for posting data
-SERVER_CONFIG = {
-    'url': None,  # will be set after config load
-    'enabled': False,  # Set to False to disable server posting
-    'timeout': 10,    # Request timeout in seconds
-    'retry_attempts': 3
-}
 
 script_dir = Path(__file__).parent.absolute()
 CONFIG_PATH = script_dir / "config.jsonc"
@@ -35,15 +14,37 @@ DEVICE_CONFIG_PATH = script_dir / "device_config.jsonc"
 CSV_DIR = script_dir / "csv_data"
 CSV_DIR.mkdir(exist_ok=True)
 
+DB_CONFIG = {
+    'dbname': 'mfmdb',
+    'user': 'mfmuser',
+    'password': 'devi',
+    'host': '10.53.66.59',  # will be set after config load
+    'port': '5432',
+}
+
+SERVER_CONFIG = {
+    'url': None,  # will be set after config load
+    'enabled': False,  # Set to False to disable server posting
+    'timeout': 10,    # Request timeout in seconds
+    'retry_attempts': 3
+}
+
+# Path to failure_modes.json and loader
+FAILURE_MODES_PATH = script_dir / "failure_modes.json"
+def load_failure_modes():
+    try:
+        with open(FAILURE_MODES_PATH, 'r') as f:
+            return json.load(f)
+    except Exception:
+        return {}
+
+
 # --- Load config ---
-
-
 def strip_jsonc_comments(text):
     import re
     text = re.sub(r"//.*", "", text)
     text = re.sub(r"/\*.*?\*/", "", text, flags=re.DOTALL)
     return text
-
 
 def load_jsonc_config(path):
     with open(path, 'r') as f:
@@ -169,18 +170,18 @@ def insert_meter_reading_with_pi_simple(db, pi_setup_id, location, device_id, me
             DO $$ 
             BEGIN
                 IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
-                              WHERE table_name = 'meter_readings' AND column_name = 'pi_setup_id') THEN
-                    ALTER TABLE meter_readings ADD COLUMN pi_setup_id INTEGER;
+                              WHERE table_name = 'meterreadings' AND column_name = 'pi_setup_id') THEN
+                    ALTER TABLE meterreadings ADD COLUMN pi_setup_id INTEGER;
                 END IF;
                 
                 IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
-                              WHERE table_name = 'meter_readings' AND column_name = 'pi_name') THEN
-                    ALTER TABLE meter_readings ADD COLUMN pi_name VARCHAR(100);
+                              WHERE table_name = 'meterreadings' AND column_name = 'pi_name') THEN
+                    ALTER TABLE meterreadings ADD COLUMN pi_name VARCHAR(100);
                 END IF;
                 
                 IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
-                              WHERE table_name = 'meter_readings' AND column_name = 'pi_ip') THEN
-                    ALTER TABLE meter_readings ADD COLUMN pi_ip INET;
+                              WHERE table_name = 'meterreadings' AND column_name = 'pi_ip') THEN
+                    ALTER TABLE meterreadings ADD COLUMN pi_ip INET;
                 END IF;
             END $$;
         """)
@@ -190,7 +191,7 @@ def insert_meter_reading_with_pi_simple(db, pi_setup_id, location, device_id, me
 
     # Insert the reading with pi_setup_id and Pi details
     query = """
-    INSERT INTO meter_readings (
+    INSERT INTO meterreadings (
         pi_setup_id, pi_name, pi_ip, location, device_id, meter_name, time, model,
         watts_total, watts_r_ph, watts_y_ph, watts_b_ph,
         pf_ave, pf_r_ph, pf_y_ph, pf_b_ph,
@@ -397,7 +398,16 @@ def run_dashboard():
     # Main loop
     try:
         while True:
+            # Load failure modes from file each cycle
+            failure_modes = load_failure_modes()
             for location, manager, csv_file, meters in managers:
+                # Set per-meter failure mode for simulation
+                for meter in meters:
+                    # Use meter.name as key
+                    mode = failure_modes.get(meter.name)
+                    meter.failure_mode = mode
+                    # Debug print removed
+
                 # Generate a single timestamp for all meters in this reading cycle
                 reading_time = datetime.now().isoformat()
                 meter_data_list = manager.read_all(
