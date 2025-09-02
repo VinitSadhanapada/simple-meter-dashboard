@@ -171,10 +171,10 @@ def run_dashboard():
             f"Location '{location}': {len(meters)} devices, CSV: {csv_file}")
 
     # MQTT Config (set your broker IP/credentials)
-    MQTT_BROKER = os.getenv('MQTT_BROKER', 'localhost')
+    MQTT_BROKER = os.getenv('MQTT_BROKER', '172.20.10.3')
     MQTT_PORT = int(os.getenv('MQTT_PORT', '1883'))
-    MQTT_USER = os.getenv('MQTT_USER', None)
-    MQTT_PASS = os.getenv('MQTT_PASS', None)
+    MQTT_USER = 'myuser'
+    MQTT_PASS = 'Mahadev@123'
     MQTT_TOPIC = 'meter/readings'
 
     def publish_meter_reading_mqtt(meter_data):

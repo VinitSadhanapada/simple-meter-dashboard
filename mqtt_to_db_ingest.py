@@ -10,6 +10,13 @@ DB_CONFIG = {
     'port': '5432',
 }
 
+# MQTT broker config
+MQTT_BROKER = '172.20.10.3'  # Use your broker's IP
+MQTT_PORT = 1883
+MQTT_USER = 'myuser'  # Use your Mosquitto username
+MQTT_PASS = 'Mahadev@123'  # Use your Mosquitto password
+MQTT_TOPIC = 'meter/readings'
+
 # Adjust this to match your meter_readings table fields
 INSERT_QUERY = '''
 INSERT INTO meter_readings (
@@ -60,10 +67,9 @@ def on_message(client, userdata, msg):
 def main():
     conn = psycopg2.connect(**DB_CONFIG)
     client = mqtt.Client(userdata={'conn': conn})
-    # If you use authentication:
-    # client.username_pw_set("mqtt_user", "mqtt_pass")
-    client.connect("localhost", 1883, 60)  # Change to your broker's address
-    client.subscribe("meter/readings")
+    client.username_pw_set(MQTT_USER, MQTT_PASS)
+    client.connect(MQTT_BROKER, MQTT_PORT, 60)
+    client.subscribe(MQTT_TOPIC)
     client.on_message = on_message
     print("Listening for meter readings...")
     client.loop_forever()
