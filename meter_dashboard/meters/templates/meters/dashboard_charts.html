@@ -1,0 +1,240 @@
+<!-- filepath: /home/isha/deepak/MFM_offline_setup/meter_dashboard/meters/templates/meters/dashboard_charts.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Meter Dashboard Charts</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', 'Arial', sans-serif;
+        }
+        .chart-container {
+            width: 80%;
+            margin: 20px auto;
+            text-align: center;
+        }
+        form {
+            margin: 20px;
+            padding: 20px;
+            border: 1px solid #ccc;
+            background: #f9f9f9;
+        }
+        form label {
+            margin-right: 10px;
+        }
+        form select, form input {
+            margin: 5px;
+            padding: 5px;
+        }
+        button {
+            background: #007cba;
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            cursor: pointer;
+        }
+        .axis-title {
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+    </style>
+    <!-- Chart.js core library -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <!-- Chart.js Zoom Plugin (compatible version) -->
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1/dist/chartjs-plugin-zoom.umd.min.js"></script>
+</head>
+
+<body>
+    <h1>Live Meter Dashboard - VLN Average Analysis</h1>
+    <form method="get" id="meter-filter-form">
+        <label for="location">Location:</label>
+        <select name="location" id="location" onchange="this.form.submit();">
+            <option value="">Select Location</option>
+            {% for loc in locations %}
+            <option value="{{ loc }}" {% if loc == selected_location %}selected{% endif %}>{{ loc }}</option>
+            {% endfor %}
+        </select>
+        <label for="meter">Meter:</label>
+        <select name="meter" id="meter" onchange="this.form.submit();">
+            <option value="">Select Meter</option>
+            {% for m in meters %}
+            <option value="{{ m }}" {% if m == selected_meter %}selected{% endif %}>{{ m }}</option>
+            {% endfor %}
+        </select>
+        <label for="start_time">Start Time:</label>
+        <input type="datetime-local" name="start_time" value="{{ start_time }}">
+        <label for="end_time">End Time:</label>
+        <input type="datetime-local" name="end_time" id="end_time" value="{{ end_time }}">
+        <label for="parameter">Parameter:</label>
+        <select id="parameter-select">
+            <option value="vln_average">VLN Average (V)</option>
+            <option value="watts_total">Total Power (W)</option>
+            <option value="pf_ave">Power Factor (Avg)</option>
+            <option value="frequency">Frequency (Hz)</option>
+            <option value="v_r_ph">Voltage R Phase</option>
+            <option value="v_y_ph">Voltage Y Phase</option>
+            <option value="v_b_ph">Voltage B Phase</option>
+            <option value="a_average">Current Average</option>
+            <option value="a_r_ph">Current R Phase</option>
+            <option value="a_y_ph">Current Y Phase</option>
+            <option value="a_b_ph">Current B Phase</option>
+            <!-- Add more as needed -->
+        </select>
+        <button type="submit">Show Data</button>
+    </form>
+
+    <div class="chart-container">
+    <h2>Live Meter Chart</h2>
+    <canvas id="meterChart" style="max-width: 100%;"></canvas>
+    <p><strong>Selected Meter:</strong> {{ selected_meter|default:"None" }}</p>
+    <p><strong>Selected Location:</strong> {{ selected_location|default:"None" }}</p>
+    <p><strong>Parameter:</strong> <span id="selectedParameterLabel"></span></p>
+    <p id="dataPointsCount"></p>
+    </div>
+    <script>
+        // Helper to get query params from form
+        function getFilterParams() {
+            const location = document.getElementById('location').value;
+            const meter = document.getElementById('meter').value;
+            const start_time = document.querySelector('input[name="start_time"]').value;
+            const end_time = document.querySelector('input[name="end_time"]').value;
+            return { location, meter, start_time, end_time };
+        }
+
+        // Fetch filtered data from backend
+        async function fetchMeterData() {
+            const params = getFilterParams();
+            let url = '/api/dashboard/?format=json&';
+            if (params.location) url += `location=${encodeURIComponent(params.location)}&`;
+            if (params.meter) url += `meter=${encodeURIComponent(params.meter)}&`;
+            if (params.start_time) url += `start_time=${encodeURIComponent(params.start_time)}&`;
+            if (params.end_time) url += `end_time=${encodeURIComponent(params.end_time)}&`;
+            console.log('Fetching data from:', url);
+            const response = await fetch(url);
+            const json = await response.json();
+            console.log('API response:', json);
+            return json;
+        }
+
+        // Chart.js setup
+        let meterChart;
+        // Remove custom x-axis tick callback and restore Chart.js default autoSkip behavior
+        function renderChart(data) {
+            // Sort data by time ascending
+            data.sort((a, b) => new Date(a.time) - new Date(b.time));
+            const times = data.map(r => {
+                // Format time as UTC for clarity, remove year
+                const d = new Date(r.time);
+                return String(d.getUTCMonth() + 1).padStart(2, '0') + '-' +
+                    String(d.getUTCDate()).padStart(2, '0') + ' ' +
+                    String(d.getUTCHours()).padStart(2, '0') + ':' +
+                    String(d.getUTCMinutes()).padStart(2, '0');
+            });
+            const parameter = document.getElementById('parameter-select').value;
+            const parameterLabels = {
+                vln_average: 'VLN Average (V)',
+                watts_total: 'Total Power (W)',
+                pf_ave: 'Power Factor (Avg)',
+                frequency: 'Frequency (Hz)',
+                v_r_ph: 'Voltage R Phase',
+                v_y_ph: 'Voltage Y Phase',
+                v_b_ph: 'Voltage B Phase',
+                a_average: 'Current Average',
+                a_r_ph: 'Current R Phase',
+                a_y_ph: 'Current Y Phase',
+                a_b_ph: 'Current B Phase',
+            };
+
+            // Use null for missing data to create gaps
+            const values = data.map(r => r[parameter] != null ? r[parameter] : null);
+
+            // Markers: red for nulls or -1, blue for valid data
+            const pointColors = values.map(v => (v === null || v === -1) ? 'red' : 'blue');
+
+            document.getElementById('selectedParameterLabel').textContent = parameterLabels[parameter] || parameter;
+
+            const ctx = document.getElementById('meterChart').getContext('2d');
+            if (meterChart) meterChart.destroy();
+            meterChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: times,
+                    datasets: [{
+                        label: parameterLabels[parameter] || parameter,
+                        data: values,
+                        borderColor: 'blue',
+                        fill: false,
+                        spanGaps: false,
+                        pointBackgroundColor: pointColors,
+                        pointRadius: 4,
+                        pointStyle: values.map(v => v === null ? 'circle' : 'circle'),
+                        segment: {
+                            borderColor: ctx => {
+                                // Draw line in blue, but skip over nulls (default behavior)
+                                return 'blue';
+                            },
+                        },
+                    }],
+                },
+                options: {
+                    responsive: true,
+                    spanGaps: false,
+                    interaction: {
+                        mode: 'nearest',
+                        axis: 'x',
+                        intersect: false
+                    },
+                    plugins: {
+                        tooltip: {
+                            enabled: true,
+                            mode: 'index',
+                            intersect: false,
+                        },
+                        legend: {
+                            display: true,
+                        },
+                        zoom: {
+                            // Remove zoom plugin and reset button if present
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: { display: true, text: 'Time', font: { size: 16, weight: 'bold' } },
+                            ticks: {
+                                autoSkip: true,
+                                maxRotation: 45,
+                                minRotation: 45,
+                                font: { size: 12, weight: 'bold' },
+                            }
+                        },
+                        y: {
+                            title: { display: true, text: 'Value', font: { size: 16, weight: 'bold' } },
+                            ticks: {
+                                font: { size: 12, weight: 'bold' },
+                            }
+                        }
+                    }
+                }
+            });
+            document.getElementById('dataPointsCount').textContent = `Data Points: ${times.length}`;
+        }
+
+        // Initial data fetch and chart render
+        document.addEventListener('DOMContentLoaded', async () => {
+            const initialData = await fetchMeterData();
+            renderChart(initialData);
+            // Auto-refresh chart every 5 seconds
+            setInterval(async () => {
+                const liveData = await fetchMeterData();
+                renderChart(liveData);
+            }, 20000);
+        });
+
+        // Parameter select change
+        document.getElementById('parameter-select').addEventListener('change', async (e) => {
+            const selectedParam = e.target.value;
+            const data = await fetchMeterData();
+            renderChart(data);
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,64 @@
+{% extends 'device_config/base.html' %}
+{% block title %}Pi Devices{% endblock %}
+{% block content %}
+<div class="container mt-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>Raspberry Pi Devices</h2>
+    <a href="{% url 'device_config:add_pi' %}" class="btn btn-primary">
+      <i class="fas fa-plus me-2"></i>Add Pi
+    </a>
+  </div>
+  <div class="card">
+    <div class="card-body">
+      {% if pis %}
+      <div class="table-responsive">
+        <table class="table table-striped">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>IP Address</th>
+              <th>Location</th>
+              <th>Status</th>
+              <th>Last Updated</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for pi in pis %}
+            <tr>
+              <td>
+                <a href="{% url 'device_config:pi_detail' pi.id %}" class="text-decoration-none">
+                  <strong>{{ pi.pi_name }}</strong>
+                </a>
+              </td>
+              <td><code>{{ pi.pi_ip }}</code></td>
+              <td>{{ pi.location }}</td>
+              <td>
+                {% if pi.is_active %}
+                  <span class="badge bg-success">Active</span>
+                {% else %}
+                  <span class="badge bg-secondary">Inactive</span>
+                {% endif %}
+              </td>
+              <td>{{ pi.last_updated|date:"M d, Y H:i" }}</td>
+              <td>
+                <a href="{% url 'device_config:edit_pi' pi.id %}" class="btn btn-outline-primary btn-sm">
+                  <i class="fas fa-edit"></i> Edit
+                </a>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="text-center py-4">
+        <i class="fas fa-server fa-3x text-muted mb-3"></i>
+        <h5>No Pi devices found</h5>
+        <p class="text-muted">Click the blue button to add your first Pi device.</p>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

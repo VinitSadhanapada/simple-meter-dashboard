@@ -1,0 +1,15 @@
+{% extends "admin/change_form.html" %}
+
+{% block admin_change_form_document_ready %}
+    {{ block.super }}
+    
+    {% if meter_models_datalist %}
+        {{ meter_models_datalist }}
+    {% endif %}
+    
+    <script>
+        // Add available models data to JavaScript
+        window.predefinedMeterModels = {{ predefined_models|safe }};
+        window.availableMeterModels = {{ available_models|safe }};
+    </script>
+{% endblock %}
