@@ -1,1 +1,5 @@
+__pycache__/
 venv/
+csv_data/
+test_scripts/
+meter_dashboard/meters/migrations/__pycache__/

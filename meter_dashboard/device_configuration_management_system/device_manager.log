@@ -1,0 +1,39 @@
+Successfully deployed device_config.json to 172.20.10.4
+Successfully deployed device_config.json to 172.20.10.4
+Successfully deployed config.json to 172.20.10.4
+Connecting to 172.20.10.4 using password authentication
+Successfully deployed device_config.json to 172.20.10.4
+Connecting to 172.20.10.4 using password authentication
+Connecting to 172.20.10.4 using password authentication
+Failed to deploy device_config.json to 172.20.10.4: timed out
+Failed to deploy device_config.json to 172.20.10.4: timed out
+Connecting to 172.20.10.4 using password authentication
+Failed to deploy config.json to 172.20.10.4: timed out
+Connecting to 192.168.43.240 using password authentication
+Successfully deployed device_config.json to 192.168.43.240
+Connecting to 192.168.43.240 using password authentication
+Successfully deployed config.json to 192.168.43.240
+Connecting to 192.168.43.128 using password authentication
+Failed to deploy device_config.json to 192.168.43.128: Authentication failed.
+Connecting to 192.168.43.128 using password authentication
+Failed to deploy config.json to 192.168.43.128: Authentication failed.
+Connecting to 192.168.43.188 using password authentication
+Successfully deployed device_config.json to 192.168.43.188
+Connecting to 192.168.43.188 using password authentication
+Successfully deployed config.json to 192.168.43.188
+Connecting to 192.168.43.188 using password authentication
+Successfully deployed device_config.json to 192.168.43.188
+Connecting to 192.168.43.188 using password authentication
+Successfully deployed config.json to 192.168.43.188
+Connecting to 192.168.43.188 using password authentication
+Successfully deployed device_config.json to 192.168.43.188
+Connecting to 192.168.43.188 using password authentication
+Successfully deployed config.json to 192.168.43.188
+Connecting to 192.168.43.188 using password authentication
+Successfully deployed device_config.json to 192.168.43.188
+Connecting to 192.168.43.188 using password authentication
+Successfully deployed config.json to 192.168.43.188
+Connecting to 192.168.43.188 using password authentication
+Successfully deployed device_config.json to 192.168.43.188
+Connecting to 192.168.43.188 using password authentication
+Successfully deployed config.json to 192.168.43.188
