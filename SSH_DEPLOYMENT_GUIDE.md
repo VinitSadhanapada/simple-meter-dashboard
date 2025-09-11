@@ -42,4 +42,4 @@ ssh pi@192.168.1.100
 ## Expected deployment process:
 1. Click "Test SSH" -> Should show connection details
 2. Click "Deploy Config" -> Should show success message
-3. Check Pi: `/home/pi/MFM_offline_setup/device_config.json` should exist
+3. Check Pi: `/home/pi/MFM_offline_setup/device_config.jsonc` should exist

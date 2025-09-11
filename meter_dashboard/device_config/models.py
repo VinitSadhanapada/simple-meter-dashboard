@@ -159,7 +159,11 @@ class MeterDevice(models.Model):
         max_length=100,
         help_text="Select from common models or enter a custom model name"
     )
+<<<<<<< HEAD
     # location is now inherited from RaspberryPi
+=======
+    location = models.CharField(max_length=200)
+>>>>>>> clubbed_mfm_dcms_16-aug
     raspberry_pi = models.ForeignKey(
         RaspberryPi, on_delete=models.CASCADE, related_name='meters')
     is_active = models.BooleanField(default=True)
@@ -174,10 +178,13 @@ class MeterDevice(models.Model):
     def __str__(self):
         return f"{self.meter_name} - {self.meter_model} (Address: {self.meter_address})"
 
+<<<<<<< HEAD
     @property
     def location(self):
         return self.raspberry_pi.location
 
+=======
+>>>>>>> clubbed_mfm_dcms_16-aug
     @classmethod
     def get_available_meter_models(cls):
         """Get all available meter models (predefined + custom ones from database)"""
@@ -278,3 +285,34 @@ class ConfigurationDeployment(models.Model):
 
     def __str__(self):
         return f"{self.deployment_type} to {self.raspberry_pi.pi_name} - {self.status}"
+<<<<<<< HEAD
+=======
+
+
+class DashboardConfig(models.Model):
+    mqtt_broker_ip = models.GenericIPAddressField(
+        verbose_name="MQTT Broker IP",
+        help_text="IP address of the MQTT broker",
+        default="127.0.0.1"
+    )
+    # Add other global config fields as needed
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        # Write/update MQTT_BROKER_IP in config.json
+        config_path = os.path.join(settings.BASE_DIR, 'config.json')
+        try:
+            if os.path.exists(config_path):
+                with open(config_path, 'r') as f:
+                    config = json.load(f)
+            else:
+                config = {}
+            config['MQTT_BROKER_IP'] = self.mqtt_broker_ip
+            with open(config_path, 'w') as f:
+                json.dump(config, f, indent=4)
+        except Exception as e:
+            print(f"Error updating config.json: {e}")
+
+    def __str__(self):
+        return f"Dashboard Config (MQTT: {self.mqtt_broker_ip})"
+>>>>>>> clubbed_mfm_dcms_16-aug

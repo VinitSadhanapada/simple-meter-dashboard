@@ -46,7 +46,6 @@ cycler==0.12.1
 fonttools==4.59.0
 kiwisolver==1.4.8
 packaging==25.0
-Pillow==9.0.1
 pyparsing==2.4.7
 
 # HTTP and Requests
@@ -68,7 +67,6 @@ cycler==0.12.1
 fonttools==4.59.0
 kiwisolver==1.4.8
 packaging==25.0
-Pillow==9.0.1
 pyparsing==2.4.7
 blinker==1.9.0
 click==8.2.1
@@ -94,13 +92,9 @@ cycler==0.12.1
 fonttools==4.59.0
 kiwisolver==1.4.8
 packaging==25.0
-Pillow==9.0.1
 pyparsing==2.4.7
 
 # Python requirements for MQTT-to-DB ingestion system
-paho-mqtt
-psycopg2-binary
-
 # System requirements (install via apt, not pip):
 # Mosquitto broker: sudo apt install mosquitto
 # Mosquitto clients (for testing): sudo apt install mosquitto-clients

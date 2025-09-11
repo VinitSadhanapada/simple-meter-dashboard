@@ -13,12 +13,20 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 from pathlib import Path
 import os
 from dotenv import load_dotenv
+<<<<<<< HEAD
+=======
+import json
+>>>>>>> clubbed_mfm_dcms_16-aug
 
 # Load environment variables from .env file
 load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
+<<<<<<< HEAD
 BASE_DIR = Path(__file__).resolve().parent.parent
+=======
+BASE_DIR = Path(__file__).resolve().parent.parent.parent
+>>>>>>> clubbed_mfm_dcms_16-aug
 
 
 # Quick-start development settings - unsuitable for production
@@ -81,6 +89,7 @@ WSGI_APPLICATION = 'meter_dashboard.wsgi.application'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
 # Using your existing PostgreSQL database credentials
+<<<<<<< HEAD
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
@@ -92,6 +101,20 @@ DATABASES = {
         'OPTIONS': {
             'connect_timeout': 10,
         },
+=======
+CONFIG_PATH = os.path.join(BASE_DIR, 'config.json')
+with open(CONFIG_PATH) as f:
+    CONFIG = json.load(f)
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'mfmdb',
+        'USER': 'mfmuser',
+        'PASSWORD': 'devi',
+        'HOST': CONFIG.get('DB_SERVER_IP', 'localhost'),  # Use config value
+        'PORT': '5432',
+>>>>>>> clubbed_mfm_dcms_16-aug
     }
 }
 
@@ -102,7 +125,11 @@ DATABASES = {
 #         'NAME': os.getenv('DB_NAME', 'mfmdb'),
 #         'USER': os.getenv('DB_USER', 'mfmuser'),
 #         'PASSWORD': os.getenv('DB_PASSWORD', 'devi'),
+<<<<<<< HEAD
 #         'HOST': os.getenv('DB_HOST', '10.53.66.59'),
+=======
+#         'HOST': os.getenv('DB_HOST', '192.168.43.127'),
+>>>>>>> clubbed_mfm_dcms_16-aug
 #         'PORT': os.getenv('DB_PORT', '5432'),
 #         'OPTIONS': {
 #             'connect_timeout': 10,

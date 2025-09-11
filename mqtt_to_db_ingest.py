@@ -1,19 +1,21 @@
 import paho.mqtt.client as mqtt
 import json
 import psycopg2
-import threading
-import sys
+
+CONFIG_PATH = '/home/isha/deepak/MFM_offline_setup/config.json'
+with open(CONFIG_PATH) as f:
+    CONFIG = json.load(f)
 
 DB_CONFIG = {
     'dbname': 'mfmdb',
     'user': 'mfmuser',
     'password': 'devi',
-    'host': '10.127.128.59',
+    'host': CONFIG.get('DB_SERVER_IP', 'localhost'),
     'port': '5432',
 }
 
 # MQTT broker config
-MQTT_BROKER = 'localhost' #'10.127.128.59'  # Use your broker's IP
+MQTT_BROKER = CONFIG.get('MQTT_BROKER_IP', 'localhost')  # Use your broker's IP
 MQTT_PORT = 1883
 MQTT_USER = 'myuser'  # Use your Mosquitto username
 MQTT_PASS = 'Mahadev@123'  # Use your Mosquitto password
@@ -21,7 +23,7 @@ MQTT_TOPIC = 'meter/readings'
 
 # Adjust this to match your meter_readings table fields
 INSERT_QUERY = '''
-INSERT INTO meterreadings (
+INSERT INTO meter_readings (
     pi_name, pi_ip, location, device_id, meter_name, time, model,
     watts_total, watts_r_ph, watts_y_ph, watts_b_ph,
     pf_ave, pf_r_ph, pf_y_ph, pf_b_ph,
@@ -74,7 +76,6 @@ def main():
     client.subscribe(MQTT_TOPIC)
     client.on_message = on_message
     print("Listening for meter readings...")
-
     client.loop_forever()
 
 

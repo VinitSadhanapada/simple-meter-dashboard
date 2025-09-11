@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 
 from pathlib import Path
 # --- Path setup ---
@@ -70,11 +71,14 @@ def register_pi_simple(db, pi_name, pi_ip, location):
         return None
 
 
+=======
+>>>>>>> clubbed_mfm_dcms_16-aug
 #!/usr/bin/env python3
 """
 Offline RPi Dashboard - DB Version (Modularized)
 Writes meter readings to both CSV and PostgreSQL DB for all locations/devices.
 """
+<<<<<<< HEAD
 
 
 # --- Path setup ---
@@ -136,6 +140,46 @@ SERVER_CONFIG = {
 
 
 def strip_jsonc_comments(text):
+=======
+from pathlib import Path
+from datetime import datetime
+import logging
+import time
+import sys
+import os
+import csv
+import json
+import paho.mqtt.client as mqtt
+
+# --- Config ---
+# DB_CONFIG = {
+#     'dbname': 'mfmdb',
+#     'user': 'mfmuser',
+#     'password': 'devi',
+#     'host': '172.20.10.3',  # will be set after config load
+#     'port': '5432',
+# }
+
+# Server config for posting data
+SERVER_CONFIG = {
+    'url': None,  # will be set after config load
+    'enabled': False,  # Set to False to disable server posting
+    'timeout': 10,    # Request timeout in seconds
+    'retry_attempts': 3
+}
+
+script_dir = Path(__file__).parent.absolute()
+CONFIG_PATH = script_dir / "config.json"
+DEVICE_CONFIG_PATH = script_dir / "device_config.json"
+CSV_DIR = script_dir / "csv_data"
+CSV_DIR.mkdir(exist_ok=True)
+
+# --- Load config ---
+
+
+def strip_jsonc_comments(text):
+    import re
+>>>>>>> clubbed_mfm_dcms_16-aug
     text = re.sub(r"//.*", "", text)
     text = re.sub(r"/\*.*?\*/", "", text, flags=re.DOTALL)
     return text
@@ -148,9 +192,14 @@ def load_jsonc_config(path):
 
 
 CONFIG = load_jsonc_config(CONFIG_PATH)
+<<<<<<< HEAD
 # Use PSQL_SERVER_ADDRESS from config if present, else fallback to DB_SERVER_IP, else localhost
 DB_CONFIG['host'] = CONFIG.get(
     'PSQL_SERVER_ADDRESS', CONFIG.get('DB_SERVER_IP', '10.127.128.59'))
+=======
+# Remove DB_CONFIG['host'] assignment since DB_CONFIG is not used anymore
+# SERVER_CONFIG['url'] and SERVER_CONFIG['enabled'] lines remain
+>>>>>>> clubbed_mfm_dcms_16-aug
 SERVER_CONFIG['url'] = f"http://{CONFIG.get('SERVER_API_IP', 'localhost')}:8000/api/meter/"
 # Ensure server posting is disabled to avoid connection errors
 SERVER_CONFIG['enabled'] = False
@@ -173,6 +222,7 @@ logger = logging.getLogger("dashboard_db")
 # --- Main Dashboard Logic ---
 
 
+<<<<<<< HEAD
 # Simple table creation function
 def create_pi_setup_table_simple(db):
     """Create dcms_pi_setup table with essential fields only"""
@@ -353,6 +403,8 @@ def post_to_server(meter_data):
 
 
 # Simple table creation function
+=======
+>>>>>>> clubbed_mfm_dcms_16-aug
 def run_dashboard():
     from macros import PARAMETERS
     from meter_manager import MeterManager
@@ -367,7 +419,11 @@ def run_dashboard():
     pi_location = "Unknown"
     pi_ip = "127.0.0.1"
 
+<<<<<<< HEAD
     # Extract Pi details from device_config.json (first device)
+=======
+    # Extract Pi details from device_config.jsonc (first device)
+>>>>>>> clubbed_mfm_dcms_16-aug
     if DEVICE_CONFIG and len(DEVICE_CONFIG) > 0:
         first_device = DEVICE_CONFIG[0]
         pi_location = first_device.get('location', 'Unknown')
@@ -447,7 +503,11 @@ def run_dashboard():
             f"Location '{location}': {len(meters)} devices, CSV: {csv_file}")
 
     # MQTT Config (set your broker IP/credentials)
+<<<<<<< HEAD
     MQTT_BROKER = os.getenv('MQTT_BROKER', 'localhost')
+=======
+    MQTT_BROKER = CONFIG.get('MQTT_BROKER_IP', 'localhost')
+>>>>>>> clubbed_mfm_dcms_16-aug
     MQTT_PORT = int(os.getenv('MQTT_PORT', '1883'))
     MQTT_USER = 'myuser'
     MQTT_PASS = 'Mahadev@123'
@@ -465,6 +525,7 @@ def run_dashboard():
     # Main loop
     try:
         while True:
+<<<<<<< HEAD
             # Load failure modes from file each cycle
             failure_modes = load_failure_modes()
             for location, manager, csv_file, meters in managers:
@@ -478,6 +539,9 @@ def run_dashboard():
                         meter.failure_mode = mode
 
                 # Generate a single timestamp for all meters in this reading cycle
+=======
+            for location, manager, csv_file, meters in managers:
+>>>>>>> clubbed_mfm_dcms_16-aug
                 reading_time = datetime.now().isoformat()
                 meter_data_list = manager.read_all(
                     inter_device_delay=CONFIG["INTER_DEVICE_DELAY"]

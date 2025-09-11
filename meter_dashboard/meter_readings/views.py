@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import psycopg2
 from django.conf import settings
 def latest_readings(request):
@@ -84,3 +85,20 @@ def api_set_failure_mode(request):
         return JsonResponse({'status': 'ok', 'meter_name': meter_name, 'mode': mode})
     except Exception as e:
         return JsonResponse({'status': 'error', 'error': str(e)})
+=======
+from django.shortcuts import render
+from django.http import JsonResponse
+
+def dashboard(request):
+    """Simple dashboard view"""
+    return render(request, 'meter_readings/dashboard.html', {
+        'page_title': 'Meter Readings Dashboard'
+    })
+
+def api_meter_readings(request):
+    """Simple API endpoint for meter readings"""
+    return JsonResponse({
+        'status': 'success',
+        'message': 'Meter readings API endpoint'
+    })
+>>>>>>> clubbed_mfm_dcms_16-aug
