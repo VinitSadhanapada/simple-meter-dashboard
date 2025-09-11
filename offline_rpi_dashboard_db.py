@@ -1,146 +1,8 @@
-<<<<<<< HEAD
-
-from pathlib import Path
-# --- Path setup ---
-script_dir = Path(__file__).parent.absolute()
-import re
-import paho.mqtt.client as mqtt
-import json
-import os
-import sys
-import time
-import logging
-from datetime import datetime
-from pathlib import Path
-
-
-def load_failure_modes():
-    try:
-        with open(FAILURE_MODES_PATH, 'r') as f:
-            return json.load(f)
-    except Exception:
-        return {}
-
-
-def register_pi_simple(db, pi_name, pi_ip, location):
-    """Register/update this Pi in the database with all required DCMS fields"""
-
-    query = """
-    INSERT INTO dcms_pi_setup (
-        pi_name, pi_ip, location, ssh_username, ssh_password, 
-        ssh_key_path, config_path, is_active, last_connected
-    )
-    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, CURRENT_TIMESTAMP)
-    ON CONFLICT (pi_name) 
-    DO UPDATE SET 
-        pi_ip = EXCLUDED.pi_ip,
-        location = EXCLUDED.location,
-        ssh_username = EXCLUDED.ssh_username,
-        ssh_password = EXCLUDED.ssh_password,
-        ssh_key_path = EXCLUDED.ssh_key_path,
-        config_path = EXCLUDED.config_path,
-        is_active = EXCLUDED.is_active,
-        last_connected = CURRENT_TIMESTAMP
-    RETURNING id;
-    """
-
-    try:
-        cursor = db.conn.cursor()
-
-        # Provide all required fields including config_path
-        values = (
-            pi_name,                                    # pi_name
-            pi_ip,                                     # pi_ip
-            location,                                  # location
-            'pi',                                      # ssh_username
-            # ssh_password (empty string)
-            '',
-            '/home/pi/.ssh/id_rsa',                   # ssh_key_path
-            '/home/isha/deepak/MFM_offline_setup',    # config_path (required!)
-            True                                       # is_active
-        )
-
-        cursor.execute(query, values)
-        pi_setup_id = cursor.fetchone()[0]
-        db.conn.commit()
-        logger.info(f"✅ Pi registered: {pi_name}")
-        return pi_setup_id
-
-    except Exception as e:
-        logger.error(f"❌ Error registering Pi: {e}")
-        return None
-
-
-=======
->>>>>>> clubbed_mfm_dcms_16-aug
 #!/usr/bin/env python3
 """
 Offline RPi Dashboard - DB Version (Modularized)
 Writes meter readings to both CSV and PostgreSQL DB for all locations/devices.
 """
-<<<<<<< HEAD
-
-
-# --- Path setup ---
-CONFIG_PATH = Path("/home/pi/meter_config/config.json")
-DEVICE_CONFIG_PATH = Path("/home/pi/meter_config/device_config.json")
-FAILURE_MODES_PATH = Path("/home/pi/meter_config/failure_modes.json")
-CSV_DIR = Path(__file__).parent.absolute() / "csv_data"
-
-
-CSV_DIR.mkdir(exist_ok=True)
-
-# --- DB and Server config dicts ---
-DB_CONFIG = {
-    'dbname': 'mfmdb',
-    'user': 'mfmuser',
-    'password': 'devi',
-    'host': 'localhost',  # will be overwritten by config
-    'port': '5432',
-}
-SERVER_CONFIG = {
-    'url': None,  # will be set after config load
-    'enabled': False,  # Set to False to disable server posting
-    'timeout': 10,    # Request timeout in seconds
-    'retry_attempts': 3
-}
-
-# --- DB and Server config dicts ---
-DB_CONFIG = {
-    'dbname': 'mfmdb',
-    'user': 'mfmuser',
-    'password': 'devi',
-    'host': 'localhost',  # will be overwritten by config
-    'port': '5432',
-}
-SERVER_CONFIG = {
-    'url': None,  # will be set after config load
-    'enabled': False,  # Set to False to disable server posting
-    'timeout': 10,    # Request timeout in seconds
-    'retry_attempts': 3
-}
-
-# --- DB and Server config dicts ---
-DB_CONFIG = {
-    'dbname': 'mfmdb',
-    'user': 'mfmuser',
-    'password': 'devi',
-    'host': 'localhost',  # will be overwritten by config
-    'port': '5432',
-}
-SERVER_CONFIG = {
-    'url': None,  # will be set after config load
-    'enabled': False,  # Set to False to disable server posting
-    'timeout': 10,    # Request timeout in seconds
-    'retry_attempts': 3
-}
-
-
-# --- Utility to strip comments from JSONC ---
-
-
-def strip_jsonc_comments(text):
-=======
 from pathlib import Path
 from datetime import datetime
 import logging
@@ -179,7 +41,6 @@ CSV_DIR.mkdir(exist_ok=True)
 
 def strip_jsonc_comments(text):
     import re
->>>>>>> clubbed_mfm_dcms_16-aug
     text = re.sub(r"//.*", "", text)
     text = re.sub(r"/\*.*?\*/", "", text, flags=re.DOTALL)
     return text
@@ -192,14 +53,8 @@ def load_jsonc_config(path):
 
 
 CONFIG = load_jsonc_config(CONFIG_PATH)
-<<<<<<< HEAD
-# Use PSQL_SERVER_ADDRESS from config if present, else fallback to DB_SERVER_IP, else localhost
-DB_CONFIG['host'] = CONFIG.get(
-    'PSQL_SERVER_ADDRESS', CONFIG.get('DB_SERVER_IP', '10.127.128.59'))
-=======
 # Remove DB_CONFIG['host'] assignment since DB_CONFIG is not used anymore
 # SERVER_CONFIG['url'] and SERVER_CONFIG['enabled'] lines remain
->>>>>>> clubbed_mfm_dcms_16-aug
 SERVER_CONFIG['url'] = f"http://{CONFIG.get('SERVER_API_IP', 'localhost')}:8000/api/meter/"
 # Ensure server posting is disabled to avoid connection errors
 SERVER_CONFIG['enabled'] = False
@@ -222,189 +77,6 @@ logger = logging.getLogger("dashboard_db")
 # --- Main Dashboard Logic ---
 
 
-<<<<<<< HEAD
-# Simple table creation function
-def create_pi_setup_table_simple(db):
-    """Create dcms_pi_setup table with essential fields only"""
-    query = """
-    CREATE TABLE IF NOT EXISTS dcms_pi_setup (
-        id SERIAL PRIMARY KEY,
-        pi_name VARCHAR(100) UNIQUE NOT NULL,
-        pi_ip INET UNIQUE NOT NULL,
-        location VARCHAR(100) NOT NULL,
-        is_active BOOLEAN DEFAULT TRUE,
-        last_connected TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    );
-    CREATE INDEX IF NOT EXISTS idx_dcms_pi_setup_location ON dcms_pi_setup(location);
-    """
-    try:
-        cursor = db.conn.cursor()
-        cursor.execute(query)
-        db.conn.commit()
-        logger.info("✅ dcms_pi_setup table ready")
-    except Exception as e:
-        logger.error(f"❌ Error creating dcms_pi_setup table: {e}")
-
-    try:
-        cursor = db.conn.cursor()
-
-        # Provide all required fields including config_path
-        values = (
-            pi_name,                                    # pi_name
-            pi_ip,                                     # pi_ip
-            location,                                  # location
-            'pi',                                      # ssh_username
-            # ssh_password (empty string)
-            '',
-            '/home/pi/.ssh/id_rsa',                   # ssh_key_path
-            '/home/isha/deepak/MFM_offline_setup',    # config_path (required!)
-            True                                       # is_active
-        )
-
-        cursor.execute(query, values)
-        pi_setup_id = cursor.fetchone()[0]
-        db.conn.commit()
-        logger.info(f"✅ Pi registered: {pi_name}")
-        return pi_setup_id
-
-    except Exception as e:
-        logger.error(f"❌ Error registering Pi: {e}")
-        return None
-
-
-def insert_meter_reading_with_pi_simple(db, pi_setup_id, location, device_id, meter_name, reading_time,
-                                        model, watts_total, watts_r_ph, watts_y_ph, watts_b_ph,
-                                        pf_ave, pf_r_ph, pf_y_ph, pf_b_ph, vln_average, v_r_ph,
-                                        v_y_ph, v_b_ph, a_average, a_r_ph, a_y_ph, a_b_ph,
-                                        frequency, wh_received, load_hours_delivered,
-                                        no_of_interruption, on_hours, v_r_harmonics, v_y_harmonics,
-                                        v_b_harmonics, a_r_harmonics, a_y_harmonics, a_b_harmonics,
-                                        pi_name=None, pi_ip=None):
-    """Insert meter reading with Pi setup relationship and Pi details"""
-
-    # First try to add columns if they don't exist
-    try:
-        cursor = db.conn.cursor()
-        cursor.execute("""
-            DO $$ 
-            BEGIN
-                IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
-                              WHERE table_name = 'meterreadings' AND column_name = 'pi_setup_id') THEN
-                    ALTER TABLE meterreadings ADD COLUMN pi_setup_id INTEGER;
-                END IF;
-                
-                IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
-                              WHERE table_name = 'meterreadings' AND column_name = 'pi_name') THEN
-                    ALTER TABLE meterreadings ADD COLUMN pi_name VARCHAR(100);
-                END IF;
-                
-                IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
-                              WHERE table_name = 'meterreadings' AND column_name = 'pi_ip') THEN
-                    ALTER TABLE meterreadings ADD COLUMN pi_ip INET;
-                END IF;
-            END $$;
-        """)
-        db.conn.commit()
-    except Exception as e:
-        logger.warning(f"⚠️  Could not add Pi columns: {e}")
-
-    # Insert the reading with pi_setup_id and Pi details
-    query = """
-    INSERT INTO meterreadings (
-        pi_setup_id, pi_name, pi_ip, location, device_id, meter_name, time, model,
-        watts_total, watts_r_ph, watts_y_ph, watts_b_ph,
-        pf_ave, pf_r_ph, pf_y_ph, pf_b_ph,
-        vln_average, v_r_ph, v_y_ph, v_b_ph,
-        a_average, a_r_ph, a_y_ph, a_b_ph,
-        frequency, wh_received, load_hours_delivered, no_of_interruption, on_hours,
-        v_r_harmonics, v_y_harmonics, v_b_harmonics,
-        a_r_harmonics, a_y_harmonics, a_b_harmonics
-    ) VALUES (
-        %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,
-        %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
-    )
-    """
-
-    try:
-        cursor = db.conn.cursor()
-        cursor.execute(query, (
-            pi_setup_id, pi_name, pi_ip, location, device_id, meter_name, reading_time, model,
-            watts_total, watts_r_ph, watts_y_ph, watts_b_ph,
-            pf_ave, pf_r_ph, pf_y_ph, pf_b_ph,
-            vln_average, v_r_ph, v_y_ph, v_b_ph,
-            a_average, a_r_ph, a_y_ph, a_b_ph,
-            frequency, wh_received, load_hours_delivered, no_of_interruption, on_hours,
-            v_r_harmonics, v_y_harmonics, v_b_harmonics,
-            a_r_harmonics, a_y_harmonics, a_b_harmonics
-        ))
-        db.conn.commit()
-        logger.debug(f"✅ Inserted reading for Pi: {pi_name} ({pi_ip})")
-    except Exception as e:
-        logger.error(f"❌ Error inserting meter reading: {e}")
-        db.conn.rollback()
-
-
-def float_or_none(val):
-    try:
-        return float(val)
-    except (TypeError, ValueError):
-        return None
-
-
-def post_to_server(meter_data):
-    import requests
-    if not SERVER_CONFIG['enabled']:
-        # Silently skip if disabled
-        return True
-
-    try:
-        server_data = {k: v for k, v in {
-            'device_id': str(meter_data.get("Device_ID", "")),
-            'location': meter_data.get("Location", ""),
-            'meter_name': meter_data.get("Meter_Name", ""),
-            'time': meter_data.get("Time", ""),
-            'model': meter_data.get("Model", ""),
-            'watts_total': float_or_none(meter_data.get("Watts Total")),
-            'watts_r_ph': float_or_none(meter_data.get("Watts R Ph")),
-            'watts_y_ph': float_or_none(meter_data.get("Watts Y Ph")),
-            'watts_b_ph': float_or_none(meter_data.get("Watts B Ph")),
-            'pf_ave': float_or_none(meter_data.get("PF Ave")),
-            'pf_r_ph': float_or_none(meter_data.get("PF R Ph")),
-            'pf_y_ph': float_or_none(meter_data.get("PF Y Ph")),
-            'pf_b_ph': float_or_none(meter_data.get("PF B Ph")),
-            'vln_average': float_or_none(meter_data.get("VLN average")),
-            'v_r_ph': float_or_none(meter_data.get("V R Ph")),
-            'v_y_ph': float_or_none(meter_data.get("V Y Ph")),
-            'v_b_ph': float_or_none(meter_data.get("V B Ph")),
-            'a_average': float_or_none(meter_data.get("A average")),
-            'a_r_ph': float_or_none(meter_data.get("A R Ph")),
-            'a_y_ph': float_or_none(meter_data.get("A Y Ph")),
-            'a_b_ph': float_or_none(meter_data.get("A B Ph")),
-            'frequency': float_or_none(meter_data.get("Frequency")),
-            'wh_received': float_or_none(meter_data.get("Wh received")),
-            'load_hours_delivered': float_or_none(meter_data.get("Load Hours Delivered")),
-            'no_of_interruption': float_or_none(meter_data.get("No of interruption")),
-            'on_hours': meter_data.get("On Hours"),
-            'v_r_harmonics': float_or_none(meter_data.get("V R Harmonics")),
-            'v_y_harmonics': float_or_none(meter_data.get("V Y Harmonics")),
-            'v_b_harmonics': float_or_none(meter_data.get("V B Harmonics")),
-            'a_r_harmonics': float_or_none(meter_data.get("A R Harmonics")),
-            'a_y_harmonics': float_or_none(meter_data.get("A Y Harmonics")),
-            'a_b_harmonics': float_or_none(meter_data.get("A B Harmonics"))
-        }.items() if v is not None}
-
-        # Add server posting logic here if needed
-        return True
-
-    except Exception as e:
-        logger.error(f"Unexpected error posting to server: {e}")
-        return False
-
-
-# Simple table creation function
-=======
->>>>>>> clubbed_mfm_dcms_16-aug
 def run_dashboard():
     from macros import PARAMETERS
     from meter_manager import MeterManager
@@ -419,11 +91,7 @@ def run_dashboard():
     pi_location = "Unknown"
     pi_ip = "127.0.0.1"
 
-<<<<<<< HEAD
-    # Extract Pi details from device_config.json (first device)
-=======
     # Extract Pi details from device_config.jsonc (first device)
->>>>>>> clubbed_mfm_dcms_16-aug
     if DEVICE_CONFIG and len(DEVICE_CONFIG) > 0:
         first_device = DEVICE_CONFIG[0]
         pi_location = first_device.get('location', 'Unknown')
@@ -503,11 +171,7 @@ def run_dashboard():
             f"Location '{location}': {len(meters)} devices, CSV: {csv_file}")
 
     # MQTT Config (set your broker IP/credentials)
-<<<<<<< HEAD
-    MQTT_BROKER = os.getenv('MQTT_BROKER', 'localhost')
-=======
     MQTT_BROKER = CONFIG.get('MQTT_BROKER_IP', 'localhost')
->>>>>>> clubbed_mfm_dcms_16-aug
     MQTT_PORT = int(os.getenv('MQTT_PORT', '1883'))
     MQTT_USER = 'myuser'
     MQTT_PASS = 'Mahadev@123'
@@ -525,23 +189,7 @@ def run_dashboard():
     # Main loop
     try:
         while True:
-<<<<<<< HEAD
-            # Load failure modes from file each cycle
-            failure_modes = load_failure_modes()
             for location, manager, csv_file, meters in managers:
-                # Set per-meter failure mode for simulation
-                for meter in meters:
-                    mode = failure_modes.get(meter.name)
-                    # Treat None, "None", and empty dict as no failure mode
-                    if mode is None or mode == "None" or mode == {}:
-                        meter.failure_mode = None
-                    else:
-                        meter.failure_mode = mode
-
-                # Generate a single timestamp for all meters in this reading cycle
-=======
-            for location, manager, csv_file, meters in managers:
->>>>>>> clubbed_mfm_dcms_16-aug
                 reading_time = datetime.now().isoformat()
                 meter_data_list = manager.read_all(
                     inter_device_delay=CONFIG["INTER_DEVICE_DELAY"]
