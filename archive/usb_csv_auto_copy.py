@@ -19,11 +19,7 @@ CSV_DIR = Path(__file__).parent / 'csv_data'
 USB_MOUNT_BASE = Path('/media')  # Typical mount point for USB drives on RPi
 DONE_FILENAME = 'done'
 POLL_INTERVAL = 2  # seconds
-<<<<<<< HEAD
-DEVICE_CONFIG_PATH = Path('/home/pi/meter_config/device_config.json')
-=======
-DEVICE_CONFIG_PATH = Path(__file__).parent / 'device_config.jsonc'
->>>>>>> clubbed_mfm_dcms_16-aug
+DEVICE_CONFIG_PATH = Path(__file__).parent / 'device_config.json'
 
 # Helper to strip comments from JSONC
 

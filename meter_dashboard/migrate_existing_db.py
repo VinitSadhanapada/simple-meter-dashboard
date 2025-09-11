@@ -20,11 +20,7 @@ DB_CONFIG = {
     'dbname': 'mfmdb',
     'user': 'mfmuser',
     'password': 'devi',
-<<<<<<< HEAD
-    'host': '10.53.66.59',
-=======
     'host': '192.168.43.127',
->>>>>>> clubbed_mfm_dcms_16-aug
     'port': 5432
 }
 

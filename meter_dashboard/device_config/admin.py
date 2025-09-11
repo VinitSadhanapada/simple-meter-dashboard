@@ -3,11 +3,7 @@ from django.contrib import messages
 from django.utils.html import format_html
 from django.urls import reverse
 from django.utils.safestring import mark_safe
-<<<<<<< HEAD
-from .models import RaspberryPi, MeterDevice, SystemConfiguration, ConfigurationDeployment
-=======
 from .models import RaspberryPi, MeterDevice, SystemConfiguration, ConfigurationDeployment, DashboardConfig
->>>>>>> clubbed_mfm_dcms_16-aug
 from .forms import MeterDeviceForm
 
 
@@ -136,31 +132,19 @@ class RaspberryPiAdmin(admin.ModelAdmin):
 class MeterDeviceAdmin(admin.ModelAdmin):
     form = MeterDeviceForm
     list_display = ['meter_name', 'meter_model', 'meter_address',
-<<<<<<< HEAD
-                    'raspberry_pi', 'is_active', 'last_updated']
-    list_filter = ['meter_model', 'is_active',
-                   'raspberry_pi__pi_name', 'created_at']
-    search_fields = ['meter_name', 'meter_model', 'raspberry_pi__pi_name']
-=======
                     'raspberry_pi', 'location', 'is_active', 'last_updated']
     list_filter = ['meter_model', 'is_active',
                    'raspberry_pi__pi_name', 'created_at']
     search_fields = ['meter_name', 'meter_model',
                      'location', 'raspberry_pi__pi_name']
->>>>>>> clubbed_mfm_dcms_16-aug
     readonly_fields = ['last_updated', 'created_at']
 
     fieldsets = (
         ('Meter Information', {
             'fields': ('meter_name', 'meter_model', 'meter_address')
         }),
-<<<<<<< HEAD
-        ('Assignment', {
-            'fields': ('raspberry_pi', 'is_active')
-=======
         ('Location & Assignment', {
             'fields': ('location', 'raspberry_pi', 'is_active')
->>>>>>> clubbed_mfm_dcms_16-aug
         }),
         ('Timestamps', {
             'fields': ('created_at', 'last_updated'),
@@ -243,11 +227,7 @@ class ConfigurationDeploymentAdmin(admin.ModelAdmin):
                     'status', 'deployed_at', 'completed_at', 'duration']
     list_filter = ['deployment_type', 'status', 'deployed_at']
     search_fields = ['raspberry_pi__pi_name', 'raspberry_pi__pi_ip']
-<<<<<<< HEAD
-    readonly_fields = ('deployed_at', 'completed_at', 'duration')
-=======
     readonly_fields = ['deployed_at', 'completed_at', 'duration']
->>>>>>> clubbed_mfm_dcms_16-aug
 
     fieldsets = (
         ('Deployment Information', {
@@ -284,15 +264,12 @@ class ConfigurationDeploymentAdmin(admin.ModelAdmin):
     retry_failed_deployments.short_description = "Retry failed deployments"
 
 
-<<<<<<< HEAD
-=======
 @admin.register(DashboardConfig)
 class DashboardConfigAdmin(admin.ModelAdmin):
     pass
     # Add other fields to list_display as needed
 
 
->>>>>>> clubbed_mfm_dcms_16-aug
 # Customize admin site headers
 admin.site.site_header = "Device Configuration Management System"
 admin.site.site_title = "DCMS Admin"

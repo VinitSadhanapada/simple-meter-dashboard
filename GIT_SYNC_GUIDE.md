@@ -56,11 +56,7 @@ git stash pop
 #### Step 5: Resolve Any Conflicts
 If conflicts occur, you'll see files marked like:
 ```
-<<<<<<< HEAD
 # Remote changes
-=======
-# Your changes
->>>>>>> stash
 ```
 
 Edit each conflict file and choose the correct version.
