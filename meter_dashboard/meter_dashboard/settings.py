@@ -13,12 +13,13 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 from pathlib import Path
 import os
 from dotenv import load_dotenv
+import json
 
 # Load environment variables from .env file
 load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
-BASE_DIR = Path(__file__).resolve().parent.parent
+BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 
 # Quick-start development settings - unsuitable for production
@@ -81,17 +82,18 @@ WSGI_APPLICATION = 'meter_dashboard.wsgi.application'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
 # Using your existing PostgreSQL database credentials
+CONFIG_PATH = os.path.join(BASE_DIR, 'config.json')
+with open(CONFIG_PATH) as f:
+    CONFIG = json.load(f)
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'mfmdb',  # Your existing database name
-        'USER': 'mfmuser',  # Your existing username
-        'PASSWORD': 'devi',  # Your existing password
-        'HOST': '172.20.10.3',  # Your existing host
+        'NAME': 'mfmdb',
+        'USER': 'mfmuser',
+        'PASSWORD': 'devi',
+        'HOST': CONFIG.get('DB_SERVER_IP', 'localhost'),  # Use config value
         'PORT': '5432',
-        'OPTIONS': {
-            'connect_timeout': 10,
-        },
     }
 }
 

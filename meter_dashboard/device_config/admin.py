@@ -3,7 +3,7 @@ from django.contrib import messages
 from django.utils.html import format_html
 from django.urls import reverse
 from django.utils.safestring import mark_safe
-from .models import RaspberryPi, MeterDevice, SystemConfiguration, ConfigurationDeployment
+from .models import RaspberryPi, MeterDevice, SystemConfiguration, ConfigurationDeployment, DashboardConfig
 from .forms import MeterDeviceForm
 
 
@@ -262,6 +262,12 @@ class ConfigurationDeploymentAdmin(admin.ModelAdmin):
         self.message_user(
             request, f'Retry functionality needs to be implemented for {failed_deployments.count()} deployments.')
     retry_failed_deployments.short_description = "Retry failed deployments"
+
+
+@admin.register(DashboardConfig)
+class DashboardConfigAdmin(admin.ModelAdmin):
+    pass
+    # Add other fields to list_display as needed
 
 
 # Customize admin site headers

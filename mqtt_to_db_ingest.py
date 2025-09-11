@@ -2,16 +2,20 @@ import paho.mqtt.client as mqtt
 import json
 import psycopg2
 
+CONFIG_PATH = '/home/isha/deepak/MFM_offline_setup/config.json'
+with open(CONFIG_PATH) as f:
+    CONFIG = json.load(f)
+
 DB_CONFIG = {
     'dbname': 'mfmdb',
     'user': 'mfmuser',
     'password': 'devi',
-    'host': '172.20.10.3',
+    'host': CONFIG.get('DB_SERVER_IP', 'localhost'),
     'port': '5432',
 }
 
 # MQTT broker config
-MQTT_BROKER = '172.20.10.3'  # Use your broker's IP
+MQTT_BROKER = CONFIG.get('MQTT_BROKER_IP', 'localhost')  # Use your broker's IP
 MQTT_PORT = 1883
 MQTT_USER = 'myuser'  # Use your Mosquitto username
 MQTT_PASS = 'Mahadev@123'  # Use your Mosquitto password
