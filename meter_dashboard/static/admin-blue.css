@@ -59,10 +59,16 @@ fieldset, .module, .inline-group, .form-row, .form-row > *, .form-row input, .fo
 }
 
 /* Remove dark mode and default admin look */
-html[data-theme="dark"],
-@media (prefers-color-scheme: dark) {
+html[data-theme="dark"] {
     background: var(--light-blue) !important;
     color: #222 !important;
+}
+
+@media (prefers-color-scheme: dark) {
+    html, body {
+        background: var(--light-blue) !important;
+        color: #222 !important;
+    }
 }
 
 /* Remove box shadows, borders, and other accents */
