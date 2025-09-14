@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Old IEO Support - PRS Admin</title>
+    <style>
+        /* CSS styles from the reference design */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #ff6b35, #f7931e);
+            padding: 15px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .navbar {
+            background-color: #ff6b35;
+            padding: 10px 0;
+        }
+        
+        .navbar-brand {
+            color: white;
+            font-weight: bold;
+            font-size: 1.5rem;
+        }
+        
+        .nav-link {
+            color: white !important;
+            margin: 0 10px;
+        }
+        
+        .nav-link:hover {
+            color: #ffe0d6 !important;
+        }
+        
+        .sidebar {
+            background: linear-gradient(180deg, #ff6b35, #e55a2b);
+            min-height: 100vh;
+            padding: 20px 0;
+        }
+        
+        .sidebar .nav-link {
+            color: white;
+            padding: 12px 20px;
+            border-radius: 6px;
+            margin: 2px 10px;
+            transition: all 0.3s ease;
+        }
+        
+        .sidebar .nav-link:hover,
+        .sidebar .nav-link.active {
+            background-color: rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+        
+        .card {
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: transform 0.2s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-2px);
+        }
+        
+        .card-header {
+            background: linear-gradient(135deg, #ff6b35, #f7931e);
+            color: white;
+            border-radius: 10px 10px 0 0 !important;
+            border: none;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #ff6b35, #f7931e);
+            border: none;
+            border-radius: 6px;
+            padding: 10px 20px;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #e55a2b, #e8831a);
+            transform: translateY(-1px);
+        }
+        
+        .btn-outline-success {
+            color: #ff6b35;
+            border-color: #ff6b35;
+        }
+        
+        .btn-outline-success:hover {
+            background-color: #ff6b35;
+            border-color: #ff6b35;
+        }
+        
+        .table thead th {
+            background-color: #ff6b35;
+            color: white;
+            border: none;
+        }
+        
+        .badge-success {
+            background-color: #28a745;
+        }
+        
+        .badge-warning {
+            background-color: #ff6b35;
+        }
+        
+        .text-primary {
+            color: #ff6b35 !important;
+        }
+        
+        .border-primary {
+            border-color: #ff6b35 !important;
+        }
+        
+        /* Custom orange theme colors */
+        :root {
+            --primary-orange: #ff6b35;
+            --secondary-orange: #f7931e;
+            --dark-orange: #e55a2b;
+            --light-orange: #ffe0d6;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="header">
+            <div class="container">
+                <h1 class="navbar-brand">PRS Admin Dashboard</h1>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-2 sidebar">
+                <nav class="nav flex-column">
+                    <a class="nav-link active" href="#">Dashboard</a>
+                    <a class="nav-link" href="#">Reports</a>
+                    <a class="nav-link" href="#">Settings</a>
+                </nav>
+            </div>
+            
+            <div class="col-md-10">
+                <div class="container-fluid p-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5>Sample Orange Theme Dashboard</h5>
+                        </div>
+                        <div class="card-body">
+                            <button class="btn btn-primary">Primary Button</button>
+                            <button class="btn btn-outline-success">Secondary Button</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,51 @@
+/* Minimal orange accent theme for Django admin */
+
+:root {
+    --primary-orange: #b85c38; /* Earthy burnt orange */
+    --secondary-orange: #e07a5f; /* Muted terracotta */
+    --light-orange: #f4e1d2; /* Warm, soft beige */
+}
+
+body, .dashboard #content-main {
+    background-color: var(--light-orange) !important;
+}
+
+#header {
+    background: var(--primary-orange) !important;
+    color: white !important;
+}
+
+#header h1, #header a {
+    color: white !important;
+}
+
+.module caption, .module h2, .module th {
+    color: var(--primary-orange) !important;
+}
+
+.button, input[type="submit"], .submit-row input {
+    background: var(--primary-orange) !important;
+    color: white !important;
+    border: none !important;
+    border-radius: 6px !important;
+    font-weight: 500;
+    transition: background 0.2s;
+}
+
+.button:hover, input[type="submit"]:hover, .submit-row input:hover {
+    background: var(--secondary-orange) !important;
+}
+
+a {
+    color: var(--primary-orange) !important;
+}
+
+a:hover {
+    color: var(--secondary-orange) !important;
+}
+
+/* Table header accent */
+th {
+    background: var(--light-orange) !important;
+    color: var(--primary-orange) !important;
+}

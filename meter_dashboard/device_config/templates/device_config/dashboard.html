@@ -6,6 +6,63 @@
 
 {% block content %}
 {% csrf_token %}
+
+<style>
+    /* Dashboard-specific styling for orange theme */
+    .card-stat {
+        background: linear-gradient(135deg, #fff 0%, #fffaf8 100%);
+        border-left: 4px solid var(--primary-orange);
+        transition: all 0.3s ease;
+    }
+    
+    .card-stat:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 16px rgba(255, 107, 53, 0.2);
+    }
+    
+    .text-success {
+        color: #28a745 !important;
+    }
+    
+    .text-info {
+        color: #17a2b8 !important;
+    }
+    
+    .text-warning {
+        color: var(--secondary-orange) !important;
+    }
+    
+    .badge.bg-primary {
+        background-color: var(--primary-orange) !important;
+    }
+    
+    .badge.bg-success {
+        background-color: #28a745 !important;
+    }
+    
+    .badge.bg-secondary {
+        background-color: #6c757d !important;
+    }
+    
+    .table-striped > tbody > tr:nth-of-type(odd) > td {
+        background-color: rgba(255, 107, 53, 0.05);
+    }
+    
+    .text-decoration-none:hover {
+        color: var(--primary-orange) !important;
+    }
+    
+    .h2 {
+        color: var(--dark-orange);
+        font-weight: 700;
+    }
+    
+    .card-title {
+        color: white;
+        font-weight: 600;
+    }
+</style>
+
 <!-- Statistics Cards -->
 <div class="row mb-4">
     <div class="col-xl-3 col-md-6">

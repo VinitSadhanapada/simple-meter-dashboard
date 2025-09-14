@@ -1,4 +1,13 @@
 {% extends "admin/change_form.html" %}
+{% load static %}
+
+{% block title %}Change Meter Device - DCMS Admin{% endblock %}
+
+{% block extrastyle %}
+    <link rel="stylesheet" type="text/css" href="{% static 'admin-blue.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'datalist.css' %}">
+    <script src="{% static 'datalist.js' %}"></script>
+{% endblock %}  
 
 {% block admin_change_form_document_ready %}
     {{ block.super }}

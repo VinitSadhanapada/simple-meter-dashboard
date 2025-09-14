@@ -1,0 +1,9 @@
+{% extends "admin/base.html" %}
+{% load static %}
+
+{% block extrastyle %}
+    <link rel="stylesheet" type="text/css" href="{% static 'admin-blue.css' %}">
+    <!-- Removed dark_mode.css and other conflicting styles -->
+{% endblock %}
+
+{% block title %}Device Configuration Management System Admin{% endblock %}

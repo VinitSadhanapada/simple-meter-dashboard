@@ -1,0 +1,91 @@
+:root {
+    --primary-blue: #1659c7;
+    --secondary-blue: #a3c9f7;
+    --light-blue: #f4faff;
+}
+
+html, body, #container, .dashboard #content-main {
+    background-color: var(--light-blue) !important;
+    color: #222 !important;
+    border: none !important;
+}
+
+#header, #branding, #user-tools {
+    background: var(--primary-blue) !important;
+    color: white !important;
+    border: none !important;
+}
+
+#header h1, #header a, #branding a, #user-tools a {
+    color: white !important;
+    text-shadow: none !important;
+}
+
+.module caption, .module h2, .module th, th {
+    color: var(--primary-blue) !important;
+    background: var(--light-blue) !important;
+    border: none !important;
+}
+
+.button, input[type="submit"], .submit-row input, .default, .button.default {
+    background: var(--primary-blue) !important;
+    color: white !important;
+    border: none !important;
+    border-radius: 6px !important;
+    font-weight: 500 !important;
+    box-shadow: none !important;
+    transition: background 0.2s;
+}
+
+.button:hover, input[type="submit"]:hover, .submit-row input:hover, .default:hover, .button.default:hover {
+    background: var(--secondary-blue) !important;
+    color: #fff !important;
+}
+
+a, a:visited {
+    color: var(--primary-blue) !important;
+    text-decoration: none !important;
+}
+
+a:hover {
+    color: var(--secondary-blue) !important;
+    text-decoration: underline !important;
+}
+
+fieldset, .module, .inline-group, .form-row, .form-row > *, .form-row input, .form-row select {
+    background: var(--light-blue) !important;
+    border: none !important;
+    color: #222 !important;
+}
+
+/* Remove dark mode and default admin look */
+html[data-theme="dark"],
+@media (prefers-color-scheme: dark) {
+    background: var(--light-blue) !important;
+    color: #222 !important;
+}
+
+/* Remove box shadows, borders, and other accents */
+*, *:before, *:after {
+    box-shadow: none !important;
+    border-color: var(--light-blue) !important;
+}
+
+/* Hide unused elements if needed */
+#nav-sidebar, #nav-sidebar ul {
+    background: var(--light-blue) !important;
+    border: none !important;
+}
+
+/* End of override */
+
+/* Add gray backdrop for model sections with blue text */
+.app-auth, .app-auth .module, .app-auth .model, .app-auth .module caption, .app-auth .module h2, .app-auth .module th,
+.app-device_config, .app-device_config .module, .app-device_config .model, .app-device_config .module caption, .app-device_config .module h2, .app-device_config .module th,
+.app-meters, .app-meters .module, .app-meters .model, .app-meters .module caption, .app-meters .module h2, .app-meters .module th {
+    background: #f0f0f0 !important;
+    color: var(--primary-blue) !important;
+    border-radius: 8px !important;
+    padding: 8px 12px !important;
+    margin-bottom: 8px !important;
+}
