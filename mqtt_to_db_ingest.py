@@ -2,7 +2,7 @@ import paho.mqtt.client as mqtt
 import json
 import psycopg2
 
-CONFIG_PATH = '/home/isha/deepak/MFM_offline_setup/config.json'
+CONFIG_PATH = '/home/pi/meter_config/config.json'
 with open(CONFIG_PATH) as f:
     CONFIG = json.load(f)
 

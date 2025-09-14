@@ -6,12 +6,12 @@ from .api_views import api_root
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include('meter_readings.urls')),
+    path('', RedirectView.as_view(pattern_name='device_config:dashboard'), name='home'),
     path('device-config/', include('device_config.urls')),
 
     # Old-style paths for backward compatibility
     path('device/', include('device_config.urls')),
-    path('dashboard/', RedirectView.as_view(pattern_name='meter_readings:dashboard'), name='dashboard'),
+     # path('dashboard/', RedirectView.as_view(pattern_name='meter_readings:dashboard'), name='dashboard'),  # Meter readings tab removed
 
     # Include the meters app URLs
     path('meters/', include('meters.urls')),

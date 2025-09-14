@@ -5,6 +5,7 @@
 {% block header %}Dashboard{% endblock %}
 
 {% block content %}
+{% csrf_token %}
 <!-- Statistics Cards -->
 <div class="row mb-4">
     <div class="col-xl-3 col-md-6">
@@ -182,7 +183,7 @@ function deployConfig(piId, deploymentType) {
         // Create form and submit
         const form = document.createElement('form');
         form.method = 'POST';
-        form.action = `/pi/${piId}/deploy/`;
+        form.action = `/device-config/pi/${piId}/deploy/`;
         
         const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]');
         if (csrfToken) {

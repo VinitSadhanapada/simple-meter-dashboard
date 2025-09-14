@@ -89,7 +89,7 @@ def run_dashboard():
     # Simple Pi details extraction from existing configs
     pi_name = socket.gethostname()  # Get Pi hostname
     pi_location = "Unknown"
-    pi_ip = "127.0.0.1"
+    pi_ip = "10.252.27.59"
 
     # Extract Pi details from device_config.jsonc (first device)
     if DEVICE_CONFIG and len(DEVICE_CONFIG) > 0:

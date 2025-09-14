@@ -3,7 +3,7 @@ from django.contrib import messages
 from django.utils.html import format_html
 from django.urls import reverse
 from django.utils.safestring import mark_safe
-from .models import RaspberryPi, MeterDevice, SystemConfiguration, ConfigurationDeployment, DashboardConfig
+from .models import RaspberryPi, MeterDevice, SystemConfiguration, ConfigurationDeployment
 from .forms import MeterDeviceForm
 
 
@@ -132,25 +132,27 @@ class RaspberryPiAdmin(admin.ModelAdmin):
 class MeterDeviceAdmin(admin.ModelAdmin):
     form = MeterDeviceForm
     list_display = ['meter_name', 'meter_model', 'meter_address',
-                    'raspberry_pi', 'location', 'is_active', 'last_updated']
+                    'raspberry_pi', 'get_location', 'is_active', 'last_updated']
     list_filter = ['meter_model', 'is_active',
                    'raspberry_pi__pi_name', 'created_at']
-    search_fields = ['meter_name', 'meter_model',
-                     'location', 'raspberry_pi__pi_name']
+    search_fields = ['meter_name', 'meter_model', 'raspberry_pi__pi_name']
     readonly_fields = ['last_updated', 'created_at']
 
     fieldsets = (
         ('Meter Information', {
             'fields': ('meter_name', 'meter_model', 'meter_address')
         }),
-        ('Location & Assignment', {
-            'fields': ('location', 'raspberry_pi', 'is_active')
+        ('Assignment', {
+            'fields': ('raspberry_pi', 'is_active')
         }),
         ('Timestamps', {
             'fields': ('created_at', 'last_updated'),
             'classes': ('collapse',)
         }),
     )
+    def get_location(self, obj):
+        return obj.location
+    get_location.short_description = 'Location'
 
     class Media:
         css = {
@@ -264,10 +266,7 @@ class ConfigurationDeploymentAdmin(admin.ModelAdmin):
     retry_failed_deployments.short_description = "Retry failed deployments"
 
 
-@admin.register(DashboardConfig)
-class DashboardConfigAdmin(admin.ModelAdmin):
-    pass
-    # Add other fields to list_display as needed
+
 
 
 # Customize admin site headers

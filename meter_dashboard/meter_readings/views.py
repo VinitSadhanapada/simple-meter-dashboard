@@ -1,3 +1,23 @@
+def api_meter_readings(request):
+    db_settings = getattr(settings, 'DATABASES', {}).get('default', {})
+    conn = psycopg2.connect(
+        dbname=db_settings.get('NAME', 'mfmdb'),
+        user=db_settings.get('USER', 'mfmuser'),
+        password=db_settings.get('PASSWORD', 'devi'),
+        host=db_settings.get('HOST', 'localhost'),
+        port=db_settings.get('PORT', 5432)
+    )
+    cur = conn.cursor()
+    try:
+        cur.execute('SELECT * FROM meterreadings ORDER BY time DESC LIMIT 10;')
+        rows = cur.fetchall()
+        columns = [desc[0] for desc in cur.description]
+    finally:
+        cur.close()
+        conn.close()
+    # Return as JSON: list of dicts
+    data = [dict(zip(columns, row)) for row in rows]
+    return JsonResponse({'readings': data})
 import psycopg2
 from django.conf import settings
 def latest_readings(request):
