@@ -6,7 +6,7 @@ def export_device_configs_json(filepath):
     for rpi in RPI_30_08.objects.prefetch_related('meters').all():
         rpi_dict = {
             "pi_name": rpi.pi_name,
-            "pi_ip": "10.127.128.59",
+            "pi_ip": "10.108.215.59",
             "location": rpi.location,
             "ssh_username": rpi.ssh_username,
             "ssh_password": rpi.ssh_password,

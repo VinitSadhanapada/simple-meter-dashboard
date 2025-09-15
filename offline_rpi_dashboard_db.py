@@ -89,7 +89,7 @@ def run_dashboard():
     # Simple Pi details extraction from existing configs
     pi_name = socket.gethostname()  # Get Pi hostname
     pi_location = "Unknown"
-    pi_ip = "10.252.27.59"
+    pi_ip = "10.108.215.59"
 
     # Extract Pi details from device_config.jsonc (first device)
     if DEVICE_CONFIG and len(DEVICE_CONFIG) > 0:
@@ -271,6 +271,13 @@ if __name__ == "__main__":
     import sys
     import subprocess
     if '--install' in sys.argv:
+        print("Installing paramiko from local wheel (offline)...")
+        wheel_dir = Path(__file__).parent / "packages_folder"
+        wheels = list(wheel_dir.glob("paramiko-*.whl"))
+        if wheels:
+            subprocess.run([sys.executable, "-m", "pip", "install", str(wheels[0])])
+        else:
+            print("No paramiko wheel found in packages_folder. Skipping paramiko install.")
         print("Delegating --install to offline_rpi_dashboard.py...")
         script_dir = Path(__file__).parent.absolute()
         dashboard_script = script_dir / 'offline_rpi_dashboard.py'

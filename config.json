@@ -6,7 +6,7 @@
     "ENABLE_MQTT": true,
     "ENABLE_RTC": true,
     "LOG_LEVEL": "INFO",
-    "DB_SERVER_IP": "10.252.27.59",
-    "SERVER_API_IP": "10.252.27.59",
-    "MQTT_BROKER_IP": "10.252.27.59"
+    "DB_SERVER_IP": "10.108.215.59",
+    "SERVER_API_IP": "10.108.215.59",
+    "MQTT_BROKER_IP": "10.108.215.59"
 }

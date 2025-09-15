@@ -18,4 +18,7 @@ urlpatterns = [
 
     # Basic API root endpoint
     path('api/', api_root, name='api_root'),
+
+    # Add meter_readings URLs
+    path('meter_readings/', include('meter_readings.urls')),
 ]

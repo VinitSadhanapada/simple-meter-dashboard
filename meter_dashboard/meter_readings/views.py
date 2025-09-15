@@ -20,8 +20,18 @@ def api_meter_readings(request):
     return JsonResponse({'readings': data})
 import psycopg2
 from django.conf import settings
-def latest_readings(request):
-    # Use settings or hardcoded DB config
+def latest_readings(request, table_name=None):
+    from django.utils.html import escape
+    # Accept table_name from URL kwarg or fallback to GET param or default
+    if table_name is None:
+        table_name = request.GET.get('table', 'meterreadings')
+    # Basic validation: only allow alphanumeric and underscores
+    if not table_name.replace('_', '').isalnum():
+        return render(request, 'meter_readings/latest_readings.html', {
+            'columns': [],
+            'rows': [],
+            'page_title': f'Invalid table name: {escape(table_name)}'
+        })
     db_settings = getattr(settings, 'DATABASES', {}).get('default', {})
     conn = psycopg2.connect(
         dbname=db_settings.get('NAME', 'mfmdb'),
@@ -32,16 +42,31 @@ def latest_readings(request):
     )
     cur = conn.cursor()
     try:
-        cur.execute('SELECT * FROM meterreadings ORDER BY time DESC LIMIT 10;')
+        cur.execute(f'SELECT * FROM {table_name} ORDER BY time DESC LIMIT 10;')
         rows = cur.fetchall()
         columns = [desc[0] for desc in cur.description]
+    except Exception as e:
+        columns, rows = [], []
+        # Get list of table names from information_schema
+        table_names = []
+        try:
+            cur.execute("SELECT table_name FROM information_schema.tables WHERE table_schema='public'")
+            table_names = [r[0] for r in cur.fetchall()]
+        except Exception:
+            table_names = []
+        return render(request, 'meter_readings/latest_readings.html', {
+            'columns': columns,
+            'rows': rows,
+            'page_title': f'Error: {escape(str(e))}',
+            'table_names': table_names
+        })
     finally:
         cur.close()
         conn.close()
     return render(request, 'meter_readings/latest_readings.html', {
         'columns': columns,
         'rows': rows,
-        'page_title': 'Latest Meter Readings'
+        'page_title': f'Latest readings from {escape(table_name)}'
     })
 
 import psycopg2
