@@ -1,0 +1,45 @@
+
+#1. Install Mosquitto MQTT Broker
+
+sudo apt update
+sudo apt install mosquitto mosquitto-clients
+
+
+#2. Start and Enable Mosquitto Service
+
+sudo systemctl start mosquitto
+sudo systemctl enable mosquitto
+
+
+#3. Check if Mosquitto is Running
+
+sudo systemctl status mosquitto
+
+
+
+#5. (Optional) Enable Authentication
+#Edit the Mosquitto config file:
+
+sudo vi /etc/mosquitto/conf.d/default.conf
+
+#6. Add
+
+allow_anonymous false
+password_file /etc/mosquitto/passwd
+
+$7. Create a password file and user:
+
+sudo mosquitto_passwd -c /etc/mosquitto/passwd myuser
+
+
+
+#Enter your password when prompted.
+#Restart Mosquitto:
+
+sudo systemctl restart mosquitto
+
+
+#6. Test with Credentials
+#SUBCRIBE and test if the data is being available for the the topic/
+
+mosquitto_sub -h localhost -t test/topic -u myuesr -P <PASSWD>
