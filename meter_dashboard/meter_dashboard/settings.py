@@ -82,7 +82,7 @@ WSGI_APPLICATION = 'meter_dashboard.wsgi.application'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
 # Using your existing PostgreSQL database credentials
-CONFIG_PATH = os.path.join(BASE_DIR, 'config.json')
+CONFIG_PATH = os.path.join(BASE_DIR, 'iot_scripts/config.json')
 with open(CONFIG_PATH) as f:
     CONFIG = json.load(f)
 

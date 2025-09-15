@@ -7,7 +7,7 @@
     "ENABLE_RTC": true,
     "ENABLE_CSV_WRITE": true,
     "LOG_LEVEL": "INFO",
-    "DB_SERVER_IP": "172.20.10.2",
-    "SERVER_API_IP": "192.168.43.127",
-    "MQTT_BROKER_IP": "172.20.10.2"
+    "DB_SERVER_IP": "192.168.43.128",
+    "SERVER_API_IP": "192.168.43.128",
+    "MQTT_BROKER_IP": "192.168.43.128"
 }
