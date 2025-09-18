@@ -1,3 +1,5 @@
+
+requests==2.31.0
 smbus2==0.4.2
 smbus2==0.4.2
 

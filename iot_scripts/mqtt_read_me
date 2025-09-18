@@ -1,8 +1,8 @@
 
 #1. Install Mosquitto MQTT Broker
 
-sudo apt update
-sudo apt install mosquitto mosquitto-clients
+offline_rpi_dashboard_db.py --install
+Will install the Mosquitto MQTT broker offline.
 
 
 #2. Start and Enable Mosquitto Service
@@ -24,6 +24,7 @@ sudo vi /etc/mosquitto/conf.d/default.conf
 
 #6. Add
 
+listener 1883 0.0.0.0
 allow_anonymous false
 password_file /etc/mosquitto/passwd
 
@@ -42,4 +43,4 @@ sudo systemctl restart mosquitto
 #6. Test with Credentials
 #SUBCRIBE and test if the data is being available for the the topic/
 
-mosquitto_sub -h localhost -t test/topic -u myuesr -P <PASSWD>
+mosquitto_sub -h localhost -t test/topic -u myuser -P <PASSWD>

@@ -1,90 +1,70 @@
-#!/usr/bin/env python3
-"""
-Offline RPi Dashboard - DB Version (Modularized)
-Writes meter readings to both CSV and PostgreSQL DB for all locations/devices.
-"""
-from pathlib import Path
-from datetime import datetime
-import logging
-import time
-import sys
-import os
-import csv
-import json
-import paho.mqtt.client as mqtt
 
-# --- Config ---
-# DB_CONFIG = {
-#     'dbname': 'mfmdb',
-#     'user': 'mfmuser',
-#     'password': 'devi',
-#     'host': '172.20.10.3',  # will be set after config load
-#     'port': '5432',
-# }
-
-# Server config for posting data
-SERVER_CONFIG = {
-    'url': None,  # will be set after config load
-    'enabled': False,  # Set to False to disable server posting
-    'timeout': 10,    # Request timeout in seconds
-    'retry_attempts': 3
-}
-
-script_dir = Path(__file__).parent.absolute()
-CONFIG_PATH = script_dir / "config.json"
-DEVICE_CONFIG_PATH = script_dir / "device_config.json"
-CSV_DIR = script_dir / "csv_data"
-CSV_DIR.mkdir(exist_ok=True)
-
-# --- Load config ---
-
-
+# ...existing code...
 def strip_jsonc_comments(text):
     import re
     text = re.sub(r"//.*", "", text)
     text = re.sub(r"/\*.*?\*/", "", text, flags=re.DOTALL)
     return text
-
-
 def load_jsonc_config(path):
     with open(path, 'r') as f:
         content = f.read()
         return json.loads(strip_jsonc_comments(content))
 
 
-CONFIG = load_jsonc_config(CONFIG_PATH)
-# Remove DB_CONFIG['host'] assignment since DB_CONFIG is not used anymore
-# SERVER_CONFIG['url'] and SERVER_CONFIG['enabled'] lines remain
-SERVER_CONFIG['url'] = f"http://{CONFIG.get('SERVER_API_IP', 'localhost')}:8000/api/meter/"
-# Ensure server posting is disabled to avoid connection errors
-SERVER_CONFIG['enabled'] = False
-DEVICE_CONFIG = load_jsonc_config(DEVICE_CONFIG_PATH)
-
-# --- Setup logging ---
-log_dir = script_dir / "logs"
-log_dir.mkdir(exist_ok=True)
-log_file = log_dir / f"dashboard_db_{datetime.now().strftime('%Y%m%d')}.log"
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.FileHandler(log_file),
-        logging.StreamHandler()
-    ]
-)
-logger = logging.getLogger("dashboard_db")
-
-# --- Main Dashboard Logic ---
-
+# ...existing code...
 
 def run_dashboard():
+
+    # Import dependencies only after venv and package install
+    import requests
+    import paho.mqtt.client as mqtt
+    from pymodbus.client.sync import ModbusSerialClient as ModbusClient
     from macros import PARAMETERS
     from meter_manager import MeterManager
     from meter_device import MeterDevice
     from collections import defaultdict
-    import requests
     import socket
-    from pymodbus.client.sync import ModbusSerialClient as ModbusClient
+    import os
+    import json
+    from pathlib import Path
+    from datetime import datetime
+    import logging
+    import time
+
+    # Load configs
+    script_dir = Path(__file__).parent.absolute()
+    CONFIG_PATH = script_dir / "config.json"
+    DEVICE_CONFIG_PATH = script_dir / "device_config.json"
+    CSV_DIR = script_dir / "csv_data"
+    CSV_DIR.mkdir(exist_ok=True)
+
+    def strip_jsonc_comments(text):
+        import re
+        text = re.sub(r"//.*", "", text)
+        text = re.sub(r"/\*.*?\*/", "", text, flags=re.DOTALL)
+        return text
+
+    def load_jsonc_config(path):
+        with open(path, 'r') as f:
+            content = f.read()
+            return json.loads(strip_jsonc_comments(content))
+
+    CONFIG = load_jsonc_config(CONFIG_PATH)
+    DEVICE_CONFIG = load_jsonc_config(DEVICE_CONFIG_PATH)
+
+    # Setup logging
+    log_dir = script_dir / "logs"
+    log_dir.mkdir(exist_ok=True)
+    log_file = log_dir / f"dashboard_db_{datetime.now().strftime('%Y%m%d')}.log"
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s - %(levelname)s - %(message)s',
+        handlers=[
+            logging.FileHandler(log_file),
+            logging.StreamHandler()
+        ]
+    )
+    logger = logging.getLogger("dashboard_db")
 
     # Simple Pi details extraction from existing configs
     pi_name = socket.gethostname()  # Get Pi hostname
@@ -166,7 +146,8 @@ def run_dashboard():
             meters, PARAMETERS, csv_file_arg,
             location=location,
             mqtt_client=None,  # Add MQTT if needed
-            publish_mqtt=False
+            publish_mqtt=False,
+            enable_csv_write=ENABLE_CSV_WRITE
         )
         managers.append((location, manager, csv_file, meters))
         logger.info(
@@ -174,7 +155,7 @@ def run_dashboard():
 
     # MQTT Config (set your broker IP/credentials)
     MQTT_BROKER = CONFIG.get('MQTT_BROKER_IP', 'localhost')
-    MQTT_PORT = int(os.getenv('MQTT_PORT', '1883'))
+    MQTT_PORT = 1883 #int(os.getenv('MQTT_PORT', '1883'))
     MQTT_USER = 'myuser'
     MQTT_PASS = 'Mahadev@123'
     MQTT_TOPIC = 'meter/readings'
@@ -251,15 +232,15 @@ def run_dashboard():
                         "A B Harmonics", None)
                     print(
                         f"DEBUG: meter_data before MQTT publish: {meter_data}")
+                    publish_meter_reading_mqtt(meter_data)
 
                     on_hours_val = meter_data.get("On Hours")
                     if meter_data.get("Model") == "LG+5220" and (on_hours_val in [None, "", "00:00:00"]):
                         on_hours_val = None
 
-                    publish_meter_reading_mqtt(meter_data)
-
-            logger.info(
-                f"💤 Waiting {CONFIG['READING_INTERVAL']} seconds for next reading cycle...")
+                    def load_json_config(path):
+                        with open(path, 'r') as f:
+                            return json.load(f)
             time.sleep(CONFIG["READING_INTERVAL"])
 
     except KeyboardInterrupt:
@@ -273,12 +254,100 @@ if __name__ == "__main__":
     import sys
     import subprocess
     if '--install' in sys.argv:
-        print("Delegating --install to offline_rpi_dashboard.py...")
-        script_dir = Path(__file__).parent.absolute()
-        dashboard_script = script_dir / 'offline_rpi_dashboard.py'
-        result = subprocess.run(
-            [sys.executable, str(dashboard_script), '--install'])
-        sys.exit(result.returncode)
+        # Set this variable to True to install and setup Mosquitto broker, False to skip broker setup
+        setup_broker = False  # Change to True if you want to setup the broker
+
+        if setup_broker:
+            def is_deb_installed(pkg):
+                result = subprocess.run(['dpkg', '-s', pkg], capture_output=True)
+                return result.returncode == 0
+
+            need_mosquitto = not is_deb_installed('mosquitto')
+            need_clients = not is_deb_installed('mosquitto-clients')
+
+            if need_mosquitto or need_clients:
+                debs_dir = Path(__file__).parent.parent / 'packages_folder' / 'debs'
+                if debs_dir.exists():
+                    deb_files = list(debs_dir.glob('*.deb'))
+                    if deb_files:
+                        print(f"Installing .deb packages from {debs_dir}...")
+                        deb_paths = [str(deb) for deb in deb_files]
+                        result = subprocess.run(['sudo', 'dpkg', '-i'] + deb_paths)
+                        if result.returncode == 0:
+                            print("✅ All .deb packages installed.")
+                        else:
+                            print(f"❌ Error installing .deb packages: {result.stderr}")
+                    else:
+                        print(f"No .deb files found in {debs_dir}.")
+                else:
+                    print(f"No debs directory found at {debs_dir}.")
+            else:
+                print("Mosquitto and mosquitto-clients already installed. Skipping .deb installation.")
+
+            # Run Mosquitto setup after dependencies are installed
+            print("Running Mosquitto setup...")
+            subprocess.run(['sudo', 'python3', 'mosquitto_setup.py'])
+        else:
+            print("Skipping Mosquitto broker setup. Only installing MQTT client dependencies.")
+
+        # --- Begin merged environment setup logic ---
+        print("🔧 Setting up Python virtual environment and installing dependencies (offline)...")
+        import sys, os
+        from pathlib import Path
+        parent_dir = Path(__file__).parent.parent
+        if str(parent_dir) not in sys.path:
+            sys.path.insert(0, str(parent_dir))
+        from venv_utils import setup_complete_venv_environment
+        req_path = parent_dir / "requirements.txt"
+        with open(req_path, 'r') as f:
+            required_packages = [line.strip() for line in f if line.strip() and not line.strip().startswith('#')]
+        venv_dir = parent_dir / "venv"
+        packages_folder = parent_dir / "packages_folder"
+        success, python_exe = setup_complete_venv_environment(
+            venv_dir=venv_dir,
+            packages=required_packages,
+            force_recreate=False,
+            offline_dir=str(packages_folder)
+        )
+        if not success:
+            print("❌ Environment setup failed (offline mode)")
+            sys.exit(1)
+        print("✅ Offline environment setup complete")
+
+        # --- Force install critical packages from wheels (first step) ---
+        def force_install_package(package_name, wheel_dir, python_exe):
+            import subprocess
+            result = subprocess.run([
+                str(python_exe), "-m", "pip", "install", "--force-reinstall", "--no-index",
+                "--find-links", str(wheel_dir), package_name
+            ], capture_output=True, text=True)
+            if result.returncode == 0:
+                print(f"✅ {package_name} force-installed from {wheel_dir}")
+            else:
+                print(f"❌ Failed to force-install {package_name}: {result.stderr}")
+
+        force_install_package("requests", packages_folder, python_exe)
+        force_install_package("psycopg2-binary", packages_folder, python_exe)
+        force_install_package("paho-mqtt", packages_folder, python_exe)
+        force_install_package("paramiko", packages_folder, python_exe)
+
+        # --- Call PostgreSQL setup script (before broker/MQTT logic) ---
+        print("🔧 Running PostgreSQL setup and schema restore...")
+        postgre_setup_path = str(Path(__file__).parent / "postgre_setup.py")
+        # Suppress stdout, only show summary and critical errors
+        import subprocess
+        result = subprocess.run([str(python_exe), postgre_setup_path], capture_output=True, text=True)
+        if result.returncode == 0:
+            print("✅ PostgreSQL setup completed.")
+        else:
+            print(f"❌ PostgreSQL setup failed:")
+            # Show only last 10 lines of error output for brevity
+            err_lines = result.stderr.splitlines()
+            print("\n".join(err_lines[-10:]))
+
+        # --- End merged environment setup logic ---
+        # Broker/MQTT logic can be added after DB setup if needed
+        sys.exit(0)
     elif '--run' in sys.argv or len(sys.argv) == 1:
         run_dashboard()
     else:

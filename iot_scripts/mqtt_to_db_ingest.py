@@ -1,6 +1,7 @@
 import paho.mqtt.client as mqtt
 import json
 import psycopg2
+import subprocess
 
 CONFIG_PATH = 'config.json'
 with open(CONFIG_PATH) as f:
@@ -60,6 +61,7 @@ def insert_meter_reading(conn, meter_data):
 
 
 def on_message(client, userdata, msg):
+    print("Received raw MQTT message:", msg.payload.decode())
     try:
         meter_data = json.loads(msg.payload.decode())
         insert_meter_reading(userdata['conn'], meter_data)
@@ -69,6 +71,8 @@ def on_message(client, userdata, msg):
 
 
 def main():
+    # Run Mosquitto setup script
+    subprocess.run(['sudo', 'python3', 'mosquitto_setup.py'])
     conn = psycopg2.connect(**DB_CONFIG)
     client = mqtt.Client(userdata={'conn': conn})
     client.username_pw_set(MQTT_USER, MQTT_PASS)
