@@ -1,11 +1,9 @@
-
-{% comment %} Orange public UI template {% endcomment %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ page_title }}</title>
+    <title>Meter Dashboard</title>
     <link rel="stylesheet" href="/static/admin-orange.css">
     <style>
         body {
@@ -57,19 +55,6 @@
         .btn-primary:hover {
             background: #f7931e;
         }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        th, td {
-            border: 1px solid #eee;
-            padding: 8px;
-            text-align: left;
-        }
-        th {
-            background: #ff6b35;
-            color: white;
-        }
     </style>
 </head>
 <body>
@@ -82,25 +67,9 @@
         </div>
     </div>
     <div class="container">
-        <h2>{{ page_title }}</h2>
-        <table>
-            <thead>
-                <tr>
-                    {% for col in columns %}
-                        <th>{{ col }}</th>
-                    {% endfor %}
-                </tr>
-            </thead>
-            <tbody>
-                {% for row in rows %}
-                <tr>
-                    {% for val in row %}
-                        <td>{{ val }}</td>
-                    {% endfor %}
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+        <h1>Welcome to the Meter Dashboard</h1>
+        <p>This is the public-facing dashboard with the orange theme. All admin pages remain unchanged.</p>
+        <!-- Add your dashboard/API content here -->
     </div>
 </body>
 </html>

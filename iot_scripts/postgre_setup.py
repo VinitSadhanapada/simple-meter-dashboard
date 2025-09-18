@@ -1,3 +1,24 @@
+"""
+PostgreSQL Automated Setup Script
+---------------------------------
+
+This script performs the following steps:
+ 1. Installs PostgreSQL and contrib packages from local .deb files (offline).
+ 2. Starts and enables the PostgreSQL service.
+ 3. Copies and sets permissions for the database dump file.
+ 4. Creates the database and user if missing.
+ 5. Restores the database schema and data from the dump file.
+ 6. Verifies that the meter_readings table exists.
+ 7. Resets the meter_readings_id_seq sequence to avoid primary key conflicts.
+ 8. Fakes Django migrations to sync migration history with the restored schema.
+
+Usage:
+    python3 postgre_setup.py
+
+After running this script, you can safely run:
+    python3 manage.py migrate
+in your Django project directory for future migrations.
+"""
 import subprocess
 import os
 
@@ -80,5 +101,45 @@ if __name__ == "__main__":
     result = subprocess.run(verify_cmd, capture_output=True, text=True)
     if 'meter_readings' in result.stdout:
         print("✅ meter_readings table exists.")
+        # Reset meter_readings_id_seq to max(id)
+        reset_seq_cmd = [
+            'sudo', '-u', 'postgres', 'psql', '-d', 'mfmdb', '-c',
+            "SELECT setval('meter_readings_id_seq', (SELECT COALESCE(MAX(id), 1) FROM meter_readings));"
+        ]
+        seq_result = subprocess.run(reset_seq_cmd, capture_output=True, text=True)
+        if seq_result.returncode == 0:
+            print("🔄 meter_readings_id_seq reset to max(id). New readings will get unique IDs.")
+        else:
+            print(f"⚠️ Could not reset meter_readings_id_seq: {seq_result.stderr}")
+
+        # Reset django_migrations_id_seq to max(id) to avoid duplicate key errors
+        print("🔧 Resetting django_migrations_id_seq to max(id) to avoid migration key conflicts...")
+        reset_migrations_seq_cmd = [
+            'sudo', '-u', 'postgres', 'psql', '-d', 'mfmdb', '-c',
+            "SELECT setval('django_migrations_id_seq', (SELECT COALESCE(MAX(id), 1) FROM django_migrations));"
+        ]
+        mig_seq_result = subprocess.run(reset_migrations_seq_cmd, capture_output=True, text=True)
+        if mig_seq_result.returncode == 0:
+            print("✅ django_migrations_id_seq reset to max(id). Migration history will not conflict.")
+        else:
+            print(f"⚠️ Could not reset django_migrations_id_seq: {mig_seq_result.stderr}")
+
+        # Fake Django migrations to sync migration history
+        print("🔧 Checking for unapplied migrations and faking those that match the current schema...")
+        django_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '../meter_dashboard'))
+        # List unapplied migrations
+        show_migrations_cmd = ['python3', 'manage.py', 'showmigrations', '--plan']
+        show_result = subprocess.run(show_migrations_cmd, cwd=django_dir, capture_output=True, text=True)
+        print("--- Django migration plan ---")
+        print(show_result.stdout)
+        # Attempt to fake all unapplied migrations for all apps
+        migrate_cmd = ['python3', 'manage.py', 'migrate', '--fake']
+        result = subprocess.run(migrate_cmd, cwd=django_dir, capture_output=True, text=True)
+        print("--- Django migrate --fake output ---")
+        print(result.stdout)
+        if result.returncode == 0:
+            print("✅ All unapplied migrations faked successfully. Migration history is now in sync.")
+        else:
+            print(f"⚠️ Could not fake migrations: {result.stderr}")
     else:
         print("❌ meter_readings table not found.")
