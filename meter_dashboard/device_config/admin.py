@@ -150,6 +150,7 @@ class MeterDeviceAdmin(admin.ModelAdmin):
             'classes': ('collapse',)
         }),
     )
+
     def get_location(self, obj):
         return obj.location
     get_location.short_description = 'Location'
@@ -198,8 +199,8 @@ class MeterDeviceAdmin(admin.ModelAdmin):
 @admin.register(SystemConfiguration)
 class SystemConfigurationAdmin(admin.ModelAdmin):
     list_display = ['raspberry_pi', 'simulation_mode',
-                    'reading_interval', 'port', 'log_level', 'last_updated']
-    list_filter = ['simulation_mode', 'enable_mqtt', 'enable_rtc', 'log_level']
+                    'reading_interval', 'port', 'enable_csv_write', 'log_level', 'last_updated']
+    list_filter = ['simulation_mode', 'log_level', 'enable_csv_write']
     search_fields = ['raspberry_pi__pi_name', 'raspberry_pi__pi_ip']
     readonly_fields = ['last_updated']
 
@@ -208,11 +209,9 @@ class SystemConfigurationAdmin(admin.ModelAdmin):
             'fields': ('raspberry_pi',)
         }),
         ('Reading Configuration', {
-            'fields': ('simulation_mode', 'reading_interval', 'inter_device_delay', 'port')
+            'fields': ('simulation_mode', 'reading_interval', 'inter_device_delay', 'port', 'enable_csv_write')
         }),
-        ('Communication Settings', {
-            'fields': ('enable_mqtt', 'enable_rtc')
-        }),
+
         ('Logging', {
             'fields': ('log_level',)
         }),
@@ -266,11 +265,7 @@ class ConfigurationDeploymentAdmin(admin.ModelAdmin):
     retry_failed_deployments.short_description = "Retry failed deployments"
 
 
-
-
-
 # Customize admin site headers
 admin.site.site_header = "Device Configuration Management System"
 admin.site.site_title = "DCMS Admin"
 admin.site.index_title = "Welcome to Device Configuration Management System"
-

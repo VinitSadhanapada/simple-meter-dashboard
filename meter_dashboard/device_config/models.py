@@ -213,10 +213,8 @@ class SystemConfiguration(models.Model):
         default=0.1, help_text="Delay (seconds) between device reads")
     port = models.CharField(
         max_length=50, default="/dev/ttyUSB0", help_text="Serial port for Modbus")
-    enable_mqtt = models.BooleanField(
-        default=False, help_text="Enable MQTT publishing")
-    enable_rtc = models.BooleanField(
-        default=True, help_text="Enable RTC for offline time keeping")
+    enable_csv_write = models.BooleanField(
+        default=False, help_text="Enable CSV writing")
 
     LOG_LEVELS = [
         ('DEBUG', 'DEBUG'),
@@ -243,8 +241,7 @@ class SystemConfiguration(models.Model):
             "READING_INTERVAL": self.reading_interval,
             "INTER_DEVICE_DELAY": self.inter_device_delay,
             "PORT": self.port,
-            "ENABLE_MQTT": self.enable_mqtt,
-            "ENABLE_RTC": self.enable_rtc,
+            "ENABLE_CSV_WRITE": self.enable_csv_write,
             "LOG_LEVEL": self.log_level
         }
 
