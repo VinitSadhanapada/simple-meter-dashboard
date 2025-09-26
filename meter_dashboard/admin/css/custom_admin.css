@@ -1,0 +1,6 @@
+label[for*="db_server_ip"],
+label[for*="server_api_ip"],
+label[for*="mqtt_broker_ip"] {
+    font-weight: bold;
+    text-transform: uppercase;
+}

@@ -221,6 +221,11 @@ class SystemConfigurationAdmin(admin.ModelAdmin):
         }),
     )
 
+    class Media:
+        css = {
+            'all': ('admin/css/custom_admin.css',)
+        }
+
 
 @admin.register(ConfigurationDeployment)
 class ConfigurationDeploymentAdmin(admin.ModelAdmin):

@@ -227,11 +227,14 @@ class SystemConfiguration(models.Model):
         max_length=10, choices=LOG_LEVELS, default='INFO', help_text="Logging level")
     last_updated = models.DateTimeField(auto_now=True)
     db_server_ip = models.GenericIPAddressField(
-        blank=True, null=True, help_text="Database Server IP")
+        blank=True, null=True, help_text="DB SERVER IP", verbose_name="DB SERVER IP"
+    )
     server_api_ip = models.GenericIPAddressField(
-        blank=True, null=True, help_text="Server API IP")
+        blank=True, null=True, help_text="SERVER API IP", verbose_name="SERVER API IP"
+    )
     mqtt_broker_ip = models.GenericIPAddressField(
-        blank=True, null=True, help_text="MQTT Broker IP")
+        blank=True, null=True, help_text="MQTT BROKER IP", verbose_name="MQTT BROKER IP"
+    )
 
     class Meta:
         verbose_name = "System Configuration"
