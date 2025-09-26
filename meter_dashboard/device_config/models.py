@@ -226,6 +226,12 @@ class SystemConfiguration(models.Model):
     log_level = models.CharField(
         max_length=10, choices=LOG_LEVELS, default='INFO', help_text="Logging level")
     last_updated = models.DateTimeField(auto_now=True)
+    db_server_ip = models.GenericIPAddressField(
+        blank=True, null=True, help_text="Database Server IP")
+    server_api_ip = models.GenericIPAddressField(
+        blank=True, null=True, help_text="Server API IP")
+    mqtt_broker_ip = models.GenericIPAddressField(
+        blank=True, null=True, help_text="MQTT Broker IP")
 
     class Meta:
         verbose_name = "System Configuration"
@@ -242,7 +248,10 @@ class SystemConfiguration(models.Model):
             "INTER_DEVICE_DELAY": self.inter_device_delay,
             "PORT": self.port,
             "ENABLE_CSV_WRITE": self.enable_csv_write,
-            "LOG_LEVEL": self.log_level
+            "LOG_LEVEL": self.log_level,
+            "DB_SERVER_IP": self.db_server_ip,
+            "SERVER_API_IP": self.server_api_ip,
+            "MQTT_BROKER_IP": self.mqtt_broker_ip,
         }
 
 

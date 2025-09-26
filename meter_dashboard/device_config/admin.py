@@ -199,7 +199,7 @@ class MeterDeviceAdmin(admin.ModelAdmin):
 @admin.register(SystemConfiguration)
 class SystemConfigurationAdmin(admin.ModelAdmin):
     list_display = ['raspberry_pi', 'simulation_mode',
-                    'reading_interval', 'port', 'enable_csv_write', 'log_level', 'last_updated']
+                    'reading_interval', 'port', 'enable_csv_write', 'db_server_ip', 'server_api_ip', 'mqtt_broker_ip', 'log_level', 'last_updated']
     list_filter = ['simulation_mode', 'log_level', 'enable_csv_write']
     search_fields = ['raspberry_pi__pi_name', 'raspberry_pi__pi_ip']
     readonly_fields = ['last_updated']
@@ -209,7 +209,7 @@ class SystemConfigurationAdmin(admin.ModelAdmin):
             'fields': ('raspberry_pi',)
         }),
         ('Reading Configuration', {
-            'fields': ('simulation_mode', 'reading_interval', 'inter_device_delay', 'port', 'enable_csv_write')
+            'fields': ('simulation_mode', 'reading_interval', 'inter_device_delay', 'port', 'enable_csv_write', 'db_server_ip', 'server_api_ip', 'mqtt_broker_ip')
         }),
 
         ('Logging', {

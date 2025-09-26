@@ -3,11 +3,9 @@
     "READING_INTERVAL": 30,
     "INTER_DEVICE_DELAY": 0.1,
     "PORT": "/dev/ttyUSB0",
-    "ENABLE_MQTT": true,
-    "ENABLE_RTC": true,
     "ENABLE_CSV_WRITE": false,
     "LOG_LEVEL": "INFO",
-    "DB_SERVER_IP": "192.168.43.127",
-    "SERVER_API_IP": "192.168.43.127",
-    "MQTT_BROKER_IP": "192.168.43.127"
+    "DB_SERVER_IP": "172.20.10.3",
+    "SERVER_API_IP": "172.20.10.3",
+    "MQTT_BROKER_IP": "172.20.10.3"
 }
