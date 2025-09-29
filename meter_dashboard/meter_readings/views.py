@@ -1,3 +1,11 @@
+import psycopg2
+import os
+import json
+from django.http import JsonResponse, HttpResponseBadRequest
+from django.shortcuts import render
+from django.conf import settings
+
+
 def api_meter_readings(request):
     db_settings = getattr(settings, 'DATABASES', {}).get('default', {})
     conn = psycopg2.connect(
@@ -9,7 +17,7 @@ def api_meter_readings(request):
     )
     cur = conn.cursor()
     try:
-        cur.execute('SELECT * FROM meterreadings ORDER BY time DESC LIMIT 10;')
+        cur.execute('SELECT * FROM meter_readings ORDER BY time DESC LIMIT 10;')
         rows = cur.fetchall()
         columns = [desc[0] for desc in cur.description]
     finally:
@@ -18,8 +26,8 @@ def api_meter_readings(request):
     # Return as JSON: list of dicts
     data = [dict(zip(columns, row)) for row in rows]
     return JsonResponse({'readings': data})
-import psycopg2
-from django.conf import settings
+
+
 def latest_readings(request, table_name=None):
     from django.utils.html import escape
     # Accept table_name from URL kwarg or fallback to GET param or default
@@ -50,7 +58,8 @@ def latest_readings(request, table_name=None):
         # Get list of table names from information_schema
         table_names = []
         try:
-            cur.execute("SELECT table_name FROM information_schema.tables WHERE table_schema='public'")
+            cur.execute(
+                "SELECT table_name FROM information_schema.tables WHERE table_schema='public'")
             table_names = [r[0] for r in cur.fetchall()]
         except Exception:
             table_names = []
@@ -69,15 +78,10 @@ def latest_readings(request, table_name=None):
         'page_title': f'Latest readings from {escape(table_name)}'
     })
 
-import psycopg2
-from django.conf import settings
-from django.shortcuts import render
-from django.http import JsonResponse, HttpResponseBadRequest
-import json
-import os
 
 # Path to the shared failure modes JSON file (project root, absolute path)
 FAILURE_MODES_FILE = '/home/pi/Desktop/FinalMerge/clubbed_mfm_16aug/failure_modes.json'
+
 
 def load_failure_modes():
     try:
@@ -85,6 +89,7 @@ def load_failure_modes():
             return json.load(f)
     except Exception:
         return {}
+
 
 def save_failure_modes(modes):
     try:
@@ -94,9 +99,11 @@ def save_failure_modes(modes):
         print(f"[ERROR] Could not write to {FAILURE_MODES_FILE}: {e}")
         raise
 
+
 def get_meter_list():
     # Load from device_config.json
-    config_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'device_config.json')
+    config_path = os.path.join(os.path.dirname(os.path.dirname(
+        os.path.dirname(__file__))), 'device_config.json')
     try:
         with open(config_path, 'r') as f:
             # Remove comments if any
@@ -105,16 +112,19 @@ def get_meter_list():
     except Exception:
         return []
 
+
 def dashboard(request):
     meters = get_meter_list()
     failure_modes = load_failure_modes()
-    available_modes = ['phase_loss', 'overcurrent', 'bad_pf', 'overvoltage', 'reverse_power', 'freq_drift', None]
+    available_modes = ['phase_loss', 'overcurrent', 'bad_pf',
+                       'overvoltage', 'reverse_power', 'freq_drift', None]
     return render(request, 'meter_readings/dashboard.html', {
         'page_title': 'Meter Readings Dashboard',
         'meters': meters,
         'failure_modes': failure_modes,
         'available_modes': available_modes
     })
+
 
 def api_set_failure_mode(request):
     if request.method != 'POST':
