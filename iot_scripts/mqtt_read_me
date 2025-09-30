@@ -2,7 +2,7 @@
 #1. Install Mosquitto MQTT Broker
 
 offline_rpi_dashboard_db.py --install
-Will install the Mosquitto MQTT broker offline.
+#Will install the Mosquitto MQTT broker offline.
 
 
 #2. Start and Enable Mosquitto Service
