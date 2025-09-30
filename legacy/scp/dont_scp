@@ -1,0 +1,12 @@
+venv
+__pycache__
+archive
+postgresql_schema_dump
+staticfiles
+docs
+legacy
+logs
+meter_dashboard
+test_scripts
+.git/
+.gitignore
