@@ -1,0 +1,15 @@
+#run the following command to get the mac address details on Rasperry pi
+
+-----------------
+ip link | grep eth0 -A1 |grep "link" |awk '{print $2}'
+-----------------
+
+
+#for more details for Ethernet Mac and Wifi mac try:
+----------------
+ip link
+----------------
+
+#Look for ether or HWaddr under the network interface (usually eth0 for wired, wlan0 for WiFi).
+
+#eth0: ... ether b8:27:eb:12:34:56 ...
