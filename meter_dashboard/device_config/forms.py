@@ -33,3 +33,15 @@ class MeterDeviceForm(forms.ModelForm):
             "Select from the dropdown or type a new meter model. "
             "New models will be automatically saved."
         )
+
+
+class RaspberryPiForm(forms.ModelForm):
+    class Meta:
+        model = RaspberryPi
+        fields = '__all__'
+        widgets = {
+            'ssh_password': forms.PasswordInput(render_value=True, attrs={'class': 'vTextField', 'autocomplete': 'new-password', 'data-toggle': 'password'}),
+        }
+
+    class Media:
+        js = ('admin/js/show_password_toggle.js',)

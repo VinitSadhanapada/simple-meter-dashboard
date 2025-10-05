@@ -4,21 +4,22 @@ from django.utils.html import format_html
 from django.urls import reverse
 from django.utils.safestring import mark_safe
 from .models import RaspberryPi, MeterDevice, SystemConfiguration, ConfigurationDeployment
-from .forms import MeterDeviceForm
+from .forms import MeterDeviceForm, RaspberryPiForm
 
 
 @admin.register(RaspberryPi)
 class RaspberryPiAdmin(admin.ModelAdmin):
-    list_display = ['pi_name', 'pi_ip', 'location', 'is_active',
+    form = RaspberryPiForm
+    list_display = ['pi_name', 'pi_ip', 'mac_address', 'location', 'is_active',
                     'ssh_key_status', 'meter_count', 'last_updated']
     list_filter = ['is_active', 'ssh_key_configured', 'location', 'created_at']
-    search_fields = ['pi_name', 'pi_ip', 'location']
+    search_fields = ['pi_name', 'pi_ip', 'mac_address', 'location']
     readonly_fields = ['ssh_key_configured',
                        'ssh_setup_error', 'last_updated', 'created_at']
 
     fieldsets = (
         ('Basic Information', {
-            'fields': ('pi_name', 'pi_ip', 'location', 'is_active')
+            'fields': ('pi_name', 'pi_ip', 'mac_address', 'location', 'is_active')
         }),
         ('SSH Configuration', {
             'fields': ('ssh_username', 'ssh_password', 'ssh_key_path', 'ssh_port', 'config_path'),

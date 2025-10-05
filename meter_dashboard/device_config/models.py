@@ -4,6 +4,7 @@ from django.conf import settings
 import json
 import os
 from .ssh_utils import SSHKeyManager
+from encrypted_model_fields.fields import EncryptedCharField
 
 
 class RaspberryPi(models.Model):
@@ -16,8 +17,8 @@ class RaspberryPi(models.Model):
     # SSH Configuration fields
     ssh_username = models.CharField(
         max_length=50, default='pi', help_text="SSH username for this Pi")
-    ssh_password = models.CharField(
-        max_length=100, blank=True, help_text="SSH password (temporary - used only for initial key setup)")
+    ssh_password = EncryptedCharField(
+        max_length=100, blank=True, help_text="SSH Password (temporary - used only for initial key setup)")
     ssh_key_path = models.CharField(
         max_length=500, blank=True, help_text="Path to SSH private key file")
     ssh_port = models.PositiveIntegerField(
@@ -30,6 +31,18 @@ class RaspberryPi(models.Model):
         default=False, help_text="Whether SSH key has been set up for this Pi")
     ssh_setup_error = models.TextField(
         blank=True, help_text="Last error encountered during SSH setup")
+
+    # MAC Address
+    mac_address = models.CharField(
+        max_length=17,
+        blank=True,
+        help_text="MAC address (e.g. 00:1A:2B:3C:4D:5E)",
+        verbose_name="MAC Address",
+        validators=[RegexValidator(
+            regex=r'^([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}$',
+            message='Enter a valid MAC address (e.g. 00:1A:2B:3C:4D:5E)'
+        )]
+    )
 
     last_updated = models.DateTimeField(auto_now=True)
     created_at = models.DateTimeField(auto_now_add=True)
