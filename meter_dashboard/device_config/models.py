@@ -23,8 +23,9 @@ class RaspberryPi(models.Model):
         max_length=500, blank=True, help_text="Path to SSH private key file")
     ssh_port = models.PositiveIntegerField(
         default=22, help_text="SSH port number")
-    config_path = models.CharField(max_length=200, default='/home/pi/meter_config',
-                                   help_text="Path where config files are stored on Pi")
+    config_path = models.CharField(
+        max_length=200, blank=True, help_text="Path where config files are stored on Pi"
+    )
 
     # SSH Key Setup Status
     ssh_key_configured = models.BooleanField(
@@ -152,6 +153,14 @@ class RaspberryPi(models.Model):
             private_key_path=self.ssh_key_path,
             ssh_port=self.ssh_port
         )
+
+    def save(self, *args, **kwargs):
+        if not self.config_path:
+            location_part = self.location.strip().replace(
+                ' ', '_') if self.location else 'default'
+            pi_name_part = self.pi_name.strip().replace(' ', '_')
+            self.config_path = f"/home/pi/{location_part}/{pi_name_part}/meter_config/"
+        super().save(*args, **kwargs)
 
 
 class MeterDevice(models.Model):
