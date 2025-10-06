@@ -6,6 +6,8 @@ import os
 from .ssh_utils import SSHKeyManager
 from encrypted_model_fields.fields import EncryptedCharField
 
+DEFAULT_OTA_EXCLUDE_FILE = '/home/isha/deepak/MFM_offline_setup/legacy/scp/dont_scp'
+
 
 class RaspberryPi(models.Model):
     """Model to store Raspberry Pi information"""
@@ -309,3 +311,23 @@ class ConfigurationDeployment(models.Model):
 
     def __str__(self):
         return f"{self.deployment_type} to {self.raspberry_pi.pi_name} - {self.status}"
+
+
+class OTADeployment(models.Model):
+    """Model to track OTA script deployments to Raspberry Pis"""
+    raspberry_pi = models.ForeignKey(
+        RaspberryPi, on_delete=models.CASCADE, related_name='ota_deployments')
+    source_dir = models.CharField(
+        max_length=500, help_text="Directory on server to copy")
+    exclude_file = models.CharField(
+        max_length=500, blank=True, help_text="Path to file listing patterns to exclude (like dont_scp)",
+        default=DEFAULT_OTA_EXCLUDE_FILE
+    )
+    status = models.CharField(max_length=20, choices=[('PENDING', 'Pending'), (
+        'IN_PROGRESS', 'In Progress'), ('SUCCESS', 'Success'), ('FAILED', 'Failed')], default='PENDING')
+    result_message = models.TextField(blank=True)
+    deployed_at = models.DateTimeField(auto_now_add=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
+
+    def __str__(self):
+        return f"OTA to {self.raspberry_pi.pi_name} ({self.raspberry_pi.pi_ip}) - {self.status}"

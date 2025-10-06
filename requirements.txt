@@ -19,7 +19,7 @@ djangorestframework==3.16.0
 sqlparse==0.5.3
 asgiref==3.9.1
 django-encrypted-model-fields==0.6.5
-
+fabric=3.2.2
 
 # Data Processing and Analysis
 numpy==1.24.3

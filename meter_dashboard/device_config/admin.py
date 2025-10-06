@@ -3,8 +3,9 @@ from django.contrib import messages
 from django.utils.html import format_html
 from django.urls import reverse
 from django.utils.safestring import mark_safe
-from .models import RaspberryPi, MeterDevice, SystemConfiguration, ConfigurationDeployment
+from .models import RaspberryPi, MeterDevice, SystemConfiguration, ConfigurationDeployment, OTADeployment
 from .forms import MeterDeviceForm, RaspberryPiForm
+import os
 
 
 @admin.register(RaspberryPi)
@@ -269,6 +270,75 @@ class ConfigurationDeploymentAdmin(admin.ModelAdmin):
         self.message_user(
             request, f'Retry functionality needs to be implemented for {failed_deployments.count()} deployments.')
     retry_failed_deployments.short_description = "Retry failed deployments"
+
+
+@admin.register(OTADeployment)
+class OTADeploymentAdmin(admin.ModelAdmin):
+    list_display = ['raspberry_pi', 'source_dir',
+                    'exclude_file', 'status', 'deployed_at', 'completed_at']
+    list_filter = ['status', 'deployed_at']
+    search_fields = ['raspberry_pi__pi_name',
+                     'raspberry_pi__pi_ip', 'source_dir']
+    readonly_fields = ['deployed_at', 'completed_at', 'result_message']
+
+    fieldsets = (
+        ('Deployment Information', {
+            'fields': ('raspberry_pi', 'source_dir', 'exclude_file', 'status')
+        }),
+        ('Timing', {
+            'fields': ('deployed_at', 'completed_at')
+        }),
+        ('Result', {
+            'fields': ('result_message',),
+            'classes': ('collapse',)
+        }),
+    )
+
+    actions = ['deploy_ota']
+
+    def deploy_ota(self, request, queryset):
+        for ota in queryset:
+            pi = ota.raspberry_pi
+            # Mark as in progress
+            ota.status = 'IN_PROGRESS'
+            ota.result_message = 'Deployment started...'
+            ota.save()
+            messages.info(
+                request, f"Deployment to {pi.pi_name} started. Please wait...")
+            excludes = []
+            if ota.exclude_file and os.path.exists(ota.exclude_file):
+                with open(ota.exclude_file) as f:
+                    for line in f:
+                        line = line.strip()
+                        if line:
+                            excludes.append(f"--exclude={line}")
+            exclude_str = " ".join(excludes)
+            source_dir = ota.source_dir.rstrip('/')
+            dest_dir = pi.config_path.rstrip('/')
+            # Ensure destination directory exists on the Pi
+            mkdir_cmd = (
+                f"sshpass -p '{pi.ssh_password}' "
+                f"ssh -p {pi.ssh_port} -o StrictHostKeyChecking=no "
+                f"{pi.ssh_username}@{pi.pi_ip} 'mkdir -p {dest_dir}'"
+            )
+            os.system(mkdir_cmd)
+            # Now run rsync as before
+            rsync_cmd = (
+                f"sshpass -p '{pi.ssh_password}' "
+                f"rsync -avz -e \"ssh -p {pi.ssh_port} -o StrictHostKeyChecking=no\" "
+                f"{exclude_str} {source_dir}/ {pi.ssh_username}@{pi.pi_ip}:{dest_dir}/"
+            )
+            result = os.system(rsync_cmd)
+            if result == 0:
+                ota.status = 'SUCCESS'
+                ota.result_message = 'Deployment successful'
+                messages.success(request, f"OTA complete for {pi.pi_name}.")
+            else:
+                ota.status = 'FAILED'
+                ota.result_message = f'rsync failed with code {result}'
+                messages.error(request, f"Deployment to {pi.pi_name} failed.")
+            ota.save()
+    deploy_ota.short_description = "Deploy selected OTA scripts to Raspberry Pi"
 
 
 # Customize admin site headers
