@@ -1,5 +1,6 @@
 from celery import shared_task
 import os
+from django.utils import timezone
 from .models import OTADeployment
 
 
@@ -29,6 +30,7 @@ def run_ota_deployment(ota_id):
         f"{exclude_str} {source_dir}/ {pi.ssh_username}@{pi.pi_ip}:{dest_dir}/"
     )
     result = os.system(rsync_cmd)
+    ota.completed_at = timezone.now()
     if result == 0:
         ota.status = 'SUCCESS'
         ota.result_message = 'Deployment successful'
