@@ -20,6 +20,9 @@ sqlparse==0.5.3
 asgiref==3.9.1
 django-encrypted-model-fields==0.6.5
 fabric=3.2.2
+celery=5.5.3
+redis=6.4.0
+
 
 # Data Processing and Analysis
 numpy==1.24.3

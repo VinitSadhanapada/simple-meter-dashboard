@@ -6,6 +6,7 @@ from django.utils.safestring import mark_safe
 from .models import RaspberryPi, MeterDevice, SystemConfiguration, ConfigurationDeployment, OTADeployment
 from .forms import MeterDeviceForm, RaspberryPiForm
 import os
+from device_config.tasks import run_ota_deployment
 
 
 @admin.register(RaspberryPi)
@@ -299,45 +300,12 @@ class OTADeploymentAdmin(admin.ModelAdmin):
     def deploy_ota(self, request, queryset):
         for ota in queryset:
             pi = ota.raspberry_pi
-            # Mark as in progress
             ota.status = 'IN_PROGRESS'
             ota.result_message = 'Deployment started...'
             ota.save()
+            run_ota_deployment.delay(ota.id)  # Run in background
             messages.info(
-                request, f"Deployment to {pi.pi_name} started. Please wait...")
-            excludes = []
-            if ota.exclude_file and os.path.exists(ota.exclude_file):
-                with open(ota.exclude_file) as f:
-                    for line in f:
-                        line = line.strip()
-                        if line:
-                            excludes.append(f"--exclude={line}")
-            exclude_str = " ".join(excludes)
-            source_dir = ota.source_dir.rstrip('/')
-            dest_dir = pi.config_path.rstrip('/')
-            # Ensure destination directory exists on the Pi
-            mkdir_cmd = (
-                f"sshpass -p '{pi.ssh_password}' "
-                f"ssh -p {pi.ssh_port} -o StrictHostKeyChecking=no "
-                f"{pi.ssh_username}@{pi.pi_ip} 'mkdir -p {dest_dir}'"
-            )
-            os.system(mkdir_cmd)
-            # Now run rsync as before
-            rsync_cmd = (
-                f"sshpass -p '{pi.ssh_password}' "
-                f"rsync -avz -e \"ssh -p {pi.ssh_port} -o StrictHostKeyChecking=no\" "
-                f"{exclude_str} {source_dir}/ {pi.ssh_username}@{pi.pi_ip}:{dest_dir}/"
-            )
-            result = os.system(rsync_cmd)
-            if result == 0:
-                ota.status = 'SUCCESS'
-                ota.result_message = 'Deployment successful'
-                messages.success(request, f"OTA complete for {pi.pi_name}.")
-            else:
-                ota.status = 'FAILED'
-                ota.result_message = f'rsync failed with code {result}'
-                messages.error(request, f"Deployment to {pi.pi_name} failed.")
-            ota.save()
+                request, f"Deployment to {pi.pi_name} started in background. Status will update on refresh.")
     deploy_ota.short_description = "Deploy selected OTA scripts to Raspberry Pi"
 
 
