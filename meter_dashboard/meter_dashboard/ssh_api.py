@@ -3,6 +3,7 @@ from django.views.decorators.csrf import csrf_exempt
 import paramiko
 import json
 from device_config.models import MeterDevice, RaspberryPi
+import shlex
 
 @csrf_exempt
 
@@ -61,10 +62,38 @@ def ssh_command_view(request):
 
         ssh.connect(hostname, username=username, password=password if not pkey else None, pkey=pkey, port=pi.ssh_port, timeout=10)
 
-        stdin, stdout, stderr = ssh.exec_command(command)
-        output = stdout.read().decode('utf-8')
-        error = stderr.read().decode('utf-8')
-        ssh.close()
-        return JsonResponse({'output': output, 'error': error})
+        # Handle preset command sequences safely
+        if command.startswith('__RUN_PRESET__:'):
+            preset = command.split(':', 1)[1].strip()
+            sequences = {
+                'basic_setup': [
+                    'uname -a',
+                    'python3 --version',
+                    'pip3 --version',
+                    'df -h',
+                    'free -h',
+                ],
+                # Add more named presets as needed
+            }
+            cmds = sequences.get(preset)
+            if not cmds:
+                ssh.close()
+                return JsonResponse({'error': f'Unknown preset: {preset}'}, status=400)
+            combined_out = []
+            for c in cmds:
+                stdin, stdout, stderr = ssh.exec_command(c)
+                out = stdout.read().decode('utf-8')
+                err = stderr.read().decode('utf-8')
+                err_text = f"\nERR: {err}" if err else ""
+                combined_out.append(f"$ {c}\n{out}{err_text}")
+            ssh.close()
+            return JsonResponse({'output': '\n'.join(combined_out)})
+        else:
+            # Single ad-hoc command
+            stdin, stdout, stderr = ssh.exec_command(command)
+            output = stdout.read().decode('utf-8')
+            error = stderr.read().decode('utf-8')
+            ssh.close()
+            return JsonResponse({'output': output, 'error': error})
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)

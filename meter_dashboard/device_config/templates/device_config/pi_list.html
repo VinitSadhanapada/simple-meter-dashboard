@@ -140,6 +140,28 @@ function sendSSHCommand() {
   .catch(err => appendToTerminal(`Request failed: ${err}`, 'out'));
 }
 
+// Run a preset sequence of commands on the selected Pi
+function runPreset(pi_id, preset) {
+  clearTerminal();
+  appendToTerminal(`# Running preset: ${preset}`, 'out');
+  fetch('/ssh-command/', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({pi_id, command: `__RUN_PRESET__:${preset}`})
+  })
+  .then(r => r.json())
+  .then(data => {
+    if (data.error) {
+      appendToTerminal(`Error: ${data.error}`, 'out');
+      return;
+    }
+    const out = Array.isArray(data.output) ? data.output.join('\n') : (data.output || '');
+    if (out) appendToTerminal(out, 'out');
+    if (data.stderr) appendToTerminal(`stderr: ${data.stderr}`, 'out');
+  })
+  .catch(err => appendToTerminal(`Request failed: ${err}`, 'out'));
+}
+
 // Enter key sends command
 document.addEventListener('keydown', (e) => {
   const active = document.activeElement;

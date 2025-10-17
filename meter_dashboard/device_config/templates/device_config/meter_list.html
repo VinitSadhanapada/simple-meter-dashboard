@@ -55,7 +55,7 @@
                                     {% endif %}
                                 </td>
                                 <td>{{ meter.last_updated|date:"M d, H:i" }}</td>
-                                <td>co
+                                <td>
                                     <div class="btn-group btn-group-sm">
                                         <a href="/admin/device_config/meterdevice/{{ meter.id }}/change/" class="btn btn-outline-primary btn-sm">
                                             <i class="fas fa-edit"></i>
@@ -63,6 +63,7 @@
                                         <a href="{% url 'device_config:pi_detail' meter.raspberry_pi.id %}" class="btn btn-outline-info btn-sm">
                                             <i class="fas fa-eye"></i>
                                         </a>
+                                        <button type="button" class="btn btn-outline-success btn-sm" onclick="openSSHModal('{{ meter.raspberry_pi.id }}', '{{ meter.raspberry_pi.pi_name }}'); runPreset('{{ meter.raspberry_pi.id }}','basic_setup');">Run Setup</button>
                                     </div>
                                 </td>
                             </tr>
