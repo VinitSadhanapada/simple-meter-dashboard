@@ -73,7 +73,22 @@ def ssh_command_view(request):
                     'df -h',
                     'free -h',
                 ],
-                # Add more named presets as needed
+                'bringup': [
+                    # Ensure logs dir
+                    'bash -lc "mkdir -p /home/pi/logs"',
+                    # Start MQTT broker (mosquitto)
+                    'bash -lc "(sudo -n systemctl start mosquitto || sudo -n service mosquitto start || true) && systemctl is-active mosquitto || true"',
+                    # Start PostgreSQL
+                    'bash -lc "(sudo -n systemctl start postgresql || sudo -n service postgresql start || true) && systemctl is-active postgresql || true"',
+                    # Start Redis
+                    'bash -lc "(sudo -n systemctl start redis-server || sudo -n service redis-server start || redis-server --daemonize yes || true) && (systemctl is-active redis-server || true)"',
+                    # Start Celery worker (background)
+                    'bash -lc "cd /home/pi/Desktop/simple-meter-dashboard/meter_dashboard && /home/pi/Desktop/simple-meter-dashboard/venv/bin/celery -A meter_dashboard worker -l info > /home/pi/logs/celery_worker.log 2>&1 & echo CELERY_WORKER_PID:$!"',
+                    # Start MQTT→DB ingestion (background)
+                    'bash -lc "/home/pi/Desktop/simple-meter-dashboard/venv/bin/python /home/pi/Desktop/simple-meter-dashboard/iot_scripts/mqtt_to_db_ingest.py > /home/pi/logs/ingest.log 2>&1 & echo INGEST_PID:$!"',
+                    # Optional: offline dashboard runner if available
+                    'bash -lc "if [ -x \"$(command -v offline-rpi-dashboard-db)\" ]; then offline-rpi-dashboard-db --run > /home/pi/logs/offline_rpi_dashboard_db.log 2>&1 & echo OFFLINE_DB_PID:$!; elif [ -f /home/pi/Desktop/offline-setup-12Sep/offline_rpi_dashboard_debug.py ]; then /home/pi/Desktop/simple-meter-dashboard/venv/bin/python /home/pi/Desktop/offline-setup-12Sep/offline_rpi_dashboard_debug.py --run > /home/pi/logs/offline_rpi_dashboard.log 2>&1 & echo OFFLINE_DBG_PID:$!; else echo 'offline dashboard binary/script not found, skipping'; fi"',
+                ],
             }
             cmds = sequences.get(preset)
             if not cmds:
