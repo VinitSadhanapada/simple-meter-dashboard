@@ -16,6 +16,8 @@
                 <a class="nav-link" href="/">Dashboard</a>
                 <a class="nav-link" href="/device-config/">Device Config</a>
                 <a class="nav-link" href="/meter_readings/">Meter Readings</a>
+                <a class="nav-link" href="/meter_readings/latest">Latest</a>
+                <a class="nav-link" href="/alerts/">Alerts</a>
                 <a class="nav-link" href="/api/" target="_blank">API</a>
                 <a class="nav-link" href="http://localhost:3000" target="_blank">Monitoring</a>
             </div>
@@ -61,11 +63,76 @@
                                             {% endwith %}
                                         </td>
                                         {% endfor %}
+                                        <td>
+                                            <button class="btn btn-warning btn-sm" onclick="openSSHModal('{{ meter.id }}')">Send Command</button>
+                                        </td>
                                     </tr>
                                     {% endfor %}
+
                                 </tbody>
                             </table>
                         </div>
+
+<!-- SSH Command Modal (moved outside table/loop) -->
+<div class="modal fade" id="sshModal" tabindex="-1" aria-labelledby="sshModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="sshModalLabel">Send SSH Command</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="sshCommandForm">
+                    <input type="hidden" id="ssh-meter-id" name="meter_id">
+                    <div class="mb-2">
+                        <label for="ssh-command" class="form-label">Command</label>
+                        <input type="text" class="form-control" id="ssh-command" name="command" required>
+                    </div>
+                </form>
+                <div id="ssh-output" class="mt-2" style="white-space:pre-wrap;"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" onclick="sendSSHCommand()">Send</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+let sshModal = new bootstrap.Modal(document.getElementById('sshModal'));
+function openSSHModal(meterId) {
+    document.getElementById('ssh-meter-id').value = meterId;
+        document.getElementById('sshCommandForm').reset();
+        document.getElementById('ssh-output').innerText = '';
+        sshModal.show();
+}
+function sendSSHCommand() {
+    const meter_id = document.getElementById('ssh-meter-id').value;
+        const command = document.getElementById('ssh-command').value;
+        document.getElementById('ssh-output').innerText = 'Running...';
+        fetch('/ssh-command/', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({meter_id, command})
+        })
+        .then(response => response.json())
+        .then(data => {
+                if (data.error) {
+                        document.getElementById('ssh-output').innerText = 'Error: ' + data.error;
+                } else {
+                        document.getElementById('ssh-output').innerText = data.output || '';
+                        if (data.error) {
+                                document.getElementById('ssh-output').innerText += '\nError: ' + data.error;
+                        }
+                }
+        })
+        .catch(err => {
+                document.getElementById('ssh-output').innerText = 'Request failed: ' + err;
+        });
+}
+</script>
                         <script>
                         // CSRF helper for Django
                         function getCookie(name) {

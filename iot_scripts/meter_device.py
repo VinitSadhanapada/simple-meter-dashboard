@@ -84,11 +84,23 @@ class MeterDevice:
         """
         Read current parameter values from the meter device.
         In simulation mode, generates realistic values with small random variations and relationships.
-        Failure modes can be triggered via self.failure_mode.
+        Failure modes can be triggered via self.failure_mode or via failure_modes.json.
         """
         if self.simulation_mode:
             now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             values = [now]
+            # Try to read failure mode from failure_modes.json (overrides self.failure_mode)
+            import os, json
+            mode = self.failure_mode
+            try:
+                mode_path = os.path.join(os.path.dirname(__file__), 'failure_modes.json')
+                with open(mode_path, 'r') as f:
+                    all_modes = json.load(f)
+                # Use self.name as the key
+                if self.name in all_modes:
+                    mode = all_modes[self.name]
+            except Exception:
+                pass
             # Default normal values (no-fault range)
             v_r = random.uniform(210, 240)
             v_y = random.uniform(210, 240)
@@ -101,7 +113,6 @@ class MeterDevice:
             pf_b = random.uniform(0.95, 1.0)
             freq = random.uniform(49.5, 50.5)
             # Failure modes
-            mode = self.failure_mode
             if mode == 'phase_loss':
                 v_r = 0; a_r = 0; pf_r = 0
                 v_y = 0; a_y = 0; pf_y = 0

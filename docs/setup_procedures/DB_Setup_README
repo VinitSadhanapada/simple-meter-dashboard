@@ -40,4 +40,4 @@ psql -U mfmuser -d mfmdb -h localhost -d mfmdb
 
 
 #6. Create Tables and Schema using mfmdb.dump
-pg_restore -U mfmuser -d mfmdb pg_restore -U mfmuser -d mfmdb mfmdb.dump
+pg_restore -U mfmuser -d mfmdb mfmdb.dump

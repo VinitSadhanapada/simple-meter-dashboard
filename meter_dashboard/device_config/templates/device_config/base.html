@@ -67,6 +67,16 @@
                                 <i class="fas fa-code me-2"></i>API
                             </a>
                         </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.resolver_match.url_name == 'latest_readings' %}active{% endif %}" href="{% url 'latest_readings' %}">
+                                <i class="fas fa-list me-2"></i>Latest Readings
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.resolver_match.url_name == 'api_alert_events' %}active{% endif %}" href="{% url 'api_alert_events' %}">
+                                <i class="fas fa-bell me-2"></i>API Alerts
+                            </a>
+                        </li>
                     </ul>
                 </div>
             </nav>

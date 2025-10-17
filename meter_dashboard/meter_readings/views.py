@@ -1,5 +1,6 @@
 import psycopg2
 import os
+import sys
 import json
 from django.http import JsonResponse, HttpResponseBadRequest
 from django.shortcuts import render
@@ -28,18 +29,22 @@ def api_meter_readings(request):
     return JsonResponse({'readings': data})
 
 
-def latest_readings(request, table_name=None):
-    from django.utils.html import escape
-    # Accept table_name from URL kwarg or fallback to GET param or default
-    if table_name is None:
-        table_name = request.GET.get('table', 'meterreadings')
-    # Basic validation: only allow alphanumeric and underscores
-    if not table_name.replace('_', '').isalnum():
-        return render(request, 'meter_readings/latest_readings.html', {
-            'columns': [],
-            'rows': [],
-            'page_title': f'Invalid table name: {escape(table_name)}'
-        })
+def _fetch_recent_alert_events(device_id=None, limit=300):
+    """Import-safe helper to fetch alert events from Redis via Celery task module."""
+    try:
+        base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
+        if base_dir not in sys.path:
+            sys.path.append(base_dir)
+        from iot_scripts.alerting.celery_alert_tasks import fetch_recent_alert_events
+        return fetch_recent_alert_events(device_id=device_id, limit=limit)
+    except Exception:
+        return []
+
+
+def latest_readings(request):
+    # Show all meters, with latest reading if available, else 'No data'
+    from device_config.models import MeterDevice
+    import psycopg2
     db_settings = getattr(settings, 'DATABASES', {}).get('default', {})
     conn = psycopg2.connect(
         dbname=db_settings.get('NAME', 'mfmdb'),
@@ -50,37 +55,71 @@ def latest_readings(request, table_name=None):
     )
     cur = conn.cursor()
     try:
-        cur.execute(f'SELECT * FROM {table_name} ORDER BY time DESC LIMIT 10;')
-        rows = cur.fetchall()
+        cur.execute("SELECT DISTINCT ON (meter_name) * FROM meter_readings ORDER BY meter_name, time DESC;")
+        readings = cur.fetchall()
         columns = [desc[0] for desc in cur.description]
-    except Exception as e:
-        columns, rows = [], []
-        # Get list of table names from information_schema
-        table_names = []
-        try:
-            cur.execute(
-                "SELECT table_name FROM information_schema.tables WHERE table_schema='public'")
-            table_names = [r[0] for r in cur.fetchall()]
-        except Exception:
-            table_names = []
-        return render(request, 'meter_readings/latest_readings.html', {
-            'columns': columns,
-            'rows': rows,
-            'page_title': f'Error: {escape(str(e))}',
-            'table_names': table_names
-        })
+        readings_by_name = {row[columns.index('meter_name')]: row for row in readings}
     finally:
         cur.close()
         conn.close()
+
+    meters = MeterDevice.objects.all()
+    all_rows = []
+    for meter in meters:
+        meter_name = meter.meter_name
+        if meter_name in readings_by_name:
+            all_rows.append(readings_by_name[meter_name])
+        else:
+            # Fill with 'No data' for all columns except meter_name
+            row = ['No data'] * len(columns)
+            if 'meter_name' in columns:
+                row[columns.index('meter_name')] = meter_name
+            all_rows.append(row)
+
+    # Compute active alerts from Redis events (no current_alerts.json)
+    events = _fetch_recent_alert_events(limit=500)
+    # Determine active devices: last event per (device,param); if not 'recovered' => active
+    active_devices = set()
+    last_by_key = {}
+    for e in events:
+        key = (str(e.get('device_id')), e.get('param'))
+        last_by_key[key] = e
+    for (did, _), e in last_by_key.items():
+        if e.get('alert_type') != 'recovered':
+            active_devices.add(did)
+
+    # Prepare rows with alert flags for easier templating
+    try:
+        device_id_index = columns.index('device_id')
+    except ValueError:
+        device_id_index = None
+    rows_aug = []
+    for r in all_rows:
+        dev_id_val = None
+        if device_id_index is not None and len(r) > device_id_index:
+            try:
+                dev_id_val = str(r[device_id_index])
+            except Exception:
+                dev_id_val = None
+        rows_aug.append({
+            'cells': r,
+            'has_alert': (dev_id_val in active_devices)
+        })
+
     return render(request, 'meter_readings/latest_readings.html', {
         'columns': columns,
-        'rows': rows,
-        'page_title': f'Latest readings from {escape(table_name)}'
+        'rows': all_rows,  # kept for backward compatibility (unused by template now)
+        'rows_aug': rows_aug,
+        'page_title': 'Latest Readings for All Meters',
+        'alert_state': {'active_alerts': {}, 'source': 'redis_events'},
     })
 
 
-# Path to the shared failure modes JSON file (project root, absolute path)
-FAILURE_MODES_FILE = '/home/pi/Desktop/FinalMerge/clubbed_mfm_16aug/failure_modes.json'
+# Path to the shared failure modes JSON file (project-relative, inside iot_scripts)
+FAILURE_MODES_FILE = os.path.abspath(os.path.join(
+    os.path.dirname(os.path.dirname(os.path.dirname(__file__))),
+    'iot_scripts', 'failure_modes.json'
+))
 
 
 def load_failure_modes():
@@ -114,7 +153,8 @@ def get_meter_list():
 
 
 def dashboard(request):
-    meters = get_meter_list()
+    from device_config.models import MeterDevice
+    meters = MeterDevice.objects.all()
     failure_modes = load_failure_modes()
     available_modes = ['phase_loss', 'overcurrent', 'bad_pf',
                        'overvoltage', 'reverse_power', 'freq_drift', None]

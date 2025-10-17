@@ -36,7 +36,9 @@
             color: #ffe0d6 !important;
         }
         .container {
-            max-width: 900px;
+            /* Increased width for the white box */
+            max-width: 1400px;
+            width: 95%;
             margin: 30px auto;
             background: white;
             border-radius: 8px;
@@ -45,6 +47,17 @@
         }
         h1, h2, h3 {
             color: #ff6b35;
+        }
+        .alert {
+            background: #ffe0d6;
+            color: #b23c00;
+            border-left: 5px solid #ff6b35;
+            padding: 10px 20px;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+        .row-has-alert td {
+            background-color: #fff6f2;
         }
         .btn-primary {
             background: #ff6b35;
@@ -56,6 +69,10 @@
         }
         .btn-primary:hover {
             background: #f7931e;
+        }
+        .table-responsive {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
         }
         table {
             width: 100%;
@@ -83,24 +100,85 @@
     </div>
     <div class="container">
         <h2>{{ page_title }}</h2>
-        <table>
-            <thead>
-                <tr>
-                    {% for col in columns %}
-                        <th>{{ col }}</th>
-                    {% endfor %}
-                </tr>
-            </thead>
-            <tbody>
-                {% for row in rows %}
-                <tr>
-                    {% for val in row %}
-                        <td>{{ val }}</td>
-                    {% endfor %}
-                </tr>
+        {% if alert_state and alert_state.active_alerts %}
+        <div id="alert-box">
+            {% for meter, alerts in alert_state.active_alerts.items %}
+                {% for a in alerts %}
+                    <div class="alert">{{ meter }}: {{ a }}</div>
                 {% endfor %}
-            </tbody>
-        </table>
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% if alert_state and alert_state.timestamp %}
+            <div class="timestamp">Alert state updated: {{ alert_state.timestamp }}</div>
+        {% endif %}
+        <div class="table-responsive">
+            <table class="table table-bordered align-middle">
+                <thead>
+                    <tr>
+                        {% for col in columns %}
+                            <th>{{ col }}</th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if rows_aug %}
+                        {% for r in rows_aug %}
+                        <tr class="{% if r.has_alert %}row-has-alert{% endif %}">
+                            {% for val in r.cells %}
+                                <td>{{ val }}</td>
+                            {% endfor %}
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        {% for row in rows %}
+                        <tr>
+                            {% for val in row %}
+                                <td>{{ val }}</td>
+                            {% endfor %}
+                        </tr>
+                        {% endfor %}
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+        <script>
+        // CSRF helper for Django
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+        const csrftoken = getCookie('csrftoken');
+
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.toggle-failure').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    const meter = this.getAttribute('data-meter');
+                    const mode = this.getAttribute('data-mode');
+                    fetch('/api/set_failure_mode/', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': csrftoken
+                        },
+                        body: JSON.stringify({meter_name: meter, mode: mode})
+                    }).then(r => r.json()).then(data => {
+                        if(data.status === 'ok') window.location.reload();
+                    });
+                });
+            });
+        });
+        </script>
     </div>
 </body>
 </html>

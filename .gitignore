@@ -4,3 +4,13 @@ csv_data/
 test_scripts/
 meter_dashboard/meters/migrations/__pycache__/
 logs/
+iot-energy-monitoring/
+el_meters/
+
+# Runtime-generated alerting artifacts (do not commit)
+iot_scripts/alerts.log
+iot_scripts/current_alerts.json
+iot_scripts/failure_modes.json
+
+# Avoid committing stray duplicate alerting package at repo root
+alerting/

@@ -1,0 +1,96 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Alerts</title>
+  <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+  <style>
+    body { background: #f5f7fa; }
+    .container-box {
+      max-width: 1400px; width: 95%; margin: 24px auto; padding: 16px 20px;
+      background: #fff; border-radius: 12px; box-shadow: 0 2px 16px rgba(0,0,0,0.08);
+    }
+    .page-title { font-size: 20px; font-weight: 600; margin: 0 0 12px; }
+    .meta { color: #6c757d; font-size: 13px; }
+    .table-responsive { overflow-x: auto; }
+    table thead th { position: sticky; top: 0; background: #fff; z-index: 1; }
+    .badge { font-size: 12px; }
+    .chip { display: inline-flex; align-items: center; gap: 6px; padding: 4px 8px; border-radius: 999px; background: #f1f3f5; margin: 2px 4px 2px 0; }
+    .chip .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+    .chip.low { background: #fff3f3; color: #c92a2a; }
+    .chip.high { background: #fff9db; color: #b08900; }
+    .chip .dot.low { background: #fa5252; }
+    .chip .dot.high { background: #fcc419; }
+  </style>
+</head>
+<body>
+  <div class="container-box">
+    <div class="d-flex justify-content-between align-items-center mb-2">
+      <h1 class="page-title">Active and Recent Alerts</h1>
+      <div class="meta">
+        {% if now_ts %}Updated: {{ now_ts }} UTC{% endif %}
+      </div>
+    </div>
+
+    {% if active_alerts %}
+      <div class="mb-3">
+        <strong>Active now:</strong>
+        {% for device_id, params in active_alerts.items %}
+          <div class="mt-1">
+            <span class="badge bg-dark">Device {{ device_id }}</span>
+            {% for p in params %}
+              {% with atype=p.1 %}
+              <span class="chip {% if 'low' in atype %}low{% elif 'high' in atype %}high{% endif %}">
+                <span class="dot {% if 'low' in atype %}low{% elif 'high' in atype %}high{% endif %}"></span>
+                {{ p.0 }} → {{ p.1 }} ({{ p.2 }})
+              </span>
+              {% endwith %}
+            {% endfor %}
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    <div class="table-responsive">
+      <table class="table table-sm align-middle">
+        <thead>
+          <tr>
+            <th style="min-width: 90px;">Time (UTC)</th>
+            <th style="min-width: 100px;">Device</th>
+            <th style="min-width: 140px;">Parameter</th>
+            <th style="min-width: 120px;">Event</th>
+            <th style="min-width: 100px;" class="text-end">Value</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% if events %}
+            {% for e in events %}
+              <tr>
+                <td><code style="font-size:12px">{{ e.timestamp }}</code></td>
+                <td>Device {{ e.device_id }}</td>
+                <td>{{ e.param }}</td>
+                <td>
+                  {% if e.alert_type == 'recovered' %}
+                    <span class="badge bg-success">recovered</span>
+                  {% elif 'low' in e.alert_type %}
+                    <span class="badge bg-danger">{{ e.alert_type }}</span>
+                  {% elif 'high' in e.alert_type %}
+                    <span class="badge bg-warning text-dark">{{ e.alert_type }}</span>
+                  {% else %}
+                    <span class="badge bg-secondary">{{ e.alert_type }}</span>
+                  {% endif %}
+                </td>
+                <td class="text-end">{{ e.value }}</td>
+              </tr>
+            {% endfor %}
+          {% else %}
+            <tr><td colspan="5" class="text-center text-muted">No alert events in the selected window.</td></tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</body>
+</html>

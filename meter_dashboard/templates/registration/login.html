@@ -1,0 +1,81 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login | Meter Dashboard</title>
+  <link rel="stylesheet" href="/static/admin-orange.css">
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f5f5f5;
+    }
+    .header {
+      background: linear-gradient(135deg, #ff6b35, #f7931e);
+      padding: 15px 0;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .navbar {
+      background-color: #ff6b35;
+      padding: 10px 0;
+    }
+    .navbar-brand {
+      color: white;
+      font-weight: bold;
+      font-size: 1.5rem;
+    }
+    .nav-link {
+      color: white !important;
+      margin: 0 10px;
+    }
+    .nav-link:hover {
+      color: #ffe0d6 !important;
+    }
+    .container {
+      max-width: 400px;
+      margin: 60px auto;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+      padding: 30px;
+    }
+    h2 {
+      color: #ff6b35;
+      text-align: center;
+    }
+    .btn-primary {
+      background: #ff6b35;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      width: 100%;
+    }
+    .btn-primary:hover {
+      background: #f7931e;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="navbar">
+      <span class="navbar-brand">Meter Dashboard</span>
+      <a class="nav-link" href="/">Home</a>
+      <a class="nav-link" href="/api/">API</a>
+      <a class="nav-link" href="/dashboard/">Dashboard</a>
+    </div>
+  </div>
+  <div class="container">
+    <h2>Login</h2>
+    <form method="post">
+      {% csrf_token %}
+      {{ form.as_p }}
+      <button class="btn-primary" type="submit">Login</button>
+    </form>
+  </div>
+</body>
+</html>

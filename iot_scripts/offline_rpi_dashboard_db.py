@@ -34,7 +34,7 @@ def run_dashboard():
     # Load configs
     script_dir = Path(__file__).parent.absolute()
     CONFIG_PATH = script_dir / "config.json"
-    DEVICE_CONFIG_PATH = script_dir / "device_config.json"
+    DEVICE_CONFIG_PATH = Path("/home/pi/meter_config/device_config.json")
     CSV_DIR = script_dir / "csv_data"
     CSV_DIR.mkdir(exist_ok=True)
 
@@ -67,14 +67,12 @@ def run_dashboard():
     logger = logging.getLogger("dashboard_db")
 
     # Simple Pi details extraction from existing configs
-    pi_name = socket.gethostname()  # Get Pi hostname
-    pi_location = "Unknown"
-    pi_ip = "10.252.27.59"
-
-    # Extract Pi details from device_config.json (first device)
+    pi_name = socket.gethostname()
+    pi_ip = "10.252.27.59"  # default; will be overridden by device_config if present
+    pi_location = 'Unknown'
     if DEVICE_CONFIG and len(DEVICE_CONFIG) > 0:
         first_device = DEVICE_CONFIG[0]
-        pi_location = first_device.get('location', 'Unknown')
+        pi_location = first_device.get('location', pi_location)
         pi_name = first_device.get('pi_name', pi_name)
         pi_ip = first_device.get('pi_ip', pi_ip)
 
@@ -180,29 +178,23 @@ def run_dashboard():
 
                 for meter_data in meter_data_list:
                     # Remove the capital-L Location field, only use lowercase for DB
-                    # meter_data["Location"] = location  # Removed
                     # DB expects lowercase 'time'
                     meter_data["time"] = reading_time
                     meter_data["pi_name"] = pi_name
                     meter_data["pi_ip"] = pi_ip
                     meter_data["location"] = location
-                    meter_data["device_id"] = meter_address
-                    meter_data["meter_name"] = meter_name
+                    meter_data["device_id"] = meter_data.get("Device_ID", None)
+                    meter_data["meter_name"] = meter_data.get("Meter_Name", None)
                     meter_data["model"] = meter_data.get("Model", "")
-                    meter_data["watts_total"] = meter_data.get(
-                        "Watts Total", None)
-                    meter_data["watts_r_ph"] = meter_data.get(
-                        "Watts R Ph", None)
-                    meter_data["watts_y_ph"] = meter_data.get(
-                        "Watts Y Ph", None)
-                    meter_data["watts_b_ph"] = meter_data.get(
-                        "Watts B Ph", None)
+                    meter_data["watts_total"] = meter_data.get("Watts Total", None)
+                    meter_data["watts_r_ph"] = meter_data.get("Watts R Ph", None)
+                    meter_data["watts_y_ph"] = meter_data.get("Watts Y Ph", None)
+                    meter_data["watts_b_ph"] = meter_data.get("Watts B Ph", None)
                     meter_data["pf_ave"] = meter_data.get("PF Ave", None)
                     meter_data["pf_r_ph"] = meter_data.get("PF R Ph", None)
                     meter_data["pf_y_ph"] = meter_data.get("PF Y Ph", None)
                     meter_data["pf_b_ph"] = meter_data.get("PF B Ph", None)
-                    meter_data["vln_average"] = meter_data.get(
-                        "VLN average", None)
+                    meter_data["vln_average"] = meter_data.get("VLN average", None)
                     meter_data["v_r_ph"] = meter_data.get("V R Ph", None)
                     meter_data["v_y_ph"] = meter_data.get("V Y Ph", None)
                     meter_data["v_b_ph"] = meter_data.get("V B Ph", None)
@@ -211,36 +203,18 @@ def run_dashboard():
                     meter_data["a_y_ph"] = meter_data.get("A Y Ph", None)
                     meter_data["a_b_ph"] = meter_data.get("A B Ph", None)
                     meter_data["frequency"] = meter_data.get("Frequency", None)
-                    meter_data["wh_received"] = meter_data.get(
-                        "Wh received", None)
-                    meter_data["load_hours_delivered"] = meter_data.get(
-                        "Load Hours Delivered", None)
-                    meter_data["no_of_interruption"] = meter_data.get(
-                        "No of interruption", None)
+                    meter_data["wh_received"] = meter_data.get("Wh received", None)
+                    meter_data["load_hours_delivered"] = meter_data.get("Load Hours Delivered", None)
+                    meter_data["no_of_interruption"] = meter_data.get("No of interruption", None)
                     meter_data["on_hours"] = meter_data.get("On Hours", None)
-                    meter_data["v_r_harmonics"] = meter_data.get(
-                        "V R Harmonics", None)
-                    meter_data["v_y_harmonics"] = meter_data.get(
-                        "V Y Harmonics", None)
-                    meter_data["v_b_harmonics"] = meter_data.get(
-                        "V B Harmonics", None)
-                    meter_data["a_r_harmonics"] = meter_data.get(
-                        "A R Harmonics", None)
-                    meter_data["a_y_harmonics"] = meter_data.get(
-                        "A Y Harmonics", None)
-                    meter_data["a_b_harmonics"] = meter_data.get(
-                        "A B Harmonics", None)
-                    print(
-                        f"DEBUG: meter_data before MQTT publish: {meter_data}")
+                    meter_data["v_r_harmonics"] = meter_data.get("V R Harmonics", None)
+                    meter_data["v_y_harmonics"] = meter_data.get("V Y Harmonics", None)
+                    meter_data["v_b_harmonics"] = meter_data.get("V B Harmonics", None)
+                    meter_data["a_r_harmonics"] = meter_data.get("A R Harmonics", None)
+                    meter_data["a_y_harmonics"] = meter_data.get("A Y Harmonics", None)
+                    meter_data["a_b_harmonics"] = meter_data.get("A B Harmonics", None)
+                    print(f"DEBUG: meter_data before MQTT publish: {meter_data}")
                     publish_meter_reading_mqtt(meter_data)
-
-                    on_hours_val = meter_data.get("On Hours")
-                    if meter_data.get("Model") == "LG+5220" and (on_hours_val in [None, "", "00:00:00"]):
-                        on_hours_val = None
-
-                    def load_json_config(path):
-                        with open(path, 'r') as f:
-                            return json.load(f)
             time.sleep(CONFIG["READING_INTERVAL"])
 
     except KeyboardInterrupt:
