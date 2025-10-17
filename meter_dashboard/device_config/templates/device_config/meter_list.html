@@ -85,4 +85,108 @@
         </div>
     </div>
 </div>
+
+<!-- SSH Terminal Modal (for Run Setup feedback) -->
+<div class="modal fade" id="sshModal" tabindex="-1" aria-labelledby="sshModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="sshModalLabel">SSH Terminal — <span id="ssh-pi-name"></span></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" style="background:#111;color:#eee;">
+                <input type="hidden" id="ssh-pi-id" name="pi_id">
+                <div id="ssh-terminal" style="font-family: Menlo, Consolas, monospace;background:#0f0f0f;border:1px solid #333;border-radius:4px;padding:10px;height:300px;overflow:auto;white-space:pre-wrap;"></div>
+                <div class="d-flex mt-2" style="font-family: Menlo, Consolas, monospace;">
+                    <span class="me-2" style="color:#7dd3fc;">$</span>
+                    <input type="text" class="form-control form-control-sm" id="ssh-command"
+                                 placeholder="Type a command and press Enter"
+                                 style="background:#0f0f0f;color:#eee;border-color:#333;">
+                </div>
+            </div>
+            <div class="modal-footer" style="background:#111;border-top-color:#333;">
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary btn-sm" onclick="sendSSHCommand()">Send</button>
+                <button type="button" class="btn btn-outline-danger btn-sm" onclick="clearTerminal()">Clear</button>
+            </div>
+        </div>
+    </div>
+    </div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+let sshModal = new bootstrap.Modal(document.getElementById('sshModal'));
+
+function openSSHModal(piId, piName) {
+    document.getElementById('ssh-pi-id').value = piId;
+    document.getElementById('ssh-pi-name').innerText = piName;
+    clearTerminal();
+    sshModal.show();
+    setTimeout(() => document.getElementById('ssh-command').focus(), 200);
+}
+
+function appendToTerminal(text, type='out') {
+    const el = document.getElementById('ssh-terminal');
+    const line = type === 'cmd' ? `\n$ ${text}\n` : `${text}\n`;
+    el.textContent += line;
+    el.scrollTop = el.scrollHeight;
+}
+
+function clearTerminal() {
+    document.getElementById('ssh-terminal').textContent = '';
+    document.getElementById('ssh-command').value = '';
+}
+
+function sendSSHCommand() {
+    const pi_id = document.getElementById('ssh-pi-id').value;
+    const input = document.getElementById('ssh-command');
+    const command = input.value.trim();
+    if (!command) return;
+    appendToTerminal(command, 'cmd');
+    input.value = '';
+    fetch('/ssh-command/', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({pi_id, command})
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.error) { appendToTerminal(`Error: ${data.error}`, 'out'); return; }
+        const out = Array.isArray(data.output) ? data.output.join('\n') : (data.output || '');
+        if (out) appendToTerminal(out, 'out');
+        if (data.stderr) appendToTerminal(`stderr: ${data.stderr}`, 'out');
+    })
+    .catch(err => appendToTerminal(`Request failed: ${err}`, 'out'));
+}
+
+function runPreset(pi_id, preset) {
+    clearTerminal();
+    appendToTerminal(`# Running preset: ${preset}`, 'out');
+    fetch('/ssh-command/', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({pi_id, command: `__RUN_PRESET__:${preset}`})
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.error) { appendToTerminal(`Error: ${data.error}`, 'out'); return; }
+        const out = Array.isArray(data.output) ? data.output.join('\n') : (data.output || '');
+        if (out) appendToTerminal(out, 'out');
+        if (data.stderr) appendToTerminal(`stderr: ${data.stderr}`, 'out');
+    })
+    .catch(err => appendToTerminal(`Request failed: ${err}`, 'out'));
+}
+
+// Enter to send manual command
+document.addEventListener('keydown', (e) => {
+    const active = document.activeElement;
+    if (active && active.id === 'ssh-command' && e.key === 'Enter') {
+        e.preventDefault();
+        sendSSHCommand();
+    }
+});
+</script>
+{% endblock %}
 {% endblock %}
