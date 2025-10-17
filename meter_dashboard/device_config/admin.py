@@ -148,6 +148,7 @@ class MeterDeviceAdmin(admin.ModelAdmin):
         ('Assignment', {
             'fields': ('raspberry_pi', 'is_active')
         }),
+        
         ('Timestamps', {
             'fields': ('created_at', 'last_updated'),
             'classes': ('collapse',)

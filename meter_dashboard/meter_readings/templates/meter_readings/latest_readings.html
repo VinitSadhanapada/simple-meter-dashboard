@@ -87,6 +87,9 @@
             background: #ff6b35;
             color: white;
         }
+        /* Map container */
+        #alerts-map { height: 380px; width: 100%; margin: 20px 0 10px; border: 1px solid #eee; border-radius: 6px; }
+        .map-legend { font-size: 0.9rem; color: #555; margin-bottom: 10px; }
     </style>
 </head>
 <body>
@@ -100,6 +103,8 @@
     </div>
     <div class="container">
         <h2>{{ page_title }}</h2>
+    <div class="map-legend">All meters are placed in a synthetic circle; markers turn red when the meter has active alerts.</div>
+        <div id="alerts-map"></div>
         {% if alert_state and alert_state.active_alerts %}
         <div id="alert-box">
             {% for meter, alerts in alert_state.active_alerts.items %}
@@ -161,6 +166,50 @@
         const csrftoken = getCookie('csrftoken');
 
         document.addEventListener('DOMContentLoaded', function() {
+            // Initialize Leaflet map
+            const leafletCss = document.createElement('link');
+            leafletCss.rel = 'stylesheet';
+            leafletCss.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+            document.head.appendChild(leafletCss);
+            const leafletJs = document.createElement('script');
+            leafletJs.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+            leafletJs.onload = function() {
+                const map = L.map('alerts-map').setView([10.975588, 76.737517], 15);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    maxZoom: 19,
+                    attribution: '&copy; OpenStreetMap contributors'
+                }).addTo(map);
+
+                function refreshMarkers() {
+                    fetch('/api/alerts/geomap/?center_lat=10.975588&center_lon=76.737517&radius=0.01')
+                        .then(r => r.json())
+                        .then(data => {
+                            if (!data || !data.markers) return;
+                            // Clear existing markers by resetting layer
+                            if (window.__alertLayer) {
+                                window.__alertLayer.clearLayers();
+                            } else {
+                                window.__alertLayer = L.layerGroup().addTo(map);
+                            }
+                            data.markers.forEach(m => {
+                                const color = m.active ? 'red' : 'green';
+                                const marker = L.circleMarker([m.latitude, m.longitude], {
+                                    radius: 8,
+                                    color: color,
+                                    weight: 2,
+                                    fillOpacity: 0.7
+                                });
+                                const params = (m.alert_params || []).join(', ');
+                                marker.bindPopup(`<b>${m.meter_name}</b><br/>Active: ${m.active}<br/>Alerts: ${params || 'None'}<br/>Updated: ${m.last_event_ts || ''}`);
+                                window.__alertLayer.addLayer(marker);
+                            });
+                        })
+                        .catch(() => {});
+                }
+                refreshMarkers();
+                setInterval(refreshMarkers, 15000);
+            };
+            document.body.appendChild(leafletJs);
             document.querySelectorAll('.toggle-failure').forEach(function(btn) {
                 btn.addEventListener('click', function() {
                     const meter = this.getAttribute('data-meter');

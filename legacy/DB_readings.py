@@ -1,4 +1,3 @@
-db = PostgresHelper(
 import time
 from postgres_helper import PostgresHelper, get_latest_readings
 import json

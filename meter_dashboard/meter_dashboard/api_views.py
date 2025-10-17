@@ -34,6 +34,7 @@ import sys
 import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 from iot_scripts.alerting.celery_alert_tasks import fetch_recent_alert_events
+import math
 
 @csrf_exempt
 def api_root(request):
@@ -78,3 +79,109 @@ def api_alert_events(request):
     limit = int(request.GET.get('limit', 100))
     events = fetch_recent_alert_events(device_id=device_id, limit=limit)
     return JsonResponse({'events': events})
+
+
+# Geomap-ready aggregation of active alert devices
+def api_alerts_geomap(request):
+    try:
+        # 1) Pull recent alert events and compute active status per device
+        events = fetch_recent_alert_events(limit=1000)
+        last_by_key = {}
+        for e in events:
+            # Normalize device_id to string for consistent dict keys
+            did = str(e.get('device_id')) if e.get('device_id') is not None else None
+            param = e.get('param')
+            if did is None or not param:
+                continue
+            last_by_key[(did, param)] = e
+
+        active_params_by_device = {}
+        last_ts_by_device = {}
+        for (did, param), e in last_by_key.items():
+            if e.get('alert_type') != 'recovered':
+                active_params_by_device.setdefault(did, set()).add(param)
+                # Track latest timestamp per device for tooltip
+                ts = e.get('ts') or e.get('timestamp')
+                last_ts_by_device[did] = ts
+
+        # 2) Build device_id -> meter_name mapping from DB
+        dev_to_meter = {}
+        try:
+            conn = psycopg2.connect(dbname='mfmdb', user='mfmuser', password='devi', host='localhost', port='5432')
+            cur = conn.cursor()
+            cur.execute("""
+                SELECT DISTINCT ON (device_id) device_id, meter_name
+                FROM meter_readings
+                WHERE device_id IS NOT NULL
+                ORDER BY device_id, time DESC
+            """)
+            for row in cur.fetchall():
+                did, mname = row
+                if did is not None and mname:
+                    dev_to_meter[str(did)] = mname
+            cur.close(); conn.close()
+        except Exception:
+            pass
+
+        # 3) Determine full meter list from existing readings (no migrations needed)
+        meter_list = []  # list of (meter_name, device_id or None)
+        meter_to_dev = {}
+        try:
+            conn = psycopg2.connect(dbname='mfmdb', user='mfmuser', password='devi', host='localhost', port='5432')
+            cur = conn.cursor()
+            cur.execute("""
+                SELECT DISTINCT ON (meter_name) meter_name, device_id
+                FROM meter_readings
+                WHERE meter_name IS NOT NULL
+                ORDER BY meter_name, time DESC
+            """)
+            for row in cur.fetchall():
+                mname, did = row
+                meter_list.append((mname, did))
+                if did is not None:
+                    meter_to_dev[mname] = str(did)
+            cur.close(); conn.close()
+        except Exception:
+            # If DB fails, fall back to devices present in alert events
+            for did, mname in dev_to_meter.items():
+                meter_list.append((mname, did))
+                meter_to_dev[mname] = str(did)
+
+        # Fallback if still empty
+        if not meter_list:
+            # As a last resort, synthesize from active alerts only
+            for did in sorted(active_params_by_device.keys()):
+                meter_list.append((dev_to_meter.get(did, f"Device {did}"), did))
+
+        # 4) Prepare markers with synthetic circle layout for all meters
+        center_lat = float(request.GET.get('center_lat', 10.975588))
+        center_lon = float(request.GET.get('center_lon', 76.737517))
+        radius = float(request.GET.get('radius', 0.01))
+
+        # Sort meters alphabetically by name for stable layout
+        meter_list.sort(key=lambda t: t[0] or '')
+        n = max(len(meter_list), 1)
+
+        markers = []
+        for idx, (mname, did_val) in enumerate(meter_list):
+            angle = 2 * math.pi * (idx / n)
+            lat = center_lat + radius * math.sin(angle)
+            lon = center_lon + radius * math.cos(angle)
+            # Normalize device id string
+            did_str = str(did_val) if did_val is not None else meter_to_dev.get(mname)
+            meter_name = mname or dev_to_meter.get(did_str, f"Device {did_str}")
+            params = sorted(list(active_params_by_device.get(did_str, []))) if did_str else []
+            markers.append({
+                'device_id': did_str,
+                'meter_name': meter_name,
+                'active': True if params else False,
+                'alert_params': params,
+                'last_event_ts': last_ts_by_device.get(did_str) if did_str else None,
+                'latitude': lat,
+                'longitude': lon,
+                'source': 'synthetic',
+            })
+
+        return JsonResponse({'markers': markers, 'count': len(markers)})
+    except Exception as e:
+        return JsonResponse({'markers': [], 'error': str(e)}, status=500)

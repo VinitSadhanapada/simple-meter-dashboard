@@ -1,0 +1,245 @@
+{
+  "__inputs": [
+    {
+      "name": "DS_POSTGRES",
+      "label": "PostgreSQL",
+      "description": "Select your PostgreSQL datasource for meter_readings",
+      "type": "datasource",
+      "pluginId": "postgres",
+      "pluginName": "PostgreSQL"
+    }
+  ],
+  "__requires": [
+    {"type": "grafana", "id": "grafana", "name": "Grafana", "version": "9.3.0"},
+    {"type": "panel", "id": "table", "name": "Table", "version": ""},
+    {"type": "panel", "id": "timeseries", "name": "Time series", "version": ""},
+    {"type": "panel", "id": "stat", "name": "Stat", "version": ""},
+    {"type": "panel", "id": "gauge", "name": "Gauge", "version": ""},
+    {"type": "datasource", "id": "postgres", "name": "PostgreSQL", "version": "1.0.0"}
+  ],
+  "annotations": {"list": []},
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "type": "table",
+      "title": "Recent Meter Readings",
+      "id": 1,
+      "datasource": {"type": "postgres", "uid": "${DS_POSTGRES}"},
+      "options": {"showHeader": true},
+      "targets": [
+        {
+          "datasource": {"type": "postgres", "uid": "${DS_POSTGRES}"},
+          "format": "table",
+          "rawQuery": true,
+          "refId": "A",
+          "rawSql": "SELECT * FROM meter_readings ORDER BY time DESC LIMIT 20;"
+        }
+      ],
+      "gridPos": {"h": 10, "w": 24, "x": 0, "y": 0}
+    },
+    {
+      "type": "timeseries",
+      "title": "Voltage Trends (R/Y/B)",
+      "id": 2,
+      "datasource": {"type": "postgres", "uid": "${DS_POSTGRES}"},
+      "fieldConfig": {"defaults": {}, "overrides": []},
+      "options": {"legend": {"showLegend": true}},
+      "targets": [
+        {
+          "datasource": {"type": "postgres", "uid": "${DS_POSTGRES}"},
+          "format": "time_series",
+          "rawQuery": true,
+          "refId": "A",
+          "rawSql": "SELECT time AS \"time\", v_r_ph AS value, meter_name AS metric FROM meter_readings WHERE meter_name ~ '${meter_name:regex}' AND $__timeFilter(time) ORDER BY time ASC LIMIT 10000;",
+          "alias": "v_r_ph"
+        },
+        {
+          "datasource": {"type": "postgres", "uid": "${DS_POSTGRES}"},
+          "format": "time_series",
+          "rawQuery": true,
+          "refId": "B",
+          "rawSql": "SELECT time AS \"time\", v_y_ph AS value, meter_name AS metric FROM meter_readings WHERE meter_name ~ '${meter_name:regex}' AND $__timeFilter(time) ORDER BY time ASC LIMIT 10000;",
+          "alias": "v_y_ph"
+        },
+        {
+          "datasource": {"type": "postgres", "uid": "${DS_POSTGRES}"},
+          "format": "time_series",
+          "rawQuery": true,
+          "refId": "C",
+          "rawSql": "SELECT time AS \"time\", v_b_ph AS value, meter_name AS metric FROM meter_readings WHERE meter_name ~ '${meter_name:regex}' AND $__timeFilter(time) ORDER BY time ASC LIMIT 10000;",
+          "alias": "v_b_ph"
+        }
+      ],
+      "gridPos": {"h": 10, "w": 24, "x": 0, "y": 10}
+    },
+    {
+      "type": "timeseries",
+      "title": "Current Trends (R/Y/B)",
+      "id": 3,
+      "datasource": {"type": "postgres", "uid": "${DS_POSTGRES}"},
+      "fieldConfig": {"defaults": {}, "overrides": []},
+      "options": {"legend": {"showLegend": true}},
+      "targets": [
+        {
+          "datasource": {"type": "postgres", "uid": "${DS_POSTGRES}"},
+          "format": "time_series",
+          "rawQuery": true,
+          "refId": "A",
+          "rawSql": "SELECT time AS \"time\", a_r_ph AS value, meter_name AS metric FROM meter_readings WHERE meter_name ~ '${meter_name:regex}' AND $__timeFilter(time) ORDER BY time ASC LIMIT 10000;",
+          "alias": "a_r_ph"
+        },
+        {
+          "datasource": {"type": "postgres", "uid": "${DS_POSTGRES}"},
+          "format": "time_series",
+          "rawQuery": true,
+          "refId": "B",
+          "rawSql": "SELECT time AS \"time\", a_y_ph AS value, meter_name AS metric FROM meter_readings WHERE meter_name ~ '${meter_name:regex}' AND $__timeFilter(time) ORDER BY time ASC LIMIT 10000;",
+          "alias": "a_y_ph"
+        },
+        {
+          "datasource": {"type": "postgres", "uid": "${DS_POSTGRES}"},
+          "format": "time_series",
+          "rawQuery": true,
+          "refId": "C",
+          "rawSql": "SELECT time AS \"time\", a_b_ph AS value, meter_name AS metric FROM meter_readings WHERE meter_name ~ '${meter_name:regex}' AND $__timeFilter(time) ORDER BY time ASC LIMIT 10000;",
+          "alias": "a_b_ph"
+        }
+      ],
+      "gridPos": {"h": 10, "w": 24, "x": 0, "y": 20}
+    },
+    {
+      "type": "stat",
+      "title": "Latest Frequency",
+      "id": 4,
+      "datasource": {"type": "postgres", "uid": "${DS_POSTGRES}"},
+      "options": {"reduceOptions": {"calcs": ["last"], "fields": "", "values": false}},
+      "targets": [
+        {
+          "datasource": {"type": "postgres", "uid": "${DS_POSTGRES}"},
+          "format": "table",
+          "rawQuery": true,
+          "refId": "A",
+          "rawSql": "SELECT frequency FROM meter_readings ORDER BY time DESC LIMIT 1;"
+        }
+      ],
+      "gridPos": {"h": 6, "w": 8, "x": 0, "y": 30}
+    },
+    {
+      "type": "gauge",
+      "title": "Latest Power Factor (pf_ave)",
+      "id": 5,
+      "datasource": {"type": "postgres", "uid": "${DS_POSTGRES}"},
+      "options": {"reduceOptions": {"calcs": ["last"], "fields": "", "values": false}},
+      "targets": [
+        {
+          "datasource": {"type": "postgres", "uid": "${DS_POSTGRES}"},
+          "format": "table",
+          "rawQuery": true,
+          "refId": "A",
+          "rawSql": "SELECT pf_ave FROM meter_readings ORDER BY time DESC LIMIT 1;"
+        }
+      ],
+      "gridPos": {"h": 6, "w": 8, "x": 8, "y": 30}
+    },
+    {
+      "type": "table",
+      "title": "Meter List",
+      "id": 6,
+      "datasource": {"type": "postgres", "uid": "${DS_POSTGRES}"},
+      "options": {"showHeader": true},
+      "targets": [
+        {
+          "datasource": {"type": "postgres", "uid": "${DS_POSTGRES}"},
+          "format": "table",
+          "rawQuery": true,
+          "refId": "A",
+          "rawSql": "SELECT DISTINCT meter_name FROM meter_readings ORDER BY meter_name;"
+        }
+      ],
+      "gridPos": {"h": 6, "w": 8, "x": 16, "y": 30}
+    },
+    {
+      "type": "timeseries",
+      "title": "Voltage (R) by Selected Meter",
+      "id": 7,
+      "datasource": {"type": "postgres", "uid": "${DS_POSTGRES}"},
+      "fieldConfig": {"defaults": {}, "overrides": []},
+      "options": {"legend": {"showLegend": true}},
+      "targets": [
+        {
+          "datasource": {"type": "postgres", "uid": "${DS_POSTGRES}"},
+          "format": "time_series",
+          "rawQuery": true,
+          "refId": "A",
+          "rawSql": "SELECT time AS \"time\", v_r_ph AS value FROM meter_readings WHERE meter_name ~ '${meter_name:regex}' AND $__timeFilter(time) ORDER BY time ASC LIMIT 10000;",
+          "alias": "$meter_name v_r_ph"
+        }
+      ],
+      "gridPos": {"h": 10, "w": 24, "x": 0, "y": 36}
+    },
+    {
+      "type": "timeseries",
+      "title": "Meter Time Series (by parameters)",
+      "id": 8,
+      "datasource": {"type": "postgres", "uid": "${DS_POSTGRES}"},
+      "fieldConfig": {"defaults": {}, "overrides": []},
+      "options": {"legend": {"showLegend": true}},
+      "targets": [
+        {
+          "datasource": {"type": "postgres", "uid": "${DS_POSTGRES}"},
+          "format": "time_series",
+          "rawQuery": true,
+          "refId": "A",
+          "rawSql": "SELECT time AS \"time\", (meter_name || ' ' || 'v_r_ph') AS metric, v_r_ph AS value FROM meter_readings WHERE $__timeFilter(time) AND meter_name ~ '${meter_name:regex}' AND 'v_r_ph' ~ '${parameter:regex}'\nUNION ALL\nSELECT time AS \"time\", (meter_name || ' ' || 'v_y_ph') AS metric, v_y_ph AS value FROM meter_readings WHERE $__timeFilter(time) AND meter_name ~ '${meter_name:regex}' AND 'v_y_ph' ~ '${parameter:regex}'\nUNION ALL\nSELECT time AS \"time\", (meter_name || ' ' || 'v_b_ph') AS metric, v_b_ph AS value FROM meter_readings WHERE $__timeFilter(time) AND meter_name ~ '${meter_name:regex}' AND 'v_b_ph' ~ '${parameter:regex}'\nUNION ALL\nSELECT time AS \"time\", (meter_name || ' ' || 'a_r_ph') AS metric, a_r_ph AS value FROM meter_readings WHERE $__timeFilter(time) AND meter_name ~ '${meter_name:regex}' AND 'a_r_ph' ~ '${parameter:regex}'\nUNION ALL\nSELECT time AS \"time\", (meter_name || ' ' || 'a_y_ph') AS metric, a_y_ph AS value FROM meter_readings WHERE $__timeFilter(time) AND meter_name ~ '${meter_name:regex}' AND 'a_y_ph' ~ '${parameter:regex}'\nUNION ALL\nSELECT time AS \"time\", (meter_name || ' ' || 'a_b_ph') AS metric, a_b_ph AS value FROM meter_readings WHERE $__timeFilter(time) AND meter_name ~ '${meter_name:regex}' AND 'a_b_ph' ~ '${parameter:regex}'\nUNION ALL\nSELECT time AS \"time\", (meter_name || ' ' || 'pf_ave') AS metric, pf_ave AS value FROM meter_readings WHERE $__timeFilter(time) AND meter_name ~ '${meter_name:regex}' AND 'pf_ave' ~ '${parameter:regex}'\nUNION ALL\nSELECT time AS \"time\", (meter_name || ' ' || 'frequency') AS metric, frequency AS value FROM meter_readings WHERE $__timeFilter(time) AND meter_name ~ '${meter_name:regex}' AND 'frequency' ~ '${parameter:regex}'\nORDER BY 1 ASC\nLIMIT 10000;"
+        }
+      ],
+      "gridPos": {"h": 10, "w": 24, "x": 0, "y": 46}
+    }
+  ],
+  "refresh": "30s",
+  "schemaVersion": 39,
+  "style": "dark",
+  "tags": ["meters", "postgres"],
+  "templating": {
+    "list": [
+      {
+        "type": "custom",
+        "name": "parameter",
+        "label": "Parameter",
+        "hide": 0,
+        "query": "v_r_ph,v_y_ph,v_b_ph,a_r_ph,a_y_ph,a_b_ph,pf_ave,frequency",
+        "includeAll": false,
+        "multi": true,
+        "options": [],
+        "current": {"selected": true, "text": ["v_r_ph","v_y_ph","v_b_ph"], "value": ["v_r_ph","v_y_ph","v_b_ph"]},
+        "sort": 1
+      },
+      {
+        "type": "query",
+        "name": "meter_name",
+        "label": "Meter",
+        "hide": 0,
+        "datasource": {"type": "postgres", "uid": "${DS_POSTGRES}"},
+        "refresh": 2,
+        "query": "SELECT DISTINCT meter_name FROM meter_readings ORDER BY meter_name;",
+        "definition": "SELECT DISTINCT meter_name FROM meter_readings ORDER BY meter_name;",
+        "includeAll": true,
+        "multi": true,
+        "allValue": ".*",
+        "options": [],
+        "current": {"selected": true, "text": "All", "value": "$__all"},
+        "sort": 1
+      }
+    ]
+  },
+  "time": {"from": "now-24h", "to": "now"},
+  "timepicker": {"refresh_intervals": ["5s", "10s", "30s", "1m", "5m"]},
+  "timezone": "",
+  "title": "Meter Readings Dashboard",
+  "version": 1,
+  "weekStart": ""
+}
