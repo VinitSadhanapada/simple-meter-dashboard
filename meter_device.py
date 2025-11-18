@@ -55,7 +55,7 @@ class MeterDevice:
     Methods:
         read_data(): Returns a list of parameter values (simulated or real).
     """
-    def __init__(self, name, model, parameters, client=None, error_file=None, simulation_mode=True):
+    def __init__(self, name, model, parameters, client=None, error_file=None, simulation_mode=True, device_address=1):
         """
         Initialize a new MeterDevice instance.
         
@@ -66,6 +66,7 @@ class MeterDevice:
             client (ModbusClient, optional): Modbus client for hardware communication
             error_file (TextIO, optional): Error logging file handle
             simulation_mode (bool): Enable simulation mode
+            device_address (int): Modbus device address (1-247)
         """
         self.name = name
         self.model = model
@@ -73,6 +74,7 @@ class MeterDevice:
         self.client = client
         self.error_file = error_file
         self.simulation_mode = simulation_mode
+        self.device_address = device_address
         self.reg_values = [0] * len(parameters)
 
     def read_data(self):
@@ -122,19 +124,19 @@ class MeterDevice:
             else:
                 # Actual meter reading logic based on model
                 if self.model == "LG6400":
-                    self.reg_values = LG6400.ReadMeterData(self.client, 1, self.parameters, self.error_file)
+                    self.reg_values = LG6400.ReadMeterData(self.client, self.device_address, self.parameters, self.error_file)
                 elif self.model == "EN8400":
-                    self.reg_values = LG6400.ReadMeterData(self.client, 1, self.parameters, self.error_file)
+                    self.reg_values = LG6400.ReadMeterData(self.client, self.device_address, self.parameters, self.error_file)
                 elif self.model == "EN8100":
-                    self.reg_values = LG6400.ReadMeterData(self.client, 1, self.parameters, self.error_file)
+                    self.reg_values = LG6400.ReadMeterData(self.client, self.device_address, self.parameters, self.error_file)
                 elif self.model == "LG+5220":
-                    self.reg_values = LG5220.ReadMeterData(self.client, 1, self.parameters, self.error_file)
+                    self.reg_values = LG5220.ReadMeterData(self.client, self.device_address, self.parameters, self.error_file)
                 elif self.model == "LG+5310":
-                    self.reg_values = LG5310.ReadMeterData(self.client, 1, self.parameters, self.error_file)
+                    self.reg_values = LG5310.ReadMeterData(self.client, self.device_address, self.parameters, self.error_file)
                 elif self.model == "EN8410":
-                    self.reg_values = EN8410.ReadMeterData(self.client, 1, self.parameters, self.error_file)
+                    self.reg_values = EN8410.ReadMeterData(self.client, self.device_address, self.parameters, self.error_file)
                 elif self.model == "ELR300":
-                    self.reg_values = ELR300.ReadMeterData(self.client, 1, self.parameters, self.error_file)
+                    self.reg_values = ELR300.ReadMeterData(self.client, self.device_address, self.parameters, self.error_file)
                 else:
                     self.reg_values = [0] * len(self.parameters)
             now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")

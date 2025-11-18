@@ -1,5 +1,50 @@
 import csv
 import time
+from datetime import datetime
+
+def format_csv_value(value, param_name):
+    """
+    Format a value for CSV output with simple, consistent formatting.
+    
+    Args:
+        value: The raw value from meter reading
+        param_name: The parameter name to determine formatting
+    
+    Returns:
+        str: Formatted value string
+    """
+    if value in [0, "0", "0.0", 0.0]:
+        return "0"
+    
+    try:
+        # Convert to float for formatting
+        float_val = float(value)
+        
+        # Round to 2 decimal places for most values
+        if float_val == int(float_val):
+            return str(int(float_val))  # No decimals for whole numbers
+        else:
+            return f"{float_val:.2f}"  # 2 decimal places for others
+            
+    except (ValueError, TypeError):
+        # If conversion fails, return as string
+        return str(value)
+
+def create_formatted_csv_header(parameters):
+    """
+    Create a simple, readable CSV header by cleaning up parameter names.
+    
+    Returns:
+        list: Formatted header row
+    """
+    formatted_headers = []
+    
+    for param in parameters:
+        # Simple cleanup: replace spaces with underscores, remove extra characters
+        clean_name = param.replace(" ", "_").replace(".", "").replace("(", "").replace(")", "")
+        formatted_headers.append(clean_name)
+    
+    return formatted_headers
 
 """
 MeterManager Module for Multi-Device Coordination.
@@ -64,10 +109,39 @@ class MeterManager:
         """ 
         self.meters = meters
         self.parameters = parameters
-        self.csv_files = [open(name, "a", newline='') for name in csv_filenames]
-        self.csv_writers = [csv.writer(f) for f in self.csv_files]
-        for writer in self.csv_writers:
-            writer.writerow(parameters)
+        
+        # Open CSV files with error handling
+        self.csv_files = []
+        for name in csv_filenames:
+            try:
+                f = open(name, "a", newline='')
+                self.csv_files.append(f)
+            except Exception as e:
+                print(f"Error opening CSV file {name}: {e}")
+                raise
+        
+        # Create CSV writers with error handling
+        self.csv_writers = []
+        for f in self.csv_files:
+            if f is not None:
+                writer = csv.writer(f)
+                self.csv_writers.append(writer)
+            else:
+                self.csv_writers.append(None)
+        
+        # Write headers only if file is new/empty
+        for i, writer in enumerate(self.csv_writers):
+            if writer is not None:
+                try:
+                    # Check if file is empty (new file)
+                    self.csv_files[i].seek(0, 2)  # Seek to end
+                    if self.csv_files[i].tell() == 0:  # File is empty
+                        # Use formatted headers instead of raw parameters
+                        formatted_headers = create_formatted_csv_header(parameters)
+                        writer.writerow(formatted_headers)
+                    self.csv_files[i].seek(0, 2)  # Back to end for appending
+                except Exception as e:
+                    print(f"Error writing header to CSV: {e}")
         self.ui_callback = ui_callback
         self.allRegValues = [[0] * len(parameters) for _ in meters]
         self.published_msg = 0
@@ -75,37 +149,40 @@ class MeterManager:
         self.mqtt_client = mqtt_client
         self.publish_mqtt = publish_mqtt
 
-    def read_all(self, stdscr=None):
+    def read_all(self, stdscr=None, inter_device_delay=0.1):
         """
         Read data from all meters and perform associated operations.
-        
+
         Coordinates a complete reading cycle across all managed meters, including:
         - Data collection from each MeterDevice
         - CSV logging of readings
         - MQTT publishing (if enabled)
         - UI callback execution (if provided)
-        
+
         This method is thread-safe and handles errors gracefully, ensuring that
         failure in one meter doesn't prevent reading from others.
-        
+
         Args:
             stdscr (curses.window, optional): Curses screen object for UI updates.
                                             If provided and ui_callback is set,
                                             passes to callback for display updates.
-        
+            inter_device_delay (float): Delay in seconds between reading each device.
+                                      Default: 0.1 seconds (100ms)
+
         Returns:
             None
-            
+
         Side Effects:
             - Increments self.TotalReadings counter
             - Updates self.allRegValues with latest readings
             - Writes new rows to CSV files
             - Publishes MQTT messages (if enabled)
             - Calls UI callback (if configured)
-            
+
         Example:
             >>> manager.read_all()  # Simple reading cycle
-            
+            >>> manager.read_all(inter_device_delay=0.2)  # With 200ms delay between devices
+
         Note:
             The stdscr parameter exists for backwards compatibility with legacy
             curses-based implementations but is not used in the modern console
@@ -114,14 +191,43 @@ class MeterManager:
         self.TotalReadings += 1
         for i, meter in enumerate(self.meters):
             regValue = meter.read_data()
-            self.csv_writers[i].writerow(regValue)
+            
+            # Write to CSV with error handling and formatting
+            if i < len(self.csv_writers) and self.csv_writers[i] is not None:
+                try:
+                    # Format the values for better CSV output
+                    formatted_row = []
+                    for j, value in enumerate(regValue):
+                        if j == 0:  # Timestamp - keep as-is
+                            formatted_row.append(value)
+                        else:
+                            # Get parameter name for formatting
+                            param_name = self.parameters[j] if j < len(self.parameters) else "Unknown"
+                            formatted_value = format_csv_value(value, param_name)
+                            formatted_row.append(formatted_value)
+                    
+                    self.csv_writers[i].writerow(formatted_row)
+                    # Flush to ensure data is written immediately
+                    self.csv_files[i].flush()
+                except Exception as e:
+                    print(f"Error writing to CSV file {i}: {e}")
+            
             if self.publish_mqtt and self.mqtt_client:
                 self.published_msg = self.mqtt_client.publish_message(self.parameters, regValue, meter.name)
             self.allRegValues[i] = regValue.copy()
+            
+            # Add delay between device reads to avoid Modbus conflicts
+            # Skip delay after the last device
+            if i < len(self.meters) - 1 and inter_device_delay > 0:
+                time.sleep(inter_device_delay)
         if self.ui_callback and stdscr is not None:
             self.ui_callback(self.TotalReadings, stdscr, self.allRegValues)
 
     def close(self):
-        """Closes all CSV files."""
+        """Closes all CSV files safely."""
         for f in self.csv_files:
-            f.close()
+            if f is not None and not f.closed:
+                try:
+                    f.close()
+                except Exception as e:
+                    print(f"Error closing CSV file: {e}")

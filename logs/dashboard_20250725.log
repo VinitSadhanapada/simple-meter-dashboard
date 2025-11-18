@@ -1,0 +1,189 @@
+2025-07-25 14:14:05,315 - INFO - Starting dashboard in headless mode...
+2025-07-25 14:14:05,501 - INFO - Modules imported successfully
+2025-07-25 14:14:05,506 - INFO - Connected to /dev/ttyUSB0
+2025-07-25 14:14:05,507 - INFO - Dashboard started with 1 devices
+2025-07-25 14:14:34,430 - ERROR - Dashboard error: 'NoneType' object has no attribute 'write'
+2025-07-25 14:14:44,724 - INFO - Starting dashboard in headless mode...
+2025-07-25 14:14:44,863 - INFO - Modules imported successfully
+2025-07-25 14:14:44,868 - INFO - Connected to /dev/ttyUSB0
+2025-07-25 14:14:44,869 - INFO - Dashboard started with 1 devices
+2025-07-25 14:14:45,878 - ERROR - Dashboard error: 'NoneType' object has no attribute 'write'
+2025-07-25 14:14:56,219 - INFO - Starting dashboard in headless mode...
+2025-07-25 14:14:56,358 - INFO - Modules imported successfully
+2025-07-25 14:14:56,366 - INFO - Connected to /dev/ttyUSB0
+2025-07-25 14:14:56,366 - INFO - Dashboard started with 1 devices
+2025-07-25 14:15:19,370 - ERROR - Dashboard error: 'NoneType' object has no attribute 'write'
+2025-07-25 14:15:29,744 - INFO - Starting dashboard in headless mode...
+2025-07-25 14:15:29,893 - INFO - Modules imported successfully
+2025-07-25 14:15:29,897 - INFO - Connected to /dev/ttyUSB0
+2025-07-25 14:15:29,898 - INFO - Dashboard started with 1 devices
+2025-07-25 14:15:30,907 - ERROR - Dashboard error: 'NoneType' object has no attribute 'write'
+2025-07-25 14:15:41,227 - INFO - Starting dashboard in headless mode...
+2025-07-25 14:15:41,367 - INFO - Modules imported successfully
+2025-07-25 14:15:41,371 - INFO - Connected to /dev/ttyUSB0
+2025-07-25 14:15:41,372 - INFO - Dashboard started with 1 devices
+2025-07-25 14:16:04,879 - ERROR - Dashboard error: 'NoneType' object has no attribute 'write'
+2025-07-25 14:16:15,221 - INFO - Starting dashboard in headless mode...
+2025-07-25 14:16:15,361 - INFO - Modules imported successfully
+2025-07-25 14:16:15,364 - INFO - Connected to /dev/ttyUSB0
+2025-07-25 14:16:15,365 - INFO - Dashboard started with 1 devices
+2025-07-25 14:16:15,898 - ERROR - Dashboard error: 'NoneType' object has no attribute 'write'
+2025-07-25 14:16:26,231 - INFO - Starting dashboard in headless mode...
+2025-07-25 14:16:26,393 - INFO - Modules imported successfully
+2025-07-25 14:16:26,399 - INFO - Connected to /dev/ttyUSB0
+2025-07-25 14:16:26,400 - INFO - Dashboard started with 1 devices
+2025-07-25 14:16:49,906 - ERROR - Dashboard error: 'NoneType' object has no attribute 'write'
+2025-07-25 14:17:00,222 - INFO - Starting dashboard in headless mode...
+2025-07-25 14:17:00,361 - INFO - Modules imported successfully
+2025-07-25 14:17:00,364 - INFO - Connected to /dev/ttyUSB0
+2025-07-25 14:17:00,365 - INFO - Dashboard started with 1 devices
+2025-07-25 14:17:01,223 - ERROR - Dashboard error: 'NoneType' object has no attribute 'write'
+2025-07-25 14:17:11,504 - INFO - Starting dashboard in headless mode...
+2025-07-25 14:17:11,643 - INFO - Modules imported successfully
+2025-07-25 14:17:11,649 - INFO - Connected to /dev/ttyUSB0
+2025-07-25 14:17:11,650 - INFO - Dashboard started with 1 devices
+2025-07-25 14:17:29,509 - ERROR - Dashboard error: 'NoneType' object has no attribute 'write'
+2025-07-25 14:17:40,001 - INFO - Starting dashboard in headless mode...
+2025-07-25 14:17:40,141 - INFO - Modules imported successfully
+2025-07-25 14:17:40,144 - INFO - Connected to /dev/ttyUSB0
+2025-07-25 14:17:40,145 - INFO - Dashboard started with 1 devices
+2025-07-25 14:17:40,899 - ERROR - Dashboard error: 'NoneType' object has no attribute 'write'
+2025-07-25 14:20:33,828 - INFO - Starting dashboard in headless mode...
+2025-07-25 14:20:33,971 - INFO - Modules imported successfully
+2025-07-25 14:20:33,977 - INFO - Connected to /dev/ttyUSB0
+2025-07-25 14:20:33,977 - INFO - Dashboard started with 1 devices
+2025-07-25 14:20:34,541 - ERROR - Dashboard error: 'NoneType' object has no attribute 'write'
+2025-07-25 14:20:34,557 - ERROR - Full traceback: Traceback (most recent call last):
+  File "/home/pi/Downloads/simple-meter-dashboard/simple_rpi_dashboard.py", line 496, in run_dashboard
+    manager.read_all()
+  File "/home/pi/Downloads/simple-meter-dashboard/meter_manager.py", line 143, in read_all
+    regValue = meter.read_data()
+               ^^^^^^^^^^^^^^^^^
+  File "/home/pi/Downloads/simple-meter-dashboard/meter_device.py", line 127, in read_data
+    self.reg_values = LG6400.ReadMeterData(self.client, self.device_address, self.parameters, self.error_file)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pi/Downloads/simple-meter-dashboard/elmeasure_LG6400.py", line 154, in ReadMeterData
+    errorFile.write("["+now.strftime("%Y-%m-%d %H:%M:%S")+"]" + " Received exception from device ({response2})"+"\n")
+    ^^^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'write'
+
+2025-07-25 14:21:06,129 - INFO - Starting dashboard in headless mode...
+2025-07-25 14:21:06,135 - ERROR - Dashboard error: No module named 'pymodbus'
+2025-07-25 14:21:06,145 - ERROR - Full traceback: Traceback (most recent call last):
+  File "/home/pi/Downloads/simple-meter-dashboard/simple_rpi_dashboard.py", line 427, in run_dashboard
+    from meter_device import MeterDevice
+  File "/home/pi/Downloads/simple-meter-dashboard/meter_device.py", line 3, in <module>
+    import elmeasure_LG6400 as LG6400
+  File "/home/pi/Downloads/simple-meter-dashboard/elmeasure_LG6400.py", line 1, in <module>
+    from pymodbus.constants import Endian
+ModuleNotFoundError: No module named 'pymodbus'
+
+2025-07-25 14:21:28,290 - INFO - Starting dashboard in headless mode...
+2025-07-25 14:21:28,434 - INFO - Modules imported successfully
+2025-07-25 14:21:28,437 - INFO - Connected to /dev/ttyUSB0
+2025-07-25 14:21:28,438 - INFO - Dashboard started with 1 devices
+2025-07-25 14:21:34,416 - ERROR - Dashboard error: 'NoneType' object has no attribute 'write'
+2025-07-25 14:21:34,423 - ERROR - Full traceback: Traceback (most recent call last):
+  File "/home/pi/Downloads/simple-meter-dashboard/simple_rpi_dashboard.py", line 496, in run_dashboard
+    manager.read_all()
+  File "/home/pi/Downloads/simple-meter-dashboard/meter_manager.py", line 143, in read_all
+    regValue = meter.read_data()
+               ^^^^^^^^^^^^^^^^^
+  File "/home/pi/Downloads/simple-meter-dashboard/meter_device.py", line 127, in read_data
+    self.reg_values = LG6400.ReadMeterData(self.client, self.device_address, self.parameters, self.error_file)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pi/Downloads/simple-meter-dashboard/elmeasure_LG6400.py", line 131, in ReadMeterData
+    errorFile.write("["+now.strftime("%Y-%m-%d %H:%M:%S")+"]" + " Received exception from device ({response1})"+"\n")
+    ^^^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'write'
+
+2025-07-25 14:25:57,162 - INFO - Starting dashboard in headless mode...
+2025-07-25 14:25:57,307 - INFO - Modules imported successfully
+2025-07-25 14:25:57,313 - INFO - Connected to /dev/ttyUSB0
+2025-07-25 14:25:57,314 - INFO - Dashboard started with 1 devices
+2025-07-25 14:26:50,756 - INFO - Completed 10 reading cycles
+2025-07-25 14:27:15,210 - INFO - Received signal 15. Shutting down...
+2025-07-25 14:27:48,414 - INFO - Starting dashboard in headless mode...
+2025-07-25 14:27:48,560 - INFO - Modules imported successfully
+2025-07-25 14:27:48,565 - INFO - Connected to /dev/ttyUSB0
+2025-07-25 14:27:48,565 - INFO - Dashboard started with 1 devices
+2025-07-25 14:28:39,476 - INFO - Received signal 2. Shutting down...
+2025-07-25 14:28:39,477 - INFO - Completed 10 reading cycles
+2025-07-25 14:29:38,222 - INFO - Completed 20 reading cycles
+2025-07-25 14:30:23,710 - INFO - Received signal 2. Shutting down...
+2025-07-25 14:54:24,113 - INFO - Starting dashboard in headless mode...
+2025-07-25 14:54:24,828 - INFO - Modules imported successfully
+2025-07-25 14:54:24,840 - INFO - Connected to /dev/ttyUSB0
+2025-07-25 14:54:24,842 - INFO - Dashboard started with 1 devices
+2025-07-25 14:55:18,005 - INFO - Completed 10 reading cycles
+2025-07-25 14:56:15,063 - INFO - Completed 20 reading cycles
+2025-07-25 14:57:12,159 - INFO - Completed 30 reading cycles
+2025-07-25 15:50:17,333 - INFO - Completed 40 reading cycles
+2025-07-25 15:51:15,117 - INFO - Completed 50 reading cycles
+2025-07-25 15:52:07,875 - INFO - Completed 60 reading cycles
+2025-07-25 15:53:05,330 - INFO - Completed 70 reading cycles
+2025-07-25 15:53:58,971 - INFO - Completed 80 reading cycles
+2025-07-25 15:54:53,589 - INFO - Completed 90 reading cycles
+2025-07-25 15:54:59,149 - INFO - Received signal 15. Shutting down...
+2025-07-25 15:55:20,844 - INFO - Starting dashboard in headless mode...
+2025-07-25 15:55:20,987 - INFO - Modules imported successfully
+2025-07-25 15:55:20,991 - INFO - Connected to /dev/ttyUSB0
+2025-07-25 15:55:20,992 - INFO - Dashboard started with 1 devices
+2025-07-25 15:55:42,664 - INFO - Received signal 2. Shutting down...
+2025-07-25 15:55:52,032 - INFO - Completed 100 reading cycles
+2025-07-25 15:55:55,983 - INFO - Received signal 2. Shutting down...
+2025-07-25 15:56:49,304 - INFO - Starting dashboard in headless mode...
+2025-07-25 15:56:49,444 - INFO - Modules imported successfully
+2025-07-25 15:56:49,451 - INFO - Connected to /dev/ttyUSB0
+2025-07-25 15:56:49,451 - INFO - Dashboard started with 1 devices
+2025-07-25 15:57:26,826 - WARNING - Cleanup recv buffer before send: 0x0 0x7f 0xfe
+2025-07-25 15:57:36,256 - INFO - Received signal 2. Shutting down...
+2025-07-25 16:17:48,157 - INFO - Starting dashboard in headless mode...
+2025-07-25 16:17:48,171 - ERROR - Dashboard error: No module named 'pymodbus'
+2025-07-25 16:17:48,177 - ERROR - Full traceback: Traceback (most recent call last):
+  File "/home/pi/Downloads/simple-meter-dashboard/simple_rpi_dashboard.py", line 427, in run_dashboard
+    from meter_device import MeterDevice
+  File "/home/pi/Downloads/simple-meter-dashboard/meter_device.py", line 3, in <module>
+    import elmeasure_LG6400 as LG6400
+  File "/home/pi/Downloads/simple-meter-dashboard/elmeasure_LG6400.py", line 1, in <module>
+    from pymodbus.constants import Endian
+ModuleNotFoundError: No module named 'pymodbus'
+
+2025-07-25 16:18:05,673 - INFO - Starting dashboard in headless mode...
+2025-07-25 16:18:05,880 - INFO - Modules imported successfully
+2025-07-25 16:18:05,887 - INFO - Connected to /dev/ttyUSB0
+2025-07-25 16:18:05,888 - INFO - Dashboard started with 1 devices
+2025-07-25 16:19:00,356 - INFO - Completed 10 reading cycles
+2025-07-25 16:19:58,018 - INFO - Completed 20 reading cycles
+2025-07-25 16:20:56,270 - INFO - Completed 30 reading cycles
+2025-07-25 16:21:13,297 - INFO - Received signal 15. Shutting down...
+2025-07-25 16:21:55,423 - INFO - Completed 40 reading cycles
+2025-07-25 16:22:53,138 - INFO - Completed 50 reading cycles
+2025-07-25 16:22:55,376 - INFO - Starting dashboard in headless mode...
+2025-07-25 16:22:55,552 - INFO - Modules imported successfully
+2025-07-25 16:22:55,558 - INFO - Connected to /dev/ttyUSB0
+2025-07-25 16:22:55,559 - INFO - Dashboard started with 1 devices
+2025-07-25 16:23:00,203 - INFO - Received signal 2. Shutting down...
+2025-07-25 16:23:52,069 - INFO - Completed 60 reading cycles
+2025-07-25 16:23:53,498 - INFO - Starting dashboard in headless mode...
+2025-07-25 16:23:53,767 - INFO - Modules imported successfully
+2025-07-25 16:23:53,775 - INFO - Connected to /dev/ttyUSB0
+2025-07-25 16:23:53,777 - INFO - Dashboard started with 1 devices
+2025-07-25 16:24:48,886 - INFO - Completed 10 reading cycles
+2025-07-25 16:24:52,257 - INFO - Completed 70 reading cycles
+2025-07-25 16:25:48,411 - INFO - Completed 20 reading cycles
+2025-07-25 16:25:52,155 - INFO - Completed 80 reading cycles
+2025-07-25 16:26:46,979 - INFO - Completed 30 reading cycles
+2025-07-25 16:26:51,976 - INFO - Completed 90 reading cycles
+2025-07-25 16:27:47,601 - INFO - Completed 40 reading cycles
+2025-07-25 16:27:50,814 - INFO - Completed 100 reading cycles
+2025-07-25 16:28:47,154 - INFO - Completed 50 reading cycles
+2025-07-25 16:28:50,938 - INFO - Completed 110 reading cycles
+2025-07-25 16:29:15,008 - INFO - Received signal 15. Shutting down...
+2025-07-25 16:29:15,012 - INFO - Received signal 15. Shutting down...
+2025-07-25 16:30:54,772 - INFO - Starting dashboard in headless mode...
+2025-07-25 16:30:54,940 - INFO - Modules imported successfully
+2025-07-25 16:30:54,947 - INFO - Connected to /dev/ttyUSB0
+2025-07-25 16:30:54,948 - INFO - Dashboard started with 1 devices
+2025-07-25 16:31:48,208 - INFO - Completed 10 reading cycles
+2025-07-25 16:32:01,836 - INFO - Received signal 15. Shutting down...
