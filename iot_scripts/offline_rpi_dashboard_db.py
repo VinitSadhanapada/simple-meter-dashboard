@@ -68,7 +68,7 @@ def run_dashboard():
 
     # Simple Pi details extraction from existing configs
     pi_name = socket.gethostname()
-    pi_ip = "10.252.27.59"  # default; will be overridden by device_config if present
+    pi_ip = "10.146.184.59"  # default; will be overridden by device_config if present
     pi_location = 'Unknown'
     if DEVICE_CONFIG and len(DEVICE_CONFIG) > 0:
         first_device = DEVICE_CONFIG[0]
@@ -152,10 +152,10 @@ def run_dashboard():
             f"Location '{location}': {len(meters)} devices, CSV: {csv_file if ENABLE_CSV_WRITE else 'DISABLED'}")
 
     # MQTT Config (set your broker IP/credentials)
-    MQTT_BROKER = CONFIG.get('MQTT_BROKER_IP', 'localhost')
-    MQTT_PORT = 1883 #int(os.getenv('MQTT_PORT', '1883'))
-    MQTT_USER = 'myuser'
-    MQTT_PASS = 'Mahadev@123'
+    MQTT_BROKER = os.environ.get('MQTT_BROKER', CONFIG.get('MQTT_BROKER_IP', 'localhost') or 'localhost')
+    MQTT_PORT = int(os.getenv('MQTT_PORT', '1883'))
+    MQTT_USER = os.environ.get('MQTT_USER', 'myuser')
+    MQTT_PASS = os.environ.get('MQTT_PASS', 'Mahadev@123')
     MQTT_TOPIC = 'meter/readings'
 
     def publish_meter_reading_mqtt(meter_data):

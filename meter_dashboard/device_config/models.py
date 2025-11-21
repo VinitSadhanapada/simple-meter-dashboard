@@ -225,6 +225,37 @@ class MeterDevice(models.Model):
         return cls.PREDEFINED_METER_MODELS
 
 
+def _default_usb_copy():
+    return {
+        "enabled": True,
+        "dest_root_name": "OfflineDashboard",
+        "subfolder": "data/csv",
+        "poll_interval_sec": 5,
+        "cooldown_seconds": 600,
+        "min_free_mb": 50,
+    }
+
+def _default_cloud_sync():
+    return {
+        "enabled": False,
+        "method": "rclone",
+        "interval_minutes": 10,
+        "interval_seconds": 10,
+        "network_test_host": "8.8.8.8",
+        "network_test_port": 53,
+        "min_age_seconds": 60,
+        "rclone_remote": "gdrive:",
+        "dest_path": "offline-dashboard/data/csv",
+        "snapshot_mode": {
+            "enabled": True,
+            "snapshot_dir": "data/snapshots/csv",
+            "state_file": "logs/.cloud_snapshot_state.json",
+        },
+        "rsync_target": "user@host:/path/to/offline-dashboard/data/csv",
+        "ssh_key": "/home/pi/.ssh/id_rsa",
+        "ssh_port": 22,
+    }
+
 class SystemConfiguration(models.Model):
     """Model to store system configuration for each Raspberry Pi"""
     raspberry_pi = models.OneToOneField(
@@ -249,6 +280,17 @@ class SystemConfiguration(models.Model):
     ]
     log_level = models.CharField(
         max_length=10, choices=LOG_LEVELS, default='INFO', help_text="Logging level")
+    enable_rtc = models.BooleanField(default=True, help_text="Enable RTC usage on Pi (always true if hardware present)")
+    # Extended MQTT config details
+    mqtt_port = models.PositiveIntegerField(default=1883, help_text="MQTT broker port")
+    mqtt_username = EncryptedCharField(max_length=100, blank=True, null=True, help_text="MQTT username (optional)")
+    mqtt_password = EncryptedCharField(max_length=100, blank=True, null=True, help_text="MQTT password (optional)")
+    mqtt_topic = models.CharField(max_length=200, default='meter/readings', help_text="MQTT topic for meter readings")
+    mqtt_tls = models.BooleanField(default=False, help_text="Use TLS for MQTT connection")
+    mqtt_qos = models.PositiveSmallIntegerField(default=0, help_text="MQTT QoS level")
+    # USB copy & cloud sync JSON configs (editable as raw JSON initially)
+    usb_copy_config = models.JSONField(default=_default_usb_copy, blank=True, help_text="USB copy behavior configuration")
+    cloud_sync_config = models.JSONField(default=_default_cloud_sync, blank=True, help_text="Cloud sync configuration block")
     last_updated = models.DateTimeField(auto_now=True)
     db_server_ip = models.GenericIPAddressField(
         blank=True, null=True, help_text="DB SERVER IP", verbose_name="DB SERVER IP"
@@ -268,17 +310,32 @@ class SystemConfiguration(models.Model):
         return f"Config for {self.raspberry_pi.pi_name}"
 
     def to_json(self):
-        """Convert configuration to JSON format"""
+        """Render configuration to JSON matching the RPI polling script format."""
+        mqtt_section = {
+            "MQTT_BROKER": self.mqtt_broker_ip or "",
+            "MQTT_PORT": self.mqtt_port,
+            "MQTT_USERNAME": self.mqtt_username,
+            "MQTT_PASSWORD": self.mqtt_password,
+            "MQTT_TOPIC": self.mqtt_topic,
+            "MQTT_TLS": self.mqtt_tls,
+            "MQTT_QOS": self.mqtt_qos,
+        }
+        # Allow editing raw JSON blocks; ensure essential defaults present if user cleared them.
+        usb_copy_section = {**_default_usb_copy(), **(self.usb_copy_config or {})}
+        cloud_sync_section = {**_default_cloud_sync(), **(self.cloud_sync_config or {})}
         return {
             "SIMULATION_MODE": self.simulation_mode,
             "READING_INTERVAL": self.reading_interval,
             "INTER_DEVICE_DELAY": self.inter_device_delay,
             "PORT": self.port,
-            "ENABLE_CSV_WRITE": self.enable_csv_write,
+            "ENABLE_MQTT": bool(self.mqtt_broker_ip),
+            "ENABLE_RTC": self.enable_rtc,
             "LOG_LEVEL": self.log_level,
+            "MQTT": mqtt_section,
+            "usb_copy": usb_copy_section,
+            "cloud_sync": cloud_sync_section,
             "DB_SERVER_IP": self.db_server_ip,
             "SERVER_API_IP": self.server_api_ip,
-            "MQTT_BROKER_IP": self.mqtt_broker_ip,
         }
 
 

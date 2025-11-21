@@ -19,7 +19,9 @@ import json
 load_dotenv()
 
 
-CELERY_BROKER_URL = 'redis://127.0.0.1:6379/0'
+# Celery broker & result backend (allow overrides; default to internal docker service name 'redis')
+CELERY_BROKER_URL = os.getenv('CELERY_BROKER_URL', 'redis://redis:6379/0')
+CELERY_RESULT_BACKEND = os.getenv('CELERY_RESULT_BACKEND', CELERY_BROKER_URL)
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
@@ -89,16 +91,26 @@ CONFIG_PATH = os.path.join(BASE_DIR, 'iot_scripts/config.json')
 with open(CONFIG_PATH) as f:
     CONFIG = json.load(f)
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'mfmdb',
-        'USER': 'mfmuser',
-        'PASSWORD': 'devi',
-        'HOST': CONFIG.get('DB_SERVER_IP', 'localhost'),  # Use config value
-        'PORT': '5432',
+if os.getenv('DB_ENGINE', 'postgresql').lower() == 'sqlite':
+    # Lightweight, self-contained DB for quick tests and containers
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        }
     }
-}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            # Allow environment overrides for containerized deployments; fallback to config.json
+            'NAME': os.getenv('DB_NAME', 'mfmdb'),
+            'USER': os.getenv('DB_USER', 'mfmuser'),
+            'PASSWORD': os.getenv('DB_PASSWORD', 'devi'),
+            'HOST': os.getenv('DB_HOST', CONFIG.get('DB_SERVER_IP', 'localhost')),
+            'PORT': os.getenv('DB_PORT', '5432'),
+        }
+    }
 
 # Alternative: Environment variable override (optional)
 # DATABASES = {
@@ -167,3 +179,7 @@ if not FIELD_ENCRYPTION_KEY:
     import warnings
     warnings.warn(
         "FIELD_ENCRYPTION_KEY not found in environment. Encrypted fields will not work properly.")
+
+# Device configuration export directory (used by device_config.signals)
+# Falls back to BASE_DIR/device_config_exports if not provided.
+DEVICE_CONFIG_EXPORT_DIR = os.getenv('DEVICE_CONFIG_EXPORT_DIR', os.path.join(BASE_DIR, 'device_config_exports'))

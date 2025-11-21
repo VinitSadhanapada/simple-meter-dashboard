@@ -74,20 +74,45 @@ def ssh_command_view(request):
                     'free -h',
                 ],
                 'bringup': [
+                    'bash -lc "echo ==== STEP 1/6: Ensure logs directory ===="',
                     # Ensure logs dir
                     'bash -lc "mkdir -p /home/pi/logs"',
+                    'bash -lc "echo ==== STEP 2/6: Start Mosquitto (MQTT broker) ===="',
                     # Start MQTT broker (mosquitto)
                     'bash -lc "(sudo -n systemctl start mosquitto || sudo -n service mosquitto start || true) && systemctl is-active mosquitto || true"',
+                    'bash -lc "echo ==== STEP 3/6: Start PostgreSQL ===="',
                     # Start PostgreSQL
                     'bash -lc "(sudo -n systemctl start postgresql || sudo -n service postgresql start || true) && systemctl is-active postgresql || true"',
+                    'bash -lc "echo ==== STEP 4/6: Start Redis ===="',
                     # Start Redis
                     'bash -lc "(sudo -n systemctl start redis-server || sudo -n service redis-server start || redis-server --daemonize yes || true) && (systemctl is-active redis-server || true)"',
+                    'bash -lc "echo ==== STEP 5/6: Start Celery worker and Ingestion ===="',
                     # Start Celery worker (background)
                     'bash -lc "cd /home/pi/Desktop/simple-meter-dashboard/meter_dashboard && /home/pi/Desktop/simple-meter-dashboard/venv/bin/celery -A meter_dashboard worker -l info > /home/pi/logs/celery_worker.log 2>&1 & echo CELERY_WORKER_PID:$!"',
                     # Start MQTT→DB ingestion (background)
                     'bash -lc "/home/pi/Desktop/simple-meter-dashboard/venv/bin/python /home/pi/Desktop/simple-meter-dashboard/iot_scripts/mqtt_to_db_ingest.py > /home/pi/logs/ingest.log 2>&1 & echo INGEST_PID:$!"',
-                    # Optional: offline dashboard runner if available
-                    'bash -lc "if [ -x \"$(command -v offline-rpi-dashboard-db)\" ]; then offline-rpi-dashboard-db --run > /home/pi/logs/offline_rpi_dashboard_db.log 2>&1 & echo OFFLINE_DB_PID:$!; elif [ -f /home/pi/Desktop/offline-setup-12Sep/offline_rpi_dashboard_debug.py ]; then /home/pi/Desktop/simple-meter-dashboard/venv/bin/python /home/pi/Desktop/offline-setup-12Sep/offline_rpi_dashboard_debug.py --run > /home/pi/logs/offline_rpi_dashboard.log 2>&1 & echo OFFLINE_DBG_PID:$!; else echo 'offline dashboard binary/script not found, skipping'; fi"',
+                    'bash -lc "echo ==== STEP 6/6: Start Offline Dashboard ===="',
+                    # Offline dashboard runner using offline_rpi_dashboard_db.py (no debug script)
+                    'bash -lc "if [ -f /home/pi/Desktop/simple-meter-dashboard/iot_scripts/offline_rpi_dashboard_db.py ]; then /home/pi/Desktop/simple-meter-dashboard/venv/bin/python /home/pi/Desktop/simple-meter-dashboard/iot_scripts/offline_rpi_dashboard_db.py --run > /home/pi/logs/offline_rpi_dashboard_db.log 2>&1 & echo OFFLINE_DB_PID:$!; else echo \"offline_rpi_dashboard_db.py not found, skipping\"; fi"',
+                    'bash -lc "echo ==== Bringup complete ===="',
+                ],
+                'status': [
+                    # Service states
+                    'bash -lc "(systemctl is-active --quiet mosquitto && echo MOSQUITTO:active) || (service mosquitto status >/dev/null 2>&1 && echo MOSQUITTO:active) || echo MOSQUITTO:inactive"',
+                    'bash -lc "(systemctl is-active --quiet postgresql && echo POSTGRESQL:active) || (service postgresql status >/dev/null 2>&1 && echo POSTGRESQL:active) || echo POSTGRESQL:inactive"',
+                    'bash -lc "(systemctl is-active --quiet redis-server && echo REDIS:active) || (service redis-server status >/dev/null 2>&1 && echo REDIS:active) || echo REDIS:inactive"',
+                    # Running PIDs (space-separated)
+                    'bash -lc "CEL=$(pgrep -f \"celery -A meter_dashboard worker\" | paste -sd\' \" \" - 2>/dev/null); [ -n \"$CEL\" ] && echo \"Celery PIDs: $CEL\" || echo \"Celery: not running\""',
+                    'bash -lc "ING=$(pgrep -f mqtt_to_db_ingest.py | paste -sd\' \" \" - 2>/dev/null); [ -n \"$ING\" ] && echo \"Ingest PIDs: $ING\" || echo \"Ingest: not running\""',
+                    'bash -lc "OFF=$(pgrep -f offline_rpi_dashboard_db.py | paste -sd\' \" \" - 2>/dev/null); [ -n \"$OFF\" ] && echo \"Offline DB PIDs: $OFF\" || echo \"Offline DB: not running\""',
+                ],
+                'stop': [
+                    # Stop Celery worker
+                    'bash -lc "pkill -f \"celery -A meter_dashboard worker\" || true; sleep 1; pgrep -f \"celery -A meter_dashboard worker\" >/dev/null 2>&1 && echo \"Celery: still running\" || echo \"Celery: stopped\""',
+                    # Stop ingestion
+                    'bash -lc "pkill -f mqtt_to_db_ingest.py || true; sleep 1; pgrep -f mqtt_to_db_ingest.py >/dev/null 2>&1 && echo \"Ingest: still running\" || echo \"Ingest: stopped\""',
+                    # Stop offline dashboard db runner
+                    'bash -lc "pkill -f offline_rpi_dashboard_db.py || true; sleep 1; pgrep -f offline_rpi_dashboard_db.py >/dev/null 2>&1 && echo \"Offline DB: still running\" || echo \"Offline DB: stopped\""',
                 ],
             }
             cmds = sequences.get(preset)

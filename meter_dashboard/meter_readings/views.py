@@ -9,21 +9,33 @@ from django.conf import settings
 
 def api_meter_readings(request):
     db_settings = getattr(settings, 'DATABASES', {}).get('default', {})
-    conn = psycopg2.connect(
-        dbname=db_settings.get('NAME', 'mfmdb'),
-        user=db_settings.get('USER', 'mfmuser'),
-        password=db_settings.get('PASSWORD', 'devi'),
-        host=db_settings.get('HOST', 'localhost'),
-        port=db_settings.get('PORT', 5432)
-    )
-    cur = conn.cursor()
+    conn = None
+    cur = None
+    rows = []
+    columns = []
     try:
-        cur.execute('SELECT * FROM meter_readings ORDER BY time DESC LIMIT 10;')
-        rows = cur.fetchall()
-        columns = [desc[0] for desc in cur.description]
+        conn = psycopg2.connect(
+            dbname=db_settings.get('NAME', 'mfmdb'),
+            user=db_settings.get('USER', 'mfmuser'),
+            password=db_settings.get('PASSWORD', 'devi'),
+            host=db_settings.get('HOST', 'localhost'),
+            port=db_settings.get('PORT', 5432)
+        )
+        cur = conn.cursor()
+        try:
+            cur.execute('SELECT * FROM meter_readings ORDER BY time DESC LIMIT 10;')
+            rows = cur.fetchall()
+            columns = [desc[0] for desc in cur.description]
+        except Exception:
+            # Table may not exist yet; return empty result
+            rows, columns = [], []
     finally:
-        cur.close()
-        conn.close()
+        try:
+            if cur is not None:
+                cur.close()
+        finally:
+            if conn is not None:
+                conn.close()
     # Return as JSON: list of dicts
     data = [dict(zip(columns, row)) for row in rows]
     return JsonResponse({'readings': data})
@@ -42,39 +54,42 @@ def _fetch_recent_alert_events(device_id=None, limit=300):
 
 
 def latest_readings(request):
-    # Show all meters, with latest reading if available, else 'No data'
-    from device_config.models import MeterDevice
+
+    # Show only meters with actual readings
     import psycopg2
     db_settings = getattr(settings, 'DATABASES', {}).get('default', {})
-    conn = psycopg2.connect(
-        dbname=db_settings.get('NAME', 'mfmdb'),
-        user=db_settings.get('USER', 'mfmuser'),
-        password=db_settings.get('PASSWORD', 'devi'),
-        host=db_settings.get('HOST', 'localhost'),
-        port=db_settings.get('PORT', 5432)
-    )
-    cur = conn.cursor()
+    conn = None
+    cur = None
+    readings = []
+    columns = []
     try:
-        cur.execute("SELECT DISTINCT ON (meter_name) * FROM meter_readings ORDER BY meter_name, time DESC;")
-        readings = cur.fetchall()
-        columns = [desc[0] for desc in cur.description]
-        readings_by_name = {row[columns.index('meter_name')]: row for row in readings}
+        conn = psycopg2.connect(
+            dbname=db_settings.get('NAME', 'mfmdb'),
+            user=db_settings.get('USER', 'mfmuser'),
+            password=db_settings.get('PASSWORD', 'devi'),
+            host=db_settings.get('HOST', 'localhost'),
+            port=db_settings.get('PORT', 5432)
+        )
+        cur = conn.cursor()
+        try:
+            cur.execute("SELECT DISTINCT ON (meter_name) * FROM meter_readings ORDER BY meter_name, time DESC;")
+            readings = cur.fetchall()
+            columns = [desc[0] for desc in cur.description]
+        except Exception:
+            readings, columns = [], []
     finally:
-        cur.close()
-        conn.close()
-
-    meters = MeterDevice.objects.all()
-    all_rows = []
-    for meter in meters:
-        meter_name = meter.meter_name
-        if meter_name in readings_by_name:
-            all_rows.append(readings_by_name[meter_name])
-        else:
-            # Fill with 'No data' for all columns except meter_name
-            row = ['No data'] * len(columns)
-            if 'meter_name' in columns:
-                row[columns.index('meter_name')] = meter_name
-            all_rows.append(row)
+        try:
+            if cur is not None:
+                cur.close()
+        finally:
+            if conn is not None:
+                conn.close()
+    all_rows = readings
+    # Debug after computing all_rows
+    try:
+        print("DEBUG all_rows:", all_rows)
+    except Exception:
+        pass
 
     # Compute active alerts from Redis events (no current_alerts.json)
     events = _fetch_recent_alert_events(limit=500)

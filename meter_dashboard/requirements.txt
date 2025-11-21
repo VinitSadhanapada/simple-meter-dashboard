@@ -41,3 +41,16 @@ requests==2.25.1
 # Utilities
 six==1.16.0
 typing_extensions==4.14.1
+
+# Task queue (Celery) and broker client
+celery==5.5.3
+redis==6.4.0
+
+# Encrypted model fields
+django-encrypted-model-fields==0.6.5
+
+# SSH for remote command support used by ssh_api
+paramiko==3.5.0
+
+# Plotting (used by meters.views)
+matplotlib==3.10.5

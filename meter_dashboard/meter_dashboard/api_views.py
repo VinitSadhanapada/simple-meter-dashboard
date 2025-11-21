@@ -33,7 +33,17 @@ import os
 import sys
 import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
-from iot_scripts.alerting.celery_alert_tasks import fetch_recent_alert_events
+def _safe_fetch_recent_alert_events(device_id=None, limit=100):
+    """Attempt to import and call Redis-backed alert fetcher; fall back to empty list on any error."""
+    try:
+        import os, sys
+        base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
+        if base_dir not in sys.path:
+            sys.path.append(base_dir)
+        from iot_scripts.alerting.celery_alert_tasks import fetch_recent_alert_events as _fetch
+        return _fetch(device_id=device_id, limit=limit)
+    except Exception:
+        return []
 import math
 
 @csrf_exempt
@@ -41,8 +51,16 @@ def api_root(request):
 
     # Get all readings for the latest timestamp (synchronized cycle for all meters)
     latest_readings = []
+    from django.conf import settings
+    db_settings = settings.DATABASES['default']
     try:
-        conn = psycopg2.connect(dbname='mfmdb', user='mfmuser', password='devi', host='localhost', port='5432')
+        conn = psycopg2.connect(
+            dbname=db_settings['NAME'],
+            user=db_settings['USER'],
+            password=db_settings['PASSWORD'],
+            host=db_settings['HOST'],
+            port=db_settings['PORT']
+        )
         cur = conn.cursor()
         # Return the latest reading for each meter (previous logic)
         cur.execute("""
@@ -77,7 +95,7 @@ def api_root(request):
 def api_alert_events(request):
     device_id = request.GET.get('device_id')
     limit = int(request.GET.get('limit', 100))
-    events = fetch_recent_alert_events(device_id=device_id, limit=limit)
+    events = _safe_fetch_recent_alert_events(device_id=device_id, limit=limit)
     return JsonResponse({'events': events})
 
 
@@ -85,7 +103,7 @@ def api_alert_events(request):
 def api_alerts_geomap(request):
     try:
         # 1) Pull recent alert events and compute active status per device
-        events = fetch_recent_alert_events(limit=1000)
+        events = _safe_fetch_recent_alert_events(limit=1000)
         last_by_key = {}
         for e in events:
             # Normalize device_id to string for consistent dict keys
@@ -106,8 +124,16 @@ def api_alerts_geomap(request):
 
         # 2) Build device_id -> meter_name mapping from DB
         dev_to_meter = {}
+        from django.conf import settings
+        db_settings = settings.DATABASES['default']
         try:
-            conn = psycopg2.connect(dbname='mfmdb', user='mfmuser', password='devi', host='localhost', port='5432')
+            conn = psycopg2.connect(
+                dbname=db_settings['NAME'],
+                user=db_settings['USER'],
+                password=db_settings['PASSWORD'],
+                host=db_settings['HOST'],
+                port=db_settings['PORT']
+            )
             cur = conn.cursor()
             cur.execute("""
                 SELECT DISTINCT ON (device_id) device_id, meter_name
@@ -126,8 +152,16 @@ def api_alerts_geomap(request):
         # 3) Determine full meter list from existing readings (no migrations needed)
         meter_list = []  # list of (meter_name, device_id or None)
         meter_to_dev = {}
+        from django.conf import settings
+        db_settings = settings.DATABASES['default']
         try:
-            conn = psycopg2.connect(dbname='mfmdb', user='mfmuser', password='devi', host='localhost', port='5432')
+            conn = psycopg2.connect(
+                dbname=db_settings['NAME'],
+                user=db_settings['USER'],
+                password=db_settings['PASSWORD'],
+                host=db_settings['HOST'],
+                port=db_settings['PORT']
+            )
             cur = conn.cursor()
             cur.execute("""
                 SELECT DISTINCT ON (meter_name) meter_name, device_id

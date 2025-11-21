@@ -202,10 +202,13 @@ class MeterDeviceAdmin(admin.ModelAdmin):
 
 @admin.register(SystemConfiguration)
 class SystemConfigurationAdmin(admin.ModelAdmin):
-    list_display = ['raspberry_pi', 'simulation_mode',
-                    'reading_interval', 'port', 'enable_csv_write', 'db_server_ip', 'server_api_ip', 'mqtt_broker_ip', 'log_level', 'last_updated']
-    list_filter = ['simulation_mode', 'log_level', 'enable_csv_write']
-    search_fields = ['raspberry_pi__pi_name', 'raspberry_pi__pi_ip']
+    list_display = [
+        'raspberry_pi', 'simulation_mode', 'reading_interval', 'inter_device_delay', 'port',
+        'enable_rtc', 'enable_csv_write', 'mqtt_broker_ip', 'mqtt_port', 'mqtt_topic', 'mqtt_tls',
+        'log_level', 'last_updated'
+    ]
+    list_filter = ['simulation_mode', 'log_level', 'enable_csv_write', 'mqtt_tls']
+    search_fields = ['raspberry_pi__pi_name', 'raspberry_pi__pi_ip', 'mqtt_topic']
     readonly_fields = ['last_updated']
 
     fieldsets = (
@@ -213,11 +216,25 @@ class SystemConfigurationAdmin(admin.ModelAdmin):
             'fields': ('raspberry_pi',)
         }),
         ('Reading Configuration', {
-            'fields': ('simulation_mode', 'reading_interval', 'inter_device_delay', 'port', 'enable_csv_write', 'db_server_ip', 'server_api_ip', 'mqtt_broker_ip')
+            'fields': ('simulation_mode', 'reading_interval', 'inter_device_delay', 'port', 'enable_rtc', 'enable_csv_write')
         }),
-
+        ('MQTT Settings', {
+            'fields': ('mqtt_broker_ip', 'mqtt_port', 'mqtt_username', 'mqtt_password', 'mqtt_topic', 'mqtt_tls', 'mqtt_qos')
+        }),
+        ('USB Copy', {
+            'fields': ('usb_copy_config',),
+            'classes': ('collapse',)
+        }),
+        ('Cloud Sync', {
+            'fields': ('cloud_sync_config',),
+            'classes': ('collapse',)
+        }),
         ('Logging', {
             'fields': ('log_level',)
+        }),
+        ('Legacy / Network', {
+            'fields': ('db_server_ip', 'server_api_ip'),
+            'classes': ('collapse',)
         }),
         ('Timestamps', {
             'fields': ('last_updated',),

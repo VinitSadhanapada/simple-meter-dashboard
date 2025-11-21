@@ -144,6 +144,13 @@ function sendSSHCommand() {
 function runPreset(pi_id, preset) {
   clearTerminal();
   appendToTerminal(`# Running preset: ${preset}`, 'out');
+  // Immediate feedback + simple progress ticker while waiting
+  appendToTerminal('… working', 'out');
+  let ticks = 0;
+  const ticker = setInterval(() => {
+    ticks += 1;
+    appendToTerminal(`… still running (${ticks}s)`, 'out');
+  }, 1000);
   fetch('/ssh-command/', {
     method: 'POST',
     headers: {'Content-Type': 'application/json'},
@@ -151,6 +158,7 @@ function runPreset(pi_id, preset) {
   })
   .then(r => r.json())
   .then(data => {
+    clearInterval(ticker);
     if (data.error) {
       appendToTerminal(`Error: ${data.error}`, 'out');
       return;
@@ -159,7 +167,7 @@ function runPreset(pi_id, preset) {
     if (out) appendToTerminal(out, 'out');
     if (data.stderr) appendToTerminal(`stderr: ${data.stderr}`, 'out');
   })
-  .catch(err => appendToTerminal(`Request failed: ${err}`, 'out'));
+  .catch(err => { clearInterval(ticker); appendToTerminal(`Request failed: ${err}`, 'out') });
 }
 
 // Enter key sends command

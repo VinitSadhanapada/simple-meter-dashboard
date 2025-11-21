@@ -1,0 +1,44 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Distribution / packaging
+build/
+dist/
+.eggs/
+*.egg-info/
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+
+# Git and editor files
+.git/
+.gitignore
+.gitattributes
+.vscode/
+.idea/
+
+# Logs and temporary files
+*.log
+logs/
+**/logs/
+.tmp/
+.cache/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Test artifacts
+.coverage
+.pytest_cache/
+
+# Not needed in image
+archive/
+legacy/
+postgresql_schema_dump/
+packages_folder/
+**/__pycache__/

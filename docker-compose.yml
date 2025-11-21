@@ -1,0 +1,41 @@
+
+services:
+  app:
+    build: .
+    container_name: meter_dashboard
+    environment:
+      FIELD_ENCRYPTION_KEY: ${FIELD_ENCRYPTION_KEY}
+      DB_HOST: ${DB_HOST:-192.168.112.106}
+      DB_PORT: ${DB_PORT:-5432}
+      DB_NAME: ${DB_NAME:-mfmdb}
+      DB_USER: ${DB_USER:-mfmuser}
+      DB_PASSWORD: ${DB_PASSWORD:-devi}
+      # Enable async alert dispatching when testing the full pipeline locally
+      DISABLE_ALERT_DISPATCH: "0"
+      # Point Celery/alerting at the host Redis by default for local testing.
+      # This resolves to the host IP inside the container via extra_hosts mapping.
+      CELERY_BROKER_URL: ${CELERY_BROKER_URL:-redis://host.docker.internal:6379/0}
+      REDIS_URL: ${REDIS_URL:-redis://host.docker.internal:6379/0}
+      DEVICE_CONFIG_EXPORT_DIR: /app/device_config_exports
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+      - ./device_config_exports:/app/device_config_exports
+    # If you want the app container to reach the host Redis process on Linux,
+    # map host.docker.internal to the host gateway. This requires Docker daemon
+    # support for the host-gateway DNS name. See docs if it fails.
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+networks:
+  default:
+    name: my_app_net
+
+volumes:
+  postgres_data:
+  # Note: Redis is expected to run on the host at 127.0.0.1:6379 for local tests.
+  # If you prefer containerized Redis, add a redis service and remove the
+  # extra_hosts mapping above (but avoid binding host port 6379 if a host
+  # Redis is already running).
+  redis_data:

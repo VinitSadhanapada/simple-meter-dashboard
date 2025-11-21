@@ -1,15 +1,24 @@
 import json
 import os
 import requests
-import paramiko
 from io import StringIO
+import logging
+
+logger = logging.getLogger(__name__)
+
+# Paramiko is optional: if not installed, we'll disable SSH deployment gracefully
+try:
+    import paramiko  # type: ignore
+    _PARAMIKO_AVAILABLE = True
+except ImportError as e:  # pragma: no cover
+    _PARAMIKO_AVAILABLE = False
+    logger.warning(
+        "Paramiko not available (%s). Configuration deployments will be skipped.", e
+    )
 from django.conf import settings
 from django.utils import timezone
 from .models import RaspberryPi, MeterDevice, SystemConfiguration, ConfigurationDeployment
 from .serializers import MeterDeviceJSONSerializer
-import logging
-
-logger = logging.getLogger(__name__)
 
 
 class ConfigurationDeploymentService:
@@ -53,11 +62,12 @@ class ConfigurationDeploymentService:
             device_config = [MeterDeviceJSONSerializer(
                 meter).data for meter in meters]
 
-            # Deploy to Raspberry Pi
+            # Deploy to Raspberry Pi (legacy strict JSON only)
+            content = json.dumps(device_config, indent=2)
             success = self._deploy_file_to_pi(
                 raspberry_pi,
                 'device_config.json',
-                json.dumps(device_config, indent=2)
+                content
             )
 
             # Update deployment status
@@ -100,11 +110,12 @@ class ConfigurationDeploymentService:
             # Generate system config JSON
             config_data = system_config.to_json()
 
-            # Deploy to Raspberry Pi
+            # Deploy to Raspberry Pi (strict JSON only)
+            content = json.dumps(config_data, indent=2)
             success = self._deploy_file_to_pi(
                 raspberry_pi,
                 'config.json',
-                json.dumps(config_data, indent=2)
+                content
             )
 
             # Update deployment status
@@ -149,10 +160,12 @@ class ConfigurationDeploymentService:
                     raspberry_pi=raspberry_pi, is_active=True)
                 device_config = [MeterDeviceJSONSerializer(
                     meter).data for meter in meters]
+                # Deploy device config (strict JSON only)
+                content_device = json.dumps(device_config, indent=2)
                 success_device = self._deploy_file_to_pi(
                     raspberry_pi,
                     'device_config.json',
-                    json.dumps(device_config, indent=2)
+                    content_device,
                 )
                 if not success_device:
                     error_messages.append(
@@ -167,10 +180,11 @@ class ConfigurationDeploymentService:
                     raspberry_pi=raspberry_pi
                 )
                 config_data = system_config.to_json()
+                content_system = json.dumps(config_data, indent=2)
                 success_system = self._deploy_file_to_pi(
                     raspberry_pi,
                     'config.json',
-                    json.dumps(config_data, indent=2)
+                    content_system,
                 )
                 if not success_system:
                     error_messages.append(
@@ -200,16 +214,22 @@ class ConfigurationDeploymentService:
             return None
 
     def _deploy_file_to_pi(self, raspberry_pi, filename, content):
-        """Deploy a file to Raspberry Pi via SSH"""
-        try:
-            # Get SSH configuration for this specific Pi
-            ssh_config = self._get_pi_ssh_config(raspberry_pi)
+        """Deploy a file to Raspberry Pi via SSH.
+        Returns False immediately if Paramiko is unavailable.
+        """
+        if not _PARAMIKO_AVAILABLE:
+            logger.warning(
+                "Skipping deployment of %s to %s because Paramiko is not installed.",
+                filename,
+                raspberry_pi.pi_ip,
+            )
+            return False
 
-            # Create SSH client
+        try:
+            ssh_config = self._get_pi_ssh_config(raspberry_pi)
             ssh = paramiko.SSHClient()
             ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
-            # Connect to Raspberry Pi - support both key and password auth
             connect_kwargs = {
                 'hostname': raspberry_pi.pi_ip,
                 'username': ssh_config['username'],
@@ -218,117 +238,93 @@ class ConfigurationDeploymentService:
             }
 
             if ssh_config['key_path'] and os.path.exists(ssh_config['key_path']):
-                # Use SSH key authentication
                 connect_kwargs['key_filename'] = ssh_config['key_path']
                 logger.info(
-                    f"Connecting to {raspberry_pi.pi_ip} using SSH key: {ssh_config['key_path']}")
+                    "Connecting to %s using SSH key: %s", raspberry_pi.pi_ip, ssh_config['key_path']
+                )
             else:
-                # Use password authentication
                 connect_kwargs['password'] = ssh_config['password']
                 logger.info(
-                    f"Connecting to {raspberry_pi.pi_ip} using password authentication")
+                    "Connecting to %s using password authentication", raspberry_pi.pi_ip
+                )
 
             ssh.connect(**connect_kwargs)
-
-            # Create config directory if it doesn't exist
             ssh.exec_command(f'mkdir -p {ssh_config["config_path"]}')
-
-            # Upload file
             sftp = ssh.open_sftp()
             remote_path = f"{ssh_config['config_path']}/{filename}"
-
-            # Write content to remote file
             with sftp.file(remote_path, 'w') as remote_file:
                 remote_file.write(content)
-
             sftp.close()
             ssh.close()
-
-            logger.info(
-                f"Successfully deployed {filename} to {raspberry_pi.pi_ip}")
+            logger.info("Successfully deployed %s to %s", filename, raspberry_pi.pi_ip)
             return True
-
         except Exception as e:
             logger.error(
-                f"Failed to deploy {filename} to {raspberry_pi.pi_ip}: {str(e)}")
+                "Failed to deploy %s to %s: %s", filename, raspberry_pi.pi_ip, e
+            )
             return False
 
     def test_pi_connection(self, raspberry_pi):
-        """Test SSH connection to a Raspberry Pi"""
+        """Test SSH connection to a Raspberry Pi. Returns False if Paramiko missing."""
+        if not _PARAMIKO_AVAILABLE:
+            return False, "Paramiko not installed"
         try:
-            # Get SSH configuration for this specific Pi
             ssh_config = self._get_pi_ssh_config(raspberry_pi)
-
             ssh = paramiko.SSHClient()
             ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-
             connect_kwargs = {
                 'hostname': raspberry_pi.pi_ip,
                 'username': ssh_config['username'],
                 'port': ssh_config['port'],
                 'timeout': 10
             }
-
             if ssh_config['key_path'] and os.path.exists(ssh_config['key_path']):
                 connect_kwargs['key_filename'] = ssh_config['key_path']
             else:
                 connect_kwargs['password'] = ssh_config['password']
-
             ssh.connect(**connect_kwargs)
-
-            # Test command
-            stdin, stdout, stderr = ssh.exec_command(
-                'echo "Connection test successful"')
-            result = stdout.read().decode()
-
+            stdin, stdout, stderr = ssh.exec_command('echo "Connection test successful"')
+            result = stdout.read().decode().strip()
             ssh.close()
-            return True, result.strip()
-
+            return True, result
         except Exception as e:
             return False, str(e)
 
     def get_pi_status(self, raspberry_pi):
-        """Get current status and configuration files from Raspberry Pi"""
+        """Get current status and configuration files from Raspberry Pi.
+        Returns error if Paramiko unavailable.
+        """
+        if not _PARAMIKO_AVAILABLE:
+            return False, {"error": "Paramiko not installed"}
         try:
-            # Get SSH configuration for this specific Pi
             ssh_config = self._get_pi_ssh_config(raspberry_pi)
-
             ssh = paramiko.SSHClient()
             ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-
             connect_kwargs = {
                 'hostname': raspberry_pi.pi_ip,
                 'username': ssh_config['username'],
                 'port': ssh_config['port'],
                 'timeout': 10
             }
-
             if ssh_config['key_path'] and os.path.exists(ssh_config['key_path']):
                 connect_kwargs['key_filename'] = ssh_config['key_path']
             else:
                 connect_kwargs['password'] = ssh_config['password']
-
             ssh.connect(**connect_kwargs)
-
             status = {}
-
-            # Check if config files exist
-            for filename in ['device_config.json', 'config.json']:
+            # Check for either strict JSON or JSONC variants so status shows
+            # presence even if the Pi still has an older `*.jsonc` file.
+            for filename in ['device_config.json', 'device_config.jsonc', 'config.json', 'config.jsonc']:
                 file_path = f"{ssh_config['config_path']}/{filename}"
                 stdin, stdout, stderr = ssh.exec_command(
-                    f'test -f {file_path} && echo "exists" || echo "missing"')
+                    f'test -f {file_path} && echo "exists" || echo "missing"'
+                )
                 status[filename] = stdout.read().decode().strip()
-
-            # Get system uptime
             stdin, stdout, stderr = ssh.exec_command('uptime')
             status['uptime'] = stdout.read().decode().strip()
-
-            # Get disk usage
             stdin, stdout, stderr = ssh.exec_command('df -h /')
             status['disk_usage'] = stdout.read().decode().strip()
-
             ssh.close()
             return True, status
-
         except Exception as e:
             return False, {"error": str(e)}
