@@ -2,31 +2,6 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from .models import RaspberryPi
 from .services import ConfigurationDeploymentService
-
-@login_required
-def deploy_config(request, pi_id):
-    """Deploy configuration to a specific Pi"""
-    pi = get_object_or_404(RaspberryPi, id=pi_id)
-
-    if request.method == 'POST':
-        deployment_type = request.POST.get('deployment_type', 'BOTH')
-        service = ConfigurationDeploymentService()
-
-        if deployment_type == 'DEVICE_CONFIG':
-            deployment = service.deploy_device_config(pi_id)
-        elif deployment_type == 'SYSTEM_CONFIG':
-            deployment = service.deploy_system_config(pi_id)
-        else:
-            deployment = service.deploy_both_configs(pi_id)
-
-        if deployment and deployment.status == 'SUCCESS':
-            messages.success(
-                request, f'Configuration deployed successfully to {pi.pi_name}')
-        else:
-            messages.error(
-                request, f'Failed to deploy configuration to {pi.pi_name}')
-
-    return redirect('device_config:pi_detail', pi_id=pi_id)
 from django.shortcuts import render, get_object_or_404, redirect
 from django.http import JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -93,26 +68,33 @@ def meter_list(request):
 
 @login_required
 def deploy_config(request, pi_id):
-    """Deploy configuration to a specific Pi"""
+    """Deploy configuration to a specific Pi, supporting optional section excludes."""
     pi = get_object_or_404(RaspberryPi, id=pi_id)
 
     if request.method == 'POST':
         deployment_type = request.POST.get('deployment_type', 'BOTH')
+        # Collect optional excludes from the form (present for SYSTEM_CONFIG/BOTH)
+        excludes = {
+            'reading': bool(request.POST.get('exclude_reading')),
+            'mqtt': bool(request.POST.get('exclude_mqtt')),
+            'usb_copy': bool(request.POST.get('exclude_usb_copy')),
+            'cloud_sync': bool(request.POST.get('exclude_cloud_sync')),
+            'logging': bool(request.POST.get('exclude_logging')),
+            'legacy_network': bool(request.POST.get('exclude_legacy_network')),
+        }
         service = ConfigurationDeploymentService()
 
         if deployment_type == 'DEVICE_CONFIG':
             deployment = service.deploy_device_config(pi_id)
         elif deployment_type == 'SYSTEM_CONFIG':
-            deployment = service.deploy_system_config(pi_id)
+            deployment = service.deploy_system_config(pi_id, excludes)
         else:
-            deployment = service.deploy_both_configs(pi_id)
+            deployment = service.deploy_both_configs(pi_id, excludes)
 
         if deployment and deployment.status == 'SUCCESS':
-            messages.success(
-                request, f'Configuration deployed successfully to {pi.pi_name}')
+            messages.success(request, f'Configuration deployed successfully to {pi.pi_name}')
         else:
-            messages.error(
-                request, f'Failed to deploy configuration to {pi.pi_name}')
+            messages.error(request, f'Failed to deploy configuration to {pi.pi_name}')
 
     return redirect('device_config:pi_detail', pi_id=pi_id)
 

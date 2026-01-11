@@ -1,43 +1,44 @@
-
-{% comment %} Orange public UI template {% endcomment %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ page_title }}</title>
-    <link rel="stylesheet" href="/static/admin-orange.css">
     <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0;
-            padding: 0;
             background-color: #f5f5f5;
         }
         .header {
             background: linear-gradient(135deg, #ff6b35, #f7931e);
-            padding: 15px 0;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 20px 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            color: white;
+        }
+        .header h1 {
+            text-align: center;
+            margin: 0;
+            font-size: 2rem;
         }
         .navbar {
             background-color: #ff6b35;
             padding: 10px 0;
-        }
-        .navbar-brand {
-            color: white;
-            font-weight: bold;
-            font-size: 1.5rem;
+            text-align: center;
         }
         .nav-link {
-            color: white !important;
-            margin: 0 10px;
+            color: white;
+            text-decoration: none;
+            margin: 0 15px;
+            padding: 8px 16px;
+            border-radius: 4px;
+            transition: background 0.3s;
         }
         .nav-link:hover {
-            color: #ffe0d6 !important;
+            background-color: rgba(255,255,255,0.2);
         }
         .container {
-            /* Increased width for the white box */
-            max-width: 1400px;
+            max-width: 1600px;
             width: 95%;
             margin: 30px auto;
             background: white;
@@ -45,189 +46,578 @@
             box-shadow: 0 2px 8px rgba(0,0,0,0.07);
             padding: 30px;
         }
-        h1, h2, h3 {
-            color: #ff6b35;
+        
+        /* Filter Panel */
+        .filter-panel {
+            background: #f8f9fa;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 25px;
         }
-        .alert {
-            background: #ffe0d6;
-            color: #b23c00;
-            border-left: 5px solid #ff6b35;
-            padding: 10px 20px;
+        .filter-section {
             margin-bottom: 20px;
-            font-weight: bold;
         }
-        .row-has-alert td {
-            background-color: #fff6f2;
+        .filter-section:last-child {
+            margin-bottom: 0;
+        }
+        .filter-label {
+            font-weight: 600;
+            color: #333;
+            display: block;
+            margin-bottom: 10px;
+            font-size: 0.95rem;
+        }
+        .view-mode-toggle {
+            display: flex;
+            gap: 10px;
+        }
+        .view-mode-btn {
+            padding: 10px 20px;
+            border: 2px solid #ff6b35;
+            background: white;
+            color: #ff6b35;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        .view-mode-btn.active {
+            background: #ff6b35;
+            color: white;
+        }
+        .view-mode-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(255,107,53,0.3);
+        }
+        .meter-select {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .meter-checkbox {
+            display: flex;
+            align-items: center;
+            padding: 8px 12px;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .meter-checkbox:hover {
+            background: #fff3ef;
+            border-color: #ff6b35;
+        }
+        .meter-checkbox input {
+            margin-right: 8px;
+        }
+        .time-range {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .time-range input {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            width: 100px;
+        }
+        
+        /* Column Groups */
+        .column-groups {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        .column-group {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 12px;
+            flex: 1;
+            min-width: 200px;
+        }
+        .column-group h4 {
+            color: #ff6b35;
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #ff6b35;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .toggle-all-btn {
+            font-size: 0.7rem;
+            padding: 3px 8px;
+            background: #fff;
+            border: 1px solid #ff6b35;
+            color: #ff6b35;
+            border-radius: 3px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        .toggle-all-btn:hover {
+            background: #ff6b35;
+            color: white;
+        }
+        .column-item {
+            display: flex;
+            align-items: center;
+            padding: 4px 0;
+            font-size: 0.85rem;
+        }
+        .column-item input {
+            margin-right: 6px;
+        }
+        
+        /* Action Buttons */
+        .action-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 15px 0;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
         }
         .btn-primary {
             background: #ff6b35;
             color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 4px;
-            cursor: pointer;
         }
         .btn-primary:hover {
             background: #f7931e;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(255,107,53,0.3);
         }
-        .table-responsive {
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+        .btn-success:hover {
+            background: #218838;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(40,167,69,0.3);
+        }
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        
+        /* Table */
+        .table-container {
             overflow-x: auto;
-            -webkit-overflow-scrolling: touch;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            margin-top: 20px;
         }
         table {
             width: 100%;
             border-collapse: collapse;
+            font-size: 0.9rem;
         }
         th, td {
-            border: 1px solid #eee;
-            padding: 8px;
+            padding: 12px 10px;
             text-align: left;
+            border-bottom: 1px solid #e0e0e0;
         }
         th {
             background: #ff6b35;
             color: white;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+            z-index: 10;
         }
-        /* Map container */
-        #alerts-map { height: 380px; width: 100%; margin: 20px 0 10px; border: 1px solid #eee; border-radius: 6px; }
-        .map-legend { font-size: 0.9rem; color: #555; margin-bottom: 10px; }
+        tbody tr:hover {
+            background-color: #fff6f2;
+        }
+        .row-has-alert {
+            background-color: #ffe0d6 !important;
+        }
+        .col-hidden {
+            display: none;
+        }
+        
+        /* Search */
+        .search-box {
+            padding: 10px 15px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            width: 300px;
+            font-size: 0.95rem;
+        }
+        .search-box:focus {
+            outline: none;
+            border-color: #ff6b35;
+        }
+        
+        /* Record Count */
+        .record-count {
+            font-size: 0.9rem;
+            color: #666;
+            font-weight: 500;
+        }
     </style>
 </head>
 <body>
     <div class="header">
-        <div class="navbar">
-            <span class="navbar-brand">Meter Dashboard</span>
-            <a class="nav-link" href="/">Home</a>
-            <a class="nav-link" href="/api/">API</a>
-            <a class="nav-link" href="/dashboard/">Dashboard</a>
-        </div>
+        <h1>{{ page_title }}</h1>
     </div>
+    <div class="navbar">
+        <a class="nav-link" href="/">Home</a>
+        <a class="nav-link" href="/meter_readings/">Dashboard</a>
+        <a class="nav-link" href="/api/">API</a>
+    </div>
+    
     <div class="container">
-        <h2>{{ page_title }}</h2>
-    <div class="map-legend">All meters are placed in a synthetic circle; markers turn red when the meter has active alerts.</div>
-        <div id="alerts-map"></div>
-        {% if alert_state and alert_state.active_alerts %}
-        <div id="alert-box">
-            {% for meter, alerts in alert_state.active_alerts.items %}
-                {% for a in alerts %}
-                    <div class="alert">{{ meter }}: {{ a }}</div>
-                {% endfor %}
-            {% endfor %}
+        <!-- Filter Panel -->
+        <div class="filter-panel">
+            <form method="GET" id="filterForm">
+                <!-- View Mode Toggle -->
+                <div class="filter-section">
+                    <label class="filter-label">View Mode</label>
+                    <div class="view-mode-toggle">
+                        <button type="button" class="view-mode-btn {% if view_mode == 'latest' %}active{% endif %}" 
+                                onclick="setViewMode('latest')">Latest Reading</button>
+                        <button type="button" class="view-mode-btn {% if view_mode == 'timeseries' %}active{% endif %}" 
+                                onclick="setViewMode('timeseries')">Time Series</button>
+                    </div>
+                    <input type="hidden" name="view_mode" id="view_mode_input" value="{{ view_mode }}">
+                </div>
+                
+                <!-- Time Range (for time series) -->
+                {% if view_mode == 'timeseries' %}
+                <div class="filter-section">
+                    <label class="filter-label">Time Range</label>
+                    <div class="time-range">
+                        <span>Last</span>
+                        <input type="number" name="hours" value="{{ hours_back }}" min="1" max="168">
+                        <span>hours</span>
+                    </div>
+                </div>
+                {% endif %}
+                
+                <!-- Meter Selection -->
+                <div class="filter-section">
+                    <label class="filter-label">Select Meters (leave empty for all)</label>
+                    <div class="meter-select">
+                        {% for meter in available_meters %}
+                        <label class="meter-checkbox">
+                            <input type="checkbox" name="meters" value="{{ meter }}" 
+                                   {% if meter in selected_meters %}checked{% endif %}>
+                            {{ meter }}
+                        </label>
+                        {% endfor %}
+                    </div>
+                </div>
+                
+                <!-- Column Selection -->
+                <div class="filter-section">
+                    <label class="filter-label">Select Columns to Display</label>
+                    <div class="column-groups">
+                        <div class="column-group">
+                            <h4>
+                                <span>Basic Info</span>
+                                <button type="button" class="toggle-all-btn" onclick="toggleGroup(this)">Deselect All</button>
+                            </h4>
+                            <div class="column-item">
+                                <input type="checkbox" class="col-toggle" data-col="id" checked> ID
+                            </div>
+                            <div class="column-item">
+                                <input type="checkbox" class="col-toggle" data-col="meter_name" checked> Meter Name
+                            </div>
+                            <div class="column-item">
+                                <input type="checkbox" class="col-toggle" data-col="device_id" checked> Device ID
+                            </div>
+                            <div class="column-item">
+                                <input type="checkbox" class="col-toggle" data-col="time" checked> Time
+                            </div>
+                            <div class="column-item">
+                                <input type="checkbox" class="col-toggle" data-col="model"> Model
+                            </div>
+                        </div>
+                        
+                        <div class="column-group">
+                            <h4>
+                                <span>Voltage Phases</span>
+                                <button type="button" class="toggle-all-btn" onclick="toggleGroup(this)">Deselect All</button>
+                            </h4>
+                            <div class="column-item">
+                                <input type="checkbox" class="col-toggle" data-col="vln_average" checked> Average
+                            </div>
+                            <div class="column-item">
+                                <input type="checkbox" class="col-toggle" data-col="v_r_ph" checked> V_R
+                            </div>
+                            <div class="column-item">
+                                <input type="checkbox" class="col-toggle" data-col="v_y_ph" checked> V_Y
+                            </div>
+                            <div class="column-item">
+                                <input type="checkbox" class="col-toggle" data-col="v_b_ph" checked> V_B
+                            </div>
+                            <div class="column-item">
+                                <input type="checkbox" class="col-toggle" data-col="v_r_harmonics"> V_R Harmonics
+                            </div>
+                            <div class="column-item">
+                                <input type="checkbox" class="col-toggle" data-col="v_y_harmonics"> V_Y Harmonics
+                            </div>
+                            <div class="column-item">
+                                <input type="checkbox" class="col-toggle" data-col="v_b_harmonics"> V_B Harmonics
+                            </div>
+                        </div>
+                        
+                        <div class="column-group">
+                            <h4>
+                                <span>Current Phases</span>
+                                <button type="button" class="toggle-all-btn" onclick="toggleGroup(this)">Deselect All</button>
+                            </h4>
+                            <div class="column-item">
+                                <input type="checkbox" class="col-toggle" data-col="a_average" checked> Average
+                            </div>
+                            <div class="column-item">
+                                <input type="checkbox" class="col-toggle" data-col="a_r_ph" checked> I_R
+                            </div>
+                            <div class="column-item">
+                                <input type="checkbox" class="col-toggle" data-col="a_y_ph" checked> I_Y
+                            </div>
+                            <div class="column-item">
+                                <input type="checkbox" class="col-toggle" data-col="a_b_ph" checked> I_B
+                            </div>
+                            <div class="column-item">
+                                <input type="checkbox" class="col-toggle" data-col="a_r_harmonics"> I_R Harmonics
+                            </div>
+                            <div class="column-item">
+                                <input type="checkbox" class="col-toggle" data-col="a_y_harmonics"> I_Y Harmonics
+                            </div>
+                            <div class="column-item">
+                                <input type="checkbox" class="col-toggle" data-col="a_b_harmonics"> I_B Harmonics
+                            </div>
+                        </div>
+                        
+                        <div class="column-group">
+                            <h4>
+                                <span>Reliability Metrics</span>
+                                <button type="button" class="toggle-all-btn" onclick="toggleGroup(this)">Select All</button>
+                            </h4>
+                            <div class="column-item">
+                                <input type="checkbox" class="col-toggle" data-col="on_hours"> On Hours
+                            </div>
+                            <div class="column-item">
+                                <input type="checkbox" class="col-toggle" data-col="load_hours_delivered"> Load Hours
+                            </div>
+                            <div class="column-item">
+                                <input type="checkbox" class="col-toggle" data-col="no_of_interruption"> Interruptions
+                            </div>
+                        </div>
+                        
+                        <div class="column-group">
+                            <h4>
+                                <span>Power</span>
+                                <button type="button" class="toggle-all-btn" onclick="toggleGroup(this)">Select All</button>
+                            </h4>
+                            <div class="column-item">
+                                <input type="checkbox" class="col-toggle" data-col="watts_total" checked> Total
+                            </div>
+                            <div class="column-item">
+                                <input type="checkbox" class="col-toggle" data-col="watts_r_ph"> R Phase
+                            </div>
+                            <div class="column-item">
+                                <input type="checkbox" class="col-toggle" data-col="watts_y_ph"> Y Phase
+                            </div>
+                            <div class="column-item">
+                                <input type="checkbox" class="col-toggle" data-col="watts_b_ph"> B Phase
+                            </div>
+                        </div>
+                        
+                        <div class="column-group">
+                            <h4>
+                                <span>Power Factor</span>
+                                <button type="button" class="toggle-all-btn" onclick="toggleGroup(this)">Select All</button>
+                            </h4>
+                            <div class="column-item">
+                                <input type="checkbox" class="col-toggle" data-col="pf_ave"> Average
+                            </div>
+                            <div class="column-item">
+                                <input type="checkbox" class="col-toggle" data-col="pf_r_ph"> R Phase
+                            </div>
+                            <div class="column-item">
+                                <input type="checkbox" class="col-toggle" data-col="pf_y_ph"> Y Phase
+                            </div>
+                            <div class="column-item">
+                                <input type="checkbox" class="col-toggle" data-col="pf_b_ph"> B Phase
+                            </div>
+                        </div>
+                        
+                        <div class="column-group">
+                            <h4>
+                                <span>Other</span>
+                                <button type="button" class="toggle-all-btn" onclick="toggleGroup(this)">Select All</button>
+                            </h4>
+                            <div class="column-item">
+                                <input type="checkbox" class="col-toggle" data-col="frequency" checked> Frequency
+                            </div>
+                            <div class="column-item">
+                                <input type="checkbox" class="col-toggle" data-col="wh_received"> Wh Received
+                            </div>
+                            <div class="column-item">
+                                <input type="checkbox" class="col-toggle" data-col="location"> Location
+                            </div>
+                            <div class="column-item">
+                                <input type="checkbox" class="col-toggle" data-col="pi_name" checked> Pi Name
+                            </div>
+                            <div class="column-item">
+                                <input type="checkbox" class="col-toggle" data-col="pi_ip" checked> Pi IP
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="margin-top: 20px; display: flex; gap: 10px;">
+                    <button type="submit" class="btn btn-primary">Apply Filters</button>
+                    <button type="button" class="btn btn-secondary" onclick="resetFilters()">Reset</button>
+                </div>
+            </form>
         </div>
-        {% endif %}
-        {% if alert_state and alert_state.timestamp %}
-            <div class="timestamp">Alert state updated: {{ alert_state.timestamp }}</div>
-        {% endif %}
-        <div class="table-responsive">
-            <table class="table table-bordered align-middle">
+        
+        <!-- Action Bar -->
+        <div class="action-bar">
+            <div>
+                <input type="text" id="searchBox" class="search-box" placeholder="Search table...">
+            </div>
+            <div style="display: flex; gap: 10px; align-items: center;">
+                <span class="record-count">Showing <span id="recordCount">{{ rows|length }}</span> records</span>
+                {% if excel_available %}
+                <button class="btn btn-success" onclick="exportExcel()">📥 Download Excel</button>
+                {% else %}
+                <span style="color: #999; font-size: 0.85rem;">Excel export unavailable (install openpyxl)</span>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Data Table -->
+        <div class="table-container">
+            <table id="dataTable">
                 <thead>
                     <tr>
                         {% for col in columns %}
-                            <th>{{ col }}</th>
+                        <th data-col="{{ col }}">{{ col }}</th>
                         {% endfor %}
                     </tr>
                 </thead>
                 <tbody>
-                    {% if rows_aug %}
-                        {% for r in rows_aug %}
-                        <tr class="{% if r.has_alert %}row-has-alert{% endif %}">
-                            {% for val in r.cells %}
-                                <td>{{ val }}</td>
-                            {% endfor %}
-                        </tr>
+                    {% for row in rows %}
+                    <tr>
+                        {% for val in row %}
+                            <td>{{ val }}</td>
                         {% endfor %}
-                    {% else %}
-                        {% for row in rows %}
-                        <tr>
-                            {% for val in row %}
-                                <td>{{ val }}</td>
-                            {% endfor %}
-                        </tr>
-                        {% endfor %}
-                    {% endif %}
+                    </tr>
+                    {% endfor %}
                 </tbody>
             </table>
         </div>
-        <script>
-        // CSRF helper for Django
-        function getCookie(name) {
-            let cookieValue = null;
-            if (document.cookie && document.cookie !== '') {
-                const cookies = document.cookie.split(';');
-                for (let i = 0; i < cookies.length; i++) {
-                    const cookie = cookies[i].trim();
-                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                        break;
-                    }
-                }
-            }
-            return cookieValue;
+    </div>
+    
+    <script>
+        // View Mode Toggle
+        function setViewMode(mode) {
+            document.getElementById('view_mode_input').value = mode;
+            document.getElementById('filterForm').submit();
         }
-        const csrftoken = getCookie('csrftoken');
-
-        document.addEventListener('DOMContentLoaded', function() {
-            // Initialize Leaflet map
-            const leafletCss = document.createElement('link');
-            leafletCss.rel = 'stylesheet';
-            leafletCss.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
-            document.head.appendChild(leafletCss);
-            const leafletJs = document.createElement('script');
-            leafletJs.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
-            leafletJs.onload = function() {
-                const map = L.map('alerts-map').setView([10.975588, 76.737517], 15);
-                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                    maxZoom: 19,
-                    attribution: '&copy; OpenStreetMap contributors'
-                }).addTo(map);
-
-                function refreshMarkers() {
-                    fetch('/api/alerts/geomap/?center_lat=10.975588&center_lon=76.737517&radius=0.01')
-                        .then(r => r.json())
-                        .then(data => {
-                            if (!data || !data.markers) return;
-                            // Clear existing markers by resetting layer
-                            if (window.__alertLayer) {
-                                window.__alertLayer.clearLayers();
-                            } else {
-                                window.__alertLayer = L.layerGroup().addTo(map);
-                            }
-                            data.markers.forEach(m => {
-                                const color = m.active ? 'red' : 'green';
-                                const marker = L.circleMarker([m.latitude, m.longitude], {
-                                    radius: 8,
-                                    color: color,
-                                    weight: 2,
-                                    fillOpacity: 0.7
-                                });
-                                const params = (m.alert_params || []).join(', ');
-                                marker.bindPopup(`<b>${m.meter_name}</b><br/>Active: ${m.active}<br/>Alerts: ${params || 'None'}<br/>Updated: ${m.last_event_ts || ''}`);
-                                window.__alertLayer.addLayer(marker);
-                            });
-                        })
-                        .catch(() => {});
-                }
-                refreshMarkers();
-                setInterval(refreshMarkers, 15000);
-            };
-            document.body.appendChild(leafletJs);
-            document.querySelectorAll('.toggle-failure').forEach(function(btn) {
-                btn.addEventListener('click', function() {
-                    const meter = this.getAttribute('data-meter');
-                    const mode = this.getAttribute('data-mode');
-                    fetch('/api/set_failure_mode/', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRFToken': csrftoken
-                        },
-                        body: JSON.stringify({meter_name: meter, mode: mode})
-                    }).then(r => r.json()).then(data => {
-                        if(data.status === 'ok') window.location.reload();
-                    });
+        
+        // Reset Filters
+        function resetFilters() {
+            window.location.href = window.location.pathname;
+        }
+        
+        // Toggle All Checkboxes in a Group
+        function toggleGroup(button) {
+            const group = button.closest('.column-group');
+            const checkboxes = group.querySelectorAll('.col-toggle');
+            const isSelectAll = button.textContent === 'Select All';
+            
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = isSelectAll;
+                // Trigger change event to update column visibility
+                checkbox.dispatchEvent(new Event('change'));
+            });
+            
+            // Toggle button text
+            button.textContent = isSelectAll ? 'Deselect All' : 'Select All';
+        }
+        
+        // Column Toggle
+        document.querySelectorAll('.col-toggle').forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                const colName = this.dataset.col;
+                const isChecked = this.checked;
+                
+                // Find column index from header
+                const headers = document.querySelectorAll('#dataTable thead th');
+                let colIndex = -1;
+                headers.forEach((th, idx) => {
+                    if (th.dataset.col === colName) {
+                        colIndex = idx;
+                    }
+                });
+                
+                if (colIndex === -1) return;
+                
+                // Toggle header visibility
+                headers[colIndex].classList.toggle('col-hidden', !isChecked);
+                
+                // Toggle all cells in that column
+                document.querySelectorAll('#dataTable tbody tr').forEach(row => {
+                    const cells = row.querySelectorAll('td');
+                    if (cells[colIndex]) {
+                        cells[colIndex].classList.toggle('col-hidden', !isChecked);
+                    }
                 });
             });
         });
-        </script>
-    </div>
+        
+        // Search Functionality
+        document.getElementById('searchBox').addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            const rows = document.querySelectorAll('#dataTable tbody tr');
+            let visibleCount = 0;
+            
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                if (text.includes(searchTerm)) {
+                    row.style.display = '';
+                    visibleCount++;
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+            
+            document.getElementById('recordCount').textContent = visibleCount;
+        });
+        
+        // Excel Export
+        function exportExcel() {
+            const params = new URLSearchParams(window.location.search);
+            
+            // Add visible columns
+            const visibleCols = [];
+            document.querySelectorAll('.col-toggle:checked').forEach(cb => {
+                visibleCols.push(cb.dataset.col);
+            });
+            visibleCols.forEach(col => params.append('columns', col));
+            
+            window.location.href = '/meter_readings/export/excel/?' + params.toString();
+        }
+    </script>
 </body>
 </html>

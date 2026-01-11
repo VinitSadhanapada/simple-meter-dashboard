@@ -187,6 +187,17 @@ class MeterDevice(models.Model):
     raspberry_pi = models.ForeignKey(
         RaspberryPi, on_delete=models.CASCADE, related_name='meters')
     is_active = models.BooleanField(default=True)
+    
+    # GPS coordinates for mapping
+    latitude = models.DecimalField(
+        max_digits=9, decimal_places=6, null=True, blank=True,
+        help_text="Latitude coordinate for map display"
+    )
+    longitude = models.DecimalField(
+        max_digits=9, decimal_places=6, null=True, blank=True,
+        help_text="Longitude coordinate for map display"
+    )
+    
     last_updated = models.DateTimeField(auto_now=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -228,11 +239,18 @@ class MeterDevice(models.Model):
 def _default_usb_copy():
     return {
         "enabled": True,
-        "dest_root_name": "OfflineDashboard",
+        "dest_root_name": "COPIED_DATA",
         "subfolder": "data/csv",
         "poll_interval_sec": 5,
         "cooldown_seconds": 600,
         "min_free_mb": 50,
+        "mount_settle_seconds": 2,
+        "sync_after_copy": True,
+        "eject_after_copy": True,
+        "write_done_marker": True,
+        "always_copy_on_insert": True,
+        "min_rw_seconds": 30,
+        "quiesce_wait_seconds": 120,
     }
 
 def _default_cloud_sync():
@@ -263,7 +281,7 @@ class SystemConfiguration(models.Model):
     simulation_mode = models.BooleanField(
         default=False, help_text="Set true to simulate readings")
     reading_interval = models.PositiveIntegerField(
-        default=30, help_text="Seconds between reading cycles")
+        default=5, help_text="Seconds between reading cycles")
     inter_device_delay = models.FloatField(
         default=0.1, help_text="Delay (seconds) between device reads")
     port = models.CharField(
@@ -328,7 +346,9 @@ class SystemConfiguration(models.Model):
             "READING_INTERVAL": self.reading_interval,
             "INTER_DEVICE_DELAY": self.inter_device_delay,
             "PORT": self.port,
-            "ENABLE_MQTT": bool(self.mqtt_broker_ip),
+            "ENABLE_CSV_WRITE": self.enable_csv_write,
+            # Force MQTT to be enabled regardless of broker IP presence
+            "ENABLE_MQTT": True,
             "ENABLE_RTC": self.enable_rtc,
             "LOG_LEVEL": self.log_level,
             "MQTT": mqtt_section,
@@ -360,6 +380,14 @@ class ConfigurationDeployment(models.Model):
     error_message = models.TextField(blank=True)
     deployed_at = models.DateTimeField(auto_now_add=True)
     completed_at = models.DateTimeField(null=True, blank=True)
+
+    # Optional excludes for SYSTEM_CONFIG sections; when True, that section is NOT pushed
+    exclude_reading = models.BooleanField(default=False, help_text="Skip 'Reading Configuration' section (simulation_mode, intervals, port, enable_rtc, enable_csv_write)")
+    exclude_mqtt = models.BooleanField(default=False, help_text="Skip 'MQTT Settings' section (ENABLE_MQTT, MQTT block)")
+    exclude_usb_copy = models.BooleanField(default=False, help_text="Skip 'USB Copy' section")
+    exclude_cloud_sync = models.BooleanField(default=False, help_text="Skip 'Cloud Sync' section")
+    exclude_logging = models.BooleanField(default=False, help_text="Skip 'Logging' section (LOG_LEVEL)")
+    exclude_legacy_network = models.BooleanField(default=False, help_text="Skip 'Legacy / Network' section (DB_SERVER_IP, SERVER_API_IP)")
 
     class Meta:
         verbose_name = "Configuration Deployment"

@@ -1,0 +1,50 @@
+[
+  {
+    "meter_name": "24_WAY_UPS_DB_1",
+    "meter_address": 4,
+    "meter_model": "LG6400",
+    "location": "Drishti",
+    "pi_ip": "192.168.112.91",
+    "pi_name": "DrishtiStudio"
+  },
+  {
+    "meter_name": "20WAY_UPS_LIGHTING_DB_3",
+    "meter_address": 3,
+    "meter_model": "LG6400",
+    "location": "Drishti",
+    "pi_ip": "192.168.112.91",
+    "pi_name": "DrishtiStudio"
+  },
+  {
+    "meter_name": "20_WAY_UPS_DB_2",
+    "meter_address": 2,
+    "meter_model": "LG6400",
+    "location": "Drishti",
+    "pi_ip": "192.168.112.91",
+    "pi_name": "DrishtiStudio"
+  },
+  {
+    "meter_name": "6WAY_7_SEG_PDB_1",
+    "meter_address": 5,
+    "meter_model": "LG6400",
+    "location": "Drishti",
+    "pi_ip": "192.168.112.91",
+    "pi_name": "DrishtiStudio"
+  },
+  {
+    "meter_name": "EB_INCOMER",
+    "meter_address": 1,
+    "meter_model": "LG6400",
+    "location": "Drishti",
+    "pi_ip": "192.168.112.91",
+    "pi_name": "DrishtiStudio"
+  },
+  {
+    "meter_name": "SnakeSideMeter",
+    "meter_address": 1,
+    "meter_model": "LG6400",
+    "location": "Adiyogi",
+    "pi_ip": "192.168.112.71",
+    "pi_name": "SnakeSideTower"
+  }
+]

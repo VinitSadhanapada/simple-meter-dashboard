@@ -1,0 +1,120 @@
+[
+  {
+    "pi_name": "DrishtiStudio",
+    "pi_ip": "192.168.112.91",
+    "config": {
+      "SIMULATION_MODE": false,
+      "READING_INTERVAL": 5,
+      "INTER_DEVICE_DELAY": 0.1,
+      "PORT": "/dev/ttyUSB0",
+      "ENABLE_CSV_WRITE": true,
+      "ENABLE_MQTT": true,
+      "ENABLE_RTC": true,
+      "LOG_LEVEL": "INFO",
+      "MQTT": {
+        "MQTT_BROKER": "192.168.112.106",
+        "MQTT_PORT": 1883,
+        "MQTT_USERNAME": "gAAAAABpNU5dVO3xVNHRpbElMm1PuG1Ps68Ip8WO1BvRNngNFZmA1B0moXEBLKFF56BDz5YCJjZbnVfcaVKEyZAVHhmB3CFBFg==",
+        "MQTT_PASSWORD": "gAAAAABpNU5dPnEw9ZxZSWOjUUsaqZrwLBIMz0WFg8zKO5jruMO_-jcq48oP8GsSfOoW8QrfRXipyfGjjuIhM_Mm0nQR28G5aA==",
+        "MQTT_TOPIC": "meter/readings",
+        "MQTT_TLS": false,
+        "MQTT_QOS": 0
+      },
+      "usb_copy": {
+        "enabled": true,
+        "dest_root_name": "COPIED_DATA",
+        "subfolder": "data/csv",
+        "poll_interval_sec": 5,
+        "cooldown_seconds": 600,
+        "min_free_mb": 50,
+        "mount_settle_seconds": 2,
+        "sync_after_copy": true,
+        "eject_after_copy": true,
+        "write_done_marker": true,
+        "always_copy_on_insert": true,
+        "min_rw_seconds": 30,
+        "quiesce_wait_seconds": 120
+      },
+      "cloud_sync": {
+        "enabled": false,
+        "method": "rclone",
+        "interval_minutes": 10,
+        "interval_seconds": 10,
+        "network_test_host": "8.8.8.8",
+        "network_test_port": 53,
+        "min_age_seconds": 60,
+        "rclone_remote": "gdrive:",
+        "dest_path": "offline-dashboard/data/csv",
+        "snapshot_mode": {
+          "enabled": true,
+          "state_file": "logs/.cloud_snapshot_state.json",
+          "snapshot_dir": "data/snapshots/csv"
+        },
+        "rsync_target": "user@host:/path/to/offline-dashboard/data/csv",
+        "ssh_key": "/home/pi/.ssh/id_rsa",
+        "ssh_port": 22
+      },
+      "DB_SERVER_IP": null,
+      "SERVER_API_IP": null
+    }
+  },
+  {
+    "pi_name": "SnakeSideTower",
+    "pi_ip": "192.168.112.71",
+    "config": {
+      "SIMULATION_MODE": false,
+      "READING_INTERVAL": 60,
+      "INTER_DEVICE_DELAY": 0.1,
+      "PORT": "/dev/ttyUSB0",
+      "ENABLE_CSV_WRITE": true,
+      "ENABLE_MQTT": true,
+      "ENABLE_RTC": true,
+      "LOG_LEVEL": "INFO",
+      "MQTT": {
+        "MQTT_BROKER": "192.168.112.106",
+        "MQTT_PORT": 1883,
+        "MQTT_USERNAME": "gAAAAABpSmpVQ1vA3nVTpjh1LY3Mdvh_xsDHgBNLZQACShpNv7sfrzsZ9G2hiZqBIsMfSiqx2bs0SpwZIKg5LQ-6fMglOa3BcQ==",
+        "MQTT_PASSWORD": "gAAAAABpSmpVc-kkIDEKJ0mZHiY0XubkitBiy3YZ2HVLxCHabLOq9UASJS7umybIE2qzaqbrYBESZbNId8lwPoyLYqGhsCx2cw==",
+        "MQTT_TOPIC": "meter/readings",
+        "MQTT_TLS": false,
+        "MQTT_QOS": 0
+      },
+      "usb_copy": {
+        "enabled": true,
+        "dest_root_name": "COPIED_DATA",
+        "subfolder": "data/csv",
+        "poll_interval_sec": 5,
+        "cooldown_seconds": 600,
+        "min_free_mb": 50,
+        "mount_settle_seconds": 2,
+        "sync_after_copy": true,
+        "eject_after_copy": true,
+        "write_done_marker": true,
+        "always_copy_on_insert": true,
+        "min_rw_seconds": 30,
+        "quiesce_wait_seconds": 120
+      },
+      "cloud_sync": {
+        "enabled": false,
+        "method": "rclone",
+        "interval_minutes": 10,
+        "interval_seconds": 10,
+        "network_test_host": "8.8.8.8",
+        "network_test_port": 53,
+        "min_age_seconds": 60,
+        "rclone_remote": "gdrive:",
+        "dest_path": "offline-dashboard/data/csv",
+        "snapshot_mode": {
+          "enabled": true,
+          "state_file": "logs/.cloud_snapshot_state.json",
+          "snapshot_dir": "data/snapshots/csv"
+        },
+        "rsync_target": "user@host:/path/to/offline-dashboard/data/csv",
+        "ssh_key": "/home/pi/.ssh/id_rsa",
+        "ssh_port": 22
+      },
+      "DB_SERVER_IP": null,
+      "SERVER_API_IP": null
+    }
+  }
+]

@@ -11,9 +11,9 @@
     </button>
     <ul class="dropdown-menu">
         <li><a class="dropdown-item" href="#" onclick="deployConfig({{ pi.id }}, 'DEVICE_CONFIG')">Device Config Only</a></li>
-        <li><a class="dropdown-item" href="#" onclick="deployConfig({{ pi.id }}, 'SYSTEM_CONFIG')">System Config Only</a></li>
+        <li><a class="dropdown-item" href="#" onclick="openDeployOptions({{ pi.id }}, 'SYSTEM_CONFIG')">System Config Only</a></li>
         <li><hr class="dropdown-divider"></li>
-        <li><a class="dropdown-item" href="#" onclick="deployConfig({{ pi.id }}, 'BOTH')">Both Configurations</a></li>
+        <li><a class="dropdown-item" href="#" onclick="openDeployOptions({{ pi.id }}, 'BOTH')">Both Configurations</a></li>
     </ul>
 </div>
 <div class="btn-group ms-2">
@@ -290,16 +290,77 @@
 <form id="deployForm" method="POST" action="{% url 'device_config:deploy_config' pi.id %}" style="display: none;">
     {% csrf_token %}
     <input type="hidden" name="deployment_type" id="deploymentType">
+        <input type="hidden" name="exclude_reading" id="exclude_reading">
+        <input type="hidden" name="exclude_mqtt" id="exclude_mqtt">
+        <input type="hidden" name="exclude_usb_copy" id="exclude_usb_copy">
+        <input type="hidden" name="exclude_cloud_sync" id="exclude_cloud_sync">
+        <input type="hidden" name="exclude_logging" id="exclude_logging">
+        <input type="hidden" name="exclude_legacy_network" id="exclude_legacy_network">
 </form>
+
+<!-- Deploy Options Modal -->
+<div class="modal" tabindex="-1" id="deployOptionsModal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Deployment Options</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Select sections to skip (these will NOT be pushed):</p>
+                <div class="form-check"><input class="form-check-input" type="checkbox" id="opt_ex_reading"><label class="form-check-label" for="opt_ex_reading">Skip Reading Configuration</label></div>
+                <div class="form-check"><input class="form-check-input" type="checkbox" id="opt_ex_mqtt"><label class="form-check-label" for="opt_ex_mqtt">Skip MQTT Settings</label></div>
+                <div class="form-check"><input class="form-check-input" type="checkbox" id="opt_ex_usb"><label class="form-check-label" for="opt_ex_usb">Skip USB Copy</label></div>
+                <div class="form-check"><input class="form-check-input" type="checkbox" id="opt_ex_cloud"><label class="form-check-label" for="opt_ex_cloud">Skip Cloud Sync</label></div>
+                <div class="form-check"><input class="form-check-input" type="checkbox" id="opt_ex_log"><label class="form-check-label" for="opt_ex_log">Skip Logging</label></div>
+                <div class="form-check"><input class="form-check-input" type="checkbox" id="opt_ex_legacy"><label class="form-check-label" for="opt_ex_legacy">Skip Legacy / Network</label></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="submitDeployOptions()">Deploy</button>
+            </div>
+        </div>
+    </div>
+ </div>
 {% endblock %}
 
 {% block scripts %}
 <script>
+let _pendingDeploymentType = null;
 function deployConfig(piId, deploymentType) {
-    if (confirm('Are you sure you want to deploy configuration to this Raspberry Pi?')) {
-        document.getElementById('deploymentType').value = deploymentType;
-        document.getElementById('deployForm').submit();
+    // Only used for DEVICE_CONFIG which has no options
+    if (deploymentType === 'DEVICE_CONFIG') {
+        if (confirm('Deploy device configuration to this Raspberry Pi?')) {
+            document.getElementById('deploymentType').value = deploymentType;
+            document.getElementById('deployForm').submit();
+        }
+    } else {
+        openDeployOptions(piId, deploymentType);
     }
+}
+
+function openDeployOptions(piId, deploymentType) {
+    _pendingDeploymentType = deploymentType;
+    // Reset checkboxes
+    ['opt_ex_reading','opt_ex_mqtt','opt_ex_usb','opt_ex_cloud','opt_ex_log','opt_ex_legacy'].forEach(id => {
+        const el = document.getElementById(id); if (el) el.checked = false;
+    });
+    // Show modal (Bootstrap 5)
+    const modalEl = document.getElementById('deployOptionsModal');
+    const modal = new bootstrap.Modal(modalEl);
+    modal.show();
+}
+
+function submitDeployOptions() {
+    document.getElementById('deploymentType').value = _pendingDeploymentType || 'SYSTEM_CONFIG';
+    // Map modal checkboxes to hidden inputs
+    document.getElementById('exclude_reading').value = document.getElementById('opt_ex_reading').checked ? 'on' : '';
+    document.getElementById('exclude_mqtt').value = document.getElementById('opt_ex_mqtt').checked ? 'on' : '';
+    document.getElementById('exclude_usb_copy').value = document.getElementById('opt_ex_usb').checked ? 'on' : '';
+    document.getElementById('exclude_cloud_sync').value = document.getElementById('opt_ex_cloud').checked ? 'on' : '';
+    document.getElementById('exclude_logging').value = document.getElementById('opt_ex_log').checked ? 'on' : '';
+    document.getElementById('exclude_legacy_network').value = document.getElementById('opt_ex_legacy').checked ? 'on' : '';
+    document.getElementById('deployForm').submit();
 }
 
 function testConnection(piId) {

@@ -1,33 +1,262 @@
-# Current bugs
+# Simple Meter Dashboard
 
-Multiple instances running
-Check with: ps aux | grep -E "(simple_rpi_dashboard|print_dashboard)" | grep -v grep
+**Real-time electrical meter monitoring and alerting system for industrial environments.**
 
+[![Django](https://img.shields.io/badge/Django-5.2.5-green.svg)](https://www.djangoproject.com/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-14+-blue.svg)](https://www.postgresql.org/)
+[![Docker](https://img.shields.io/badge/Docker-Compose-blue.svg)](https://www.docker.com/)
 
-# Meter Reading Dashboard System
+---
 
-A comprehensive electrical meter reading system with multiple deployment options for different use cases.
+## 🚀 Quick Start
 
-## 🎯 Choose Your Use Case
+```bash
+# 1. Clone and enter directory
+cd /home/isha/opt/simple-meter-dashboard
 
-### 📱 **Desktop/Manual Operation** 
-**For interactive use on Windows/Linux desktops**
-- Interactive console dashboard
-- Manual start/stop control  
-- Real-time monitoring and debugging
-- ➡️ **Use:** `print_dashboard2.py`
+# 2. Start the application
+docker compose up -d
 
-### 🤖 **Raspberry Pi Auto-Startup**
-**For unattended RPi deployments**
-- Automatic startup on boot
-- Headless operation
-- Systemd service management
-- CSV logging with device names
-- ➡️ **Use:** `simple_rpi_dashboard.py`
+# 3. Access the dashboard
+open http://localhost:8000
+```
 
-### 🌐 **Offline/Air-Gapped Deployment**
-**For systems without internet connectivity**
-- Pre-downloaded packages
+**That's it!** See [docs/QUICK_START.md](docs/QUICK_START.md) for detailed setup.
+
+---
+
+## 📚 Complete Documentation
+
+All documentation has been organized into the **docs/** folder:
+
+### Essential Reading
+- **[00_DOCUMENTATION_INDEX.md](docs/00_DOCUMENTATION_INDEX.md)** - Documentation hub (start here)
+- **[QUICK_START.md](docs/QUICK_START.md)** - 5-minute setup guide
+- **[QUICK_REFERENCE.md](docs/QUICK_REFERENCE.md)** - One-page cheat sheet
+- **[PROJECT_OVERVIEW.md](docs/PROJECT_OVERVIEW.md)** - Complete system architecture
+
+### For Deployment
+- **[DEPLOYMENT_SECURITY_CHECKLIST.md](docs/DEPLOYMENT_SECURITY_CHECKLIST.md)** - Critical security issues ⚠️
+- **[README_DEPLOY_USB.md](docs/README_DEPLOY_USB.md)** - Offline deployment guide
+- **[README_UBUNTU_HOST_SETUP.md](docs/README_UBUNTU_HOST_SETUP.md)** - Ubuntu host setup
+
+### For Maintenance
+- **[FILE_CLEANUP_GUIDE.md](docs/FILE_CLEANUP_GUIDE.md)** - Legacy file identification
+- **[CLEANUP_COMPLETED.md](docs/CLEANUP_COMPLETED.md)** - Recent cleanup report
+- **[SAFE_CLEANUP_STEPS.md](docs/SAFE_CLEANUP_STEPS.md)** - How cleanup was done
+- **[HANDOVER_SUMMARY.md](docs/HANDOVER_SUMMARY.md)** - Status summary
+
+---
+
+## 🎯 What This System Does
+
+### Real-Time Monitoring
+- **277K+ meter readings** from 5 devices
+- **Live data ingestion** via MQTT protocol
+- **Web dashboard** at http://localhost:8000
+- **Grafana analytics** at http://localhost:3000
+
+### Alert System
+- Real-time voltage/current/power factor monitoring
+- Celery + Redis for async alert processing
+- Email notifications (configured in .env.grafana)
+- Alert history and event tracking
+
+### Device Management (DCMS)
+- SSH-based device configuration
+- Remote script deployment to Raspberry Pis
+- Device health monitoring
+- Configuration export/import
+
+---
+
+## 🏗️ Architecture
+
+```
+┌─────────────────────────────────────────────┐
+│         IoT Devices (Raspberry Pi)          │
+│  ┌──────────┐  ┌──────────┐  ┌──────────┐  │
+│  │ Meter 1  │  │ Meter 2  │  │ Meter 3  │  │
+│  └────┬─────┘  └────┬─────┘  └────┬─────┘  │
+│       │ Modbus      │ Modbus      │ Modbus  │
+│       ▼             ▼             ▼         │
+│  ┌────────────────────────────────────────┐ │
+│  │        MQTT Publisher (Mosquitto)      │ │
+│  └──────────────────┬─────────────────────┘ │
+└─────────────────────┼───────────────────────┘
+                      │ MQTT over network
+                      ▼
+┌─────────────────────────────────────────────┐
+│        Simple Meter Dashboard (Server)      │
+│  ┌──────────────────────────────────────┐   │
+│  │    Django Web App (Port 8000)        │   │
+│  │  - REST API                          │   │
+│  │  - Web UI                            │   │
+│  │  - MQTT Subscriber                   │   │
+│  │  - Celery Workers (Alerts)           │   │
+│  └────┬────────────┬──────────────┬─────┘   │
+│       │            │              │          │
+│       ▼            ▼              ▼          │
+│  ┌─────────┐  ┌────────┐    ┌──────────┐   │
+│  │PostgreSQL│  │ Redis  │    │ Grafana  │   │
+│  │(External)│  │(Host)  │    │(Port3000)│   │
+│  └──────────┘  └────────┘    └──────────┘   │
+└─────────────────────────────────────────────┘
+```
+
+---
+
+## 🛠️ Technology Stack
+
+- **Backend:** Django 5.2.5, Python 3.10
+- **Database:** PostgreSQL 14+ (external: 192.168.112.106)
+- **Cache/Queue:** Redis (host: host.docker.internal:6379)
+- **Task Queue:** Celery
+- **MQTT:** Paho MQTT client
+- **Monitoring:** Grafana + Loki
+- **Containerization:** Docker Compose
+
+---
+
+## 📊 Current Status
+
+| Metric | Value |
+|--------|-------|
+| Total Readings | 277,000+ |
+| Active Devices | 5 |
+| Database Size | External PostgreSQL |
+| Uptime | 43+ hours |
+| Last Cleanup | Jan 6, 2026 |
+| Space Freed | 1.52 GB |
+
+See [docs/CLEANUP_COMPLETED.md](docs/CLEANUP_COMPLETED.md) for recent cleanup details.
+
+---
+
+## ⚙️ Common Operations
+
+### Start the system
+```bash
+docker compose up -d
+```
+
+### View logs
+```bash
+docker compose logs -f app
+```
+
+### Stop the system
+```bash
+docker compose down
+```
+
+### Rebuild after changes
+```bash
+docker compose down
+docker compose build
+docker compose up -d
+```
+
+### Access database
+```bash
+# From inside container
+docker exec -it meter_dashboard python meter_dashboard/manage.py dbshell
+```
+
+---
+
+## 🔐 Security Notes
+
+⚠️ **10 CRITICAL security issues identified** - See [docs/DEPLOYMENT_SECURITY_CHECKLIST.md](docs/DEPLOYMENT_SECURITY_CHECKLIST.md)
+
+Before production deployment:
+1. Change SECRET_KEY
+2. Set DEBUG=False
+3. Configure ALLOWED_HOSTS
+4. Change default database passwords
+5. Set up HTTPS
+6. Enable CSRF protection
+7. Configure proper CORS
+8. Set up authentication
+9. Review FIELD_ENCRYPTION_KEY
+10. Enable security headers
+
+---
+
+## 📁 Project Structure
+
+```
+simple-meter-dashboard/
+├── README.md                    # This file
+├── docker-compose.yml           # Container orchestration
+├── Dockerfile                   # App container definition
+├── requirements.txt             # Python dependencies
+│
+├── docs/                        # 📚 All documentation
+│   ├── 00_DOCUMENTATION_INDEX.md
+│   ├── PROJECT_OVERVIEW.md
+│   ├── QUICK_START.md
+│   ├── DEPLOYMENT_SECURITY_CHECKLIST.md
+│   └── ... (see docs/ folder)
+│
+├── iot_scripts/                 # Server essentials only
+│   ├── alerting/                # Celery alert tasks
+│   ├── config.json              # DB configuration
+│   ├── failure_modes.json       # Alert thresholds
+│   ├── mqtt_to_db_ingest.py     # MQTT subscriber
+│   └── offline_rpi_dashboard_db.py
+│
+├── meter_dashboard/             # Django project
+│   ├── meter_dashboard/         # Project settings
+│   ├── meter_readings/          # Meter readings app
+│   ├── templates/               # HTML templates
+│   ├── static/                  # CSS/JS/images
+│   └── manage.py                # Django management
+│
+├── scripts/                     # Utility scripts
+│   └── cleanup.sh               # Cleanup automation
+│
+├── device_config_exports/       # DCMS exports
+├── grafana/                     # Grafana dashboards
+└── .env.grafana                 # Grafana config
+```
+
+---
+
+## 🤝 For IT Team / Handover
+
+This project has been cleaned and documented for easy handover:
+
+1. **Start here:** [docs/00_DOCUMENTATION_INDEX.md](docs/00_DOCUMENTATION_INDEX.md)
+2. **Quick setup:** [docs/QUICK_START.md](docs/QUICK_START.md)
+3. **Security review:** [docs/DEPLOYMENT_SECURITY_CHECKLIST.md](docs/DEPLOYMENT_SECURITY_CHECKLIST.md)
+4. **Architecture:** [docs/PROJECT_OVERVIEW.md](docs/PROJECT_OVERVIEW.md)
+
+All device-specific code has been removed from this server repository. Only server-essential files remain.
+
+See [docs/CLEANUP_COMPLETED.md](docs/CLEANUP_COMPLETED.md) for details on what was cleaned (1.52GB freed).
+
+---
+
+## 📞 Support
+
+For questions or issues:
+1. Check [docs/QUICK_REFERENCE.md](docs/QUICK_REFERENCE.md) for common solutions
+2. Review logs: `docker compose logs -f app`
+3. Check [docs/PROJECT_OVERVIEW.md](docs/PROJECT_OVERVIEW.md) for architecture details
+
+---
+
+## 📄 License
+
+Internal project for electrical meter monitoring.
+
+---
+
+**Last Updated:** January 6, 2026  
+**Status:** ✅ Production-ready (after security hardening)  
+**Cleaned:** Yes (1.52GB freed, device code removed)
+
 - Offline installation support
 - Works with both desktop and RPi modes
 - ➡️ **See:** `docs/OFFLINE_INSTALLATION.md`
@@ -329,7 +558,14 @@ python3 simple_rpi_dashboard.py --setup
 
 ---
 
-## 🚀 Quick Reference
+## � Security
+
+### SSH Password Encryption
+SSH passwords for Raspberry Pi devices are encrypted using **Fernet encryption** (AES-128) via `django-encrypted-model-fields`. Ensure the `FIELD_ENCRYPTION_KEY` environment variable is set in production deployments.
+
+---
+
+## �🚀 Quick Reference
 
 ### Permission Requirements
 

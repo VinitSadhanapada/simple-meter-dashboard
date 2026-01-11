@@ -3,7 +3,9 @@ from django.contrib import messages
 from django.utils.html import format_html
 from django.urls import reverse
 from django.utils.safestring import mark_safe
+from django.shortcuts import render
 from .models import RaspberryPi, MeterDevice, SystemConfiguration, ConfigurationDeployment, OTADeployment
+from .services import ConfigurationDeploymentService
 from .forms import MeterDeviceForm, RaspberryPiForm
 import os
 from device_config.tasks import run_ota_deployment
@@ -49,7 +51,7 @@ class RaspberryPiAdmin(admin.ModelAdmin):
     meter_count.short_description = 'Active Meters'
 
     actions = ['activate_pis', 'deactivate_pis', 'setup_ssh_keys',
-               'test_ssh_connections', 'regenerate_ssh_keys']
+               'test_ssh_connections', 'regenerate_ssh_keys', 'deploy_system_config_with_options']
 
     def activate_pis(self, request, queryset):
         updated = queryset.update(is_active=True)
@@ -130,14 +132,61 @@ class RaspberryPiAdmin(admin.ModelAdmin):
 
     regenerate_ssh_keys.short_description = "Regenerate SSH keys for selected Pis"
 
+    def deploy_system_config_with_options(self, request, queryset):
+        """Admin action: prompt for section excludes, then deploy system config for selected Pis."""
+        if 'apply' in request.POST:
+            # Read options and perform deployments
+            exclude_reading = bool(request.POST.get('exclude_reading'))
+            exclude_mqtt = bool(request.POST.get('exclude_mqtt'))
+            exclude_usb_copy = bool(request.POST.get('exclude_usb_copy'))
+            exclude_cloud_sync = bool(request.POST.get('exclude_cloud_sync'))
+            exclude_logging = bool(request.POST.get('exclude_logging'))
+            exclude_legacy_network = bool(request.POST.get('exclude_legacy_network'))
+
+            svc = ConfigurationDeploymentService()
+            success, failed = 0, 0
+            for pi in queryset:
+                dep = ConfigurationDeployment.objects.create(
+                    raspberry_pi=pi,
+                    deployment_type='SYSTEM_CONFIG',
+                    status='PENDING',
+                    exclude_reading=exclude_reading,
+                    exclude_mqtt=exclude_mqtt,
+                    exclude_usb_copy=exclude_usb_copy,
+                    exclude_cloud_sync=exclude_cloud_sync,
+                    exclude_logging=exclude_logging,
+                    exclude_legacy_network=exclude_legacy_network,
+                )
+                res = svc.run_deployment(dep.id)
+                if res and res.status == 'SUCCESS':
+                    success += 1
+                else:
+                    failed += 1
+            if success:
+                self.message_user(request, f"Deployed system config to {success} Raspberry Pi(s).", level=messages.SUCCESS)
+            if failed:
+                self.message_user(request, f"Failed deployments: {failed}. Check deployment records for errors.", level=messages.ERROR)
+            return None
+
+        # First step: render options form
+        context = {
+            'title': 'Deploy System Config with Options',
+            'action': 'deploy_system_config_with_options',
+            'queryset': queryset,
+        }
+        return render(request, 'admin/device_config/deploy_system_config.html', context)
+    deploy_system_config_with_options.short_description = "Deploy System Config (with options)"
+
 
 @admin.register(MeterDevice)
 class MeterDeviceAdmin(admin.ModelAdmin):
     form = MeterDeviceForm
     list_display = ['meter_name', 'meter_model', 'meter_address',
                     'raspberry_pi', 'get_location', 'is_active', 'last_updated']
-    list_filter = ['meter_model', 'is_active',
+    # Add location-based filtering and order by location for grouping in admin
+    list_filter = ['raspberry_pi__location', 'meter_model', 'is_active',
                    'raspberry_pi__pi_name', 'created_at']
+    ordering = ['raspberry_pi__location', 'raspberry_pi__pi_name', 'meter_name']
     search_fields = ['meter_name', 'meter_model', 'raspberry_pi__pi_name']
     readonly_fields = ['last_updated', 'created_at']
 
@@ -260,6 +309,13 @@ class ConfigurationDeploymentAdmin(admin.ModelAdmin):
         ('Deployment Information', {
             'fields': ('raspberry_pi', 'deployment_type', 'status')
         }),
+        ('Optional Section Excludes (System Config only)', {
+            'fields': (
+                'exclude_reading', 'exclude_mqtt', 'exclude_usb_copy',
+                'exclude_cloud_sync', 'exclude_logging', 'exclude_legacy_network',
+            ),
+            'description': 'Tick to skip pushing that section. Applies to SYSTEM_CONFIG or BOTH.',
+        }),
         ('Timing', {
             'fields': ('deployed_at', 'completed_at', 'duration')
         }),
@@ -281,7 +337,7 @@ class ConfigurationDeploymentAdmin(admin.ModelAdmin):
             return self.readonly_fields + ('raspberry_pi', 'deployment_type')
         return self.readonly_fields
 
-    actions = ['retry_failed_deployments']
+    actions = ['run_selected_deployments', 'retry_failed_deployments']
 
     def retry_failed_deployments(self, request, queryset):
         # This would need to be implemented with the deployment service
@@ -289,6 +345,16 @@ class ConfigurationDeploymentAdmin(admin.ModelAdmin):
         self.message_user(
             request, f'Retry functionality needs to be implemented for {failed_deployments.count()} deployments.')
     retry_failed_deployments.short_description = "Retry failed deployments"
+
+    def run_selected_deployments(self, request, queryset):
+        from .services import ConfigurationDeploymentService
+        svc = ConfigurationDeploymentService()
+        count = 0
+        for dep in queryset:
+            res = svc.run_deployment(dep.id)
+            count += 1 if res else 0
+        self.message_user(request, f'Executed {count} deployment(s). Refresh to see updated statuses.')
+    run_selected_deployments.short_description = "Run deployments now"
 
 
 @admin.register(OTADeployment)
